@@ -1,0 +1,5 @@
+Por cada posible situacion de error de entidad agregar un archivo con formato
+[EntityName][ErrorResponse]Exception.java
+
+Agregar:
+GlobalExceptionHandler.java

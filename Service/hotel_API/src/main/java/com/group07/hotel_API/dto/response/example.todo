@@ -1,0 +1,5 @@
+Por cada entidad crear una carpeta y dentro iran las response
+
+Agregar:
+ApiErrorResponse.java
+GeneralResponse.java
