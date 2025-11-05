@@ -1,0 +1,11 @@
+{
+  "Laundry": [
+    { "name": "Swift", "description": "Liquid Detergent", "units": 32, "available": true },
+    { "name": "Magia Blanca", "description": "Bleach", "units": 4, "available": true },
+    { "name": "Laundry Basket", "description": "Laundry Supplies", "units": 2, "available": false }
+  ],
+  "Kitchen": [
+    { "name": "Dish Soap", "description": "Cleaning", "units": 10, "available": true },
+    { "name": "Sponge", "description": "Scrubber", "units": 0, "available": false }
+  ]
+}
