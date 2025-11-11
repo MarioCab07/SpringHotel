@@ -1,10 +1,3 @@
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('101', 'AVAILABLE', 1, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('102', 'AVAILABLE', 2, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('103', 'AVAILABLE', 3, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('104', 'AVAILABLE', 1, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('105', 'AVAILABLE', 2, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('106', 'AVAILABLE', 3, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('107', 'AVAILABLE', 1, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('108', 'AVAILABLE', 2, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('109', 'AVAILABLE', 3, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('110', 'AVAILABLE', 1, NULL);
+INSERT INTO reason(name,description) VALUES('Booking','10$ dollar payment for booking');
+INSERT INTO reason(name,description) VALUES('CheckIn','Payment for customer checkin');
+INSERT INTO reason(name,description) VALUES('CheckOut','Payment at checkout of room services requested');
