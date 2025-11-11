@@ -1,24 +1,23 @@
 package com.group07.hotel_API.entities;
 
-
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "payment_method")
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 public class PaymentMethod {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String name; // Ej: "Tarjeta de crédito", "Efectivo", "Transferencia"
+    private String name;
 
+    @Column
+    private String description;
 }
