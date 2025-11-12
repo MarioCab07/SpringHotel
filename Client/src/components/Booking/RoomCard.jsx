@@ -1,136 +1,78 @@
-import React, { useEffect } from "react";
-import { FaBath, FaWifi, FaParking, FaUtensils } from "react-icons/fa";
-import BookNowButton from "../Buttons/BookNowButtom";
-import { useState } from "react";
+import React from "react";
+import { FaStar, FaBath, FaParking, FaUtensils } from "react-icons/fa";
+import { MdWifi } from "react-icons/md";
 
-const RoomCard = ({ room, info, setShowBookingModal, setSelectedRoom }) => {
-  const [total, setTotal] = useState(() => {
-    const nights =
-      info && info.startDate && info.endDate
-        ? Math.max(
-            1,
-            Math.ceil(
-              (new Date(info.endDate) - new Date(info.startDate)) /
-                (1000 * 60 * 60 * 24)
-            )
-          )
-        : 1;
-    return room.roomType.price * nights;
-  });
-
-  useEffect(() => {
-    const nights =
-      info && info.startDate && info.endDate
-        ? Math.max(
-            1,
-            Math.ceil(
-              (new Date(info.endDate) - new Date(info.startDate)) /
-                (1000 * 60 * 60 * 24)
-            )
-          )
-        : 1;
-    setTotal(room.roomType.price * nights);
-  }, [info]);
-
-  const handleBooking = (selectRoom) => {
+const RoomCard = ({ room = {}, setShowBookingModal, setSelectedRoom }) => {
+  const handleBooking = () => {
+    setSelectedRoom(room);
     setShowBookingModal(true);
-    setSelectedRoom(selectRoom);
   };
 
-  // const handleBooking = () => {
-  //   console.log("Reservando habitación ID:", room.roomId);
-  // };
-
-  // const nights =
-  //   dates && dates.start && dates.end
-  //     ? Math.max(
-  //         1,
-  //         Math.ceil(
-  //           (new Date(dates.end) - new Date(dates.start)) /
-  //             (1000 * 60 * 60 * 24)
-  //         )
-  //       )
-  //     : 1;
-
-  // const total = room.price * nights;
-
-  // let roomTypeName = "Tipo no especificado";
-  // let description = "Sin descripción";
-
-  // if (typeof room.roomType === "string") {
-  //   roomTypeName = room.roomType;
-  // } else if (typeof room.roomType === "object" && room.roomType !== null) {
-  //   roomTypeName =
-  //     room.roomType.roomTypeName ||
-  //     room.roomType.name ||
-  //     "Tipo no especificado";
-  //   description = room.roomType.description || "Sin descripción";
-  // }
-
   return (
-    <>
-      <div className="bg-white rounded-xl shadow-md p-6 max-w-6xl mx-auto flex flex-col md:flex-row items-stretch gap-6">
-        <img
-          src={
-            room.roomType.imageUrl ||
-            "https://placehold.co/260x180?text=Room+Image"
-          }
-          alt={room.roomTypeName}
-          className="rounded-lg w-full md:w-[260px] h-[180px] object-cover"
-        />
+    <div className="bg-white border border-gray-200 rounded-xl shadow-md flex flex-col md:flex-row overflow-hidden hover:shadow-lg transition-all">
+      {/* 🖼 Imagen */}
+      <img
+        src={
+          room.roomType?.imageUrl ||
+          "https://images.unsplash.com/photo-1590490350335-4043dc518d89?auto=format&fit=crop&w=900&q=80"
+        }
+        alt={room.roomType?.name || "Room"}
+        className="w-full md:w-[300px] h-[200px] object-cover rounded-t-xl md:rounded-l-xl md:rounded-tr-none"
+      />
 
-        <div className="flex flex-col flex-1 justify-between text-slate-700">
-          <div className="space-y-2">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 leading-snug">
-              {room.roomType.name}
-            </h2>
-            <p className="text-sm text-slate-500">
-              {room.roomType.description}
-            </p>
-          </div>
+      {/* 📄 Contenido */}
+      <div className="flex-1 flex flex-col justify-between p-6 md:flex-row md:items-center">
+        <div className="flex flex-col gap-2 flex-1">
+          <h2 className="text-xl font-semibold text-gray-900">
+            {room.roomType?.name || "Deluxe Room"}
+          </h2>
 
-          <div className="flex items-start justify-between pt-2">
-            <p className="text-xl font-bold text-slate-900">
-              ${room.roomType.price}
-              <span className="text-sm font-normal text-slate-600">
-                {" "}
-                per night
-              </span>
-            </p>
+          <p className="text-gray-700 text-sm">
+            {room.roomType?.description || "With private balcony and garden view"}
+          </p>
 
-            <div className="flex flex-col items-center text-right gap-1 -mt-4">
-              <p className="text-slate-800 font-semibold text-base">
-                Total: ${total}
-              </p>
-              <BookNowButton onClick={() => handleBooking(room)} />
-            </div>
+          <p className="text-gray-800 text-sm">2 Adults, 0 Children</p>
+
+          {/* Amenities */}
+          <div className="flex flex-wrap gap-2 mt-2">
+            <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full flex items-center gap-1">
+              <FaBath /> 1 bathroom
+            </span>
+            <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full flex items-center gap-1">
+              <MdWifi /> Free WiFi
+            </span>
+            <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full flex items-center gap-1">
+              <FaParking /> Free Parking
+            </span>
+            <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full flex items-center gap-1">
+              <FaUtensils /> Kitchen
+            </span>
           </div>
         </div>
 
-        <div className="hidden md:flex">
-          <div className="w-px bg-gray-300 h-full" />
-        </div>
+        {/* ⭐ Rating + Precio + Botón */}
+        <div className="flex flex-col items-end justify-between gap-3 mt-4 md:mt-0 md:ml-6">
+          <div className="flex items-center gap-2">
+            <FaStar className="text-[#bfa166] text-lg" />
+            <span className="text-gray-900 font-medium text-base">4.8</span>
+            <span className="text-gray-400 text-sm">24 ratings</span>
+          </div>
 
-        <div className="w-full md:w-[180px] flex flex-col justify-center items-end text-sm text-slate-600 space-y-2 text-right">
-          <div className="flex items-center gap-2">
-            <span>{room.bathrooms || 1} bathroom</span>
-            <FaBath className="text-lg" />
+          <div className="text-right">
+            <p className="text-lg font-semibold text-gray-900">
+              $160 <span className="text-sm text-gray-600">/ night</span>
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <span>Free WIFI</span>
-            <FaWifi className="text-lg" />
-          </div>
-          <div className="flex items-center gap-2">
-            <span>Free Parking</span>
-            <FaParking className="text-lg" />
-          </div>
-          <div className="flex items-center gap-2">
-            <span>Kitchen</span>
-            <FaUtensils className="text-lg" />
-          </div>
+
+          <button
+            onClick={handleBooking}
+            className="bg-[#d6c083] hover:bg-[#c2aa68] text-white font-medium px-6 py-2 rounded-md shadow-sm transition"
+          >
+            Book
+          </button>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

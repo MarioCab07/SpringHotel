@@ -1,8 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import RoomCard from "../components/Booking/RoomCard";
-import logo from "../assets/Logo.png";
 import BookingSearchBar from "../components/Booking/BookingSearchBar";
-import SearchFilters from "../components/SearchFilters";
 import UserMenu from "../components/UserMenu";
 import { getAllRooms } from "../service/api.services";
 import { toast } from "react-toastify";
@@ -31,6 +29,7 @@ const RoomPage = () => {
     setUser(null);
   };
 
+  // 🔹 Imágenes por tipo
   const imagesUrl = {
     Suite:
       "https://www.acevivillarroelbarcelona.com/img/jpg/habitaciones/Hab-Deluxe-01.jpg",
@@ -40,22 +39,40 @@ const RoomPage = () => {
       "https://hotelvilnia.lt/wp-content/uploads/2018/06/DSC07003-HDR-Edit-Edit-1.jpg",
   };
 
-  const fecthRooms = async () => {
+  const fetchRooms = async () => {
     try {
       const response = await getAllRooms();
       if (response.status === 200) {
-        const _rooms = response.data.data.map((room) => {
-          return {
-            ...room,
-            roomType: {
-              ...room.roomType,
-              imageUrl:
-                imagesUrl[room.roomType.name] ||
-                "https://placehold.co/260x180?text=Room+Image",
-            },
-          };
-        });
-        setRooms(_rooms);
+        // 🔹 Mapeamos las habitaciones con sus imágenes
+        const _rooms = response.data.data.map((room) => ({
+          ...room,
+          roomType: {
+            ...room.roomType,
+            imageUrl:
+              imagesUrl[room.roomType.name] ||
+              "https://placehold.co/260x180?text=Room+Image",
+          },
+        }));
+
+        // 🔹 Seleccionamos solo una de cada tipo: Suite, Double Room, Single Room
+        const uniqueRooms = [];
+        const seenTypes = new Set();
+
+        for (const room of _rooms) {
+          const name = room.roomType.name;
+          if (
+            (name.includes("Suite") ||
+              name.includes("Double") ||
+              name.includes("Single")) &&
+            !seenTypes.has(name)
+          ) {
+            uniqueRooms.push(room);
+            seenTypes.add(name);
+          }
+        }
+
+        // 🔹 Solo mostrar las tres habitaciones principales
+        setRooms(uniqueRooms.slice(0, 3));
       }
     } catch (error) {
       toast.error("Failed to fetch rooms. Please try again later.");
@@ -63,35 +80,15 @@ const RoomPage = () => {
   };
 
   useEffect(() => {
-    fecthRooms();
+    fetchRooms();
   }, []);
 
   const [filters, setFilters] = useState({
-    priceRange: [50, 500],
     orderBy: { value: "price_low_high", label: "Price: Low to High" },
   });
 
   const filteredRooms = useMemo(() => {
-    let result = rooms.filter((room) => {
-      const { price, name } = room.roomType;
-      const { adults, children } = info;
-
-      const inPriceRange =
-        price >= filters.priceRange[0] && price <= filters.priceRange[1];
-
-      let show = false;
-
-      if (adults === 1 && children === 0) {
-        show = true; // Mostrar todas
-      } else if (adults === 2 && children === 0) {
-        show = name.includes("Double") || name.includes("Suite");
-      } else if (children > 0 || (adults > 2)) {
-        show = name.includes("Suite");
-      }
-
-      return inPriceRange && show;
-    });
-
+    let result = rooms;
     switch (filters.orderBy.value) {
       case "price_low_high":
         result.sort((a, b) => a.roomType.price - b.roomType.price);
@@ -102,45 +99,61 @@ const RoomPage = () => {
       default:
         break;
     }
-
     return result;
-  }, [filters, rooms, info]);
+  }, [filters, rooms]);
 
   return (
     <>
       {!showBookingModal && !showInvoiceModal && (
-        <div className="min-h-screen bg-[#D6ECF7]">
-          {/* Header */}
-          <header className="flex justify-between items-center px-6 pt-3 pb-1">
-            <img src={logo} alt="Hotel Logo" className="w-40 h-auto" />
+        <div className="min-h-screen bg-white text-gray-900 font-sans">
+          {/* Navbar */}
+          <header className="flex justify-between items-center px-12 py-6 border-b border-gray-200">
+            <h1 className="text-2xl font-serif tracking-wide">
+              LUMÉ HOTEL & SUITES
+            </h1>
             <UserMenu />
           </header>
 
-          {/* Search Bar + Filters */}
-          <section className="flex flex-col lg:flex-row justify-center lg:justify-between items-start gap-4 px-4 max-w-6xl mx-auto mb-6">
-            <div className="flex-1 flex justify-center lg:justify-start">
-              <BookingSearchBar setInfo={setInfo} />
-            </div>
-            <div className="flex justify-center lg:justify-end">
-              <SearchFilters onFilterChange={setFilters} />
+          {/* Hero */}
+          <section
+            className="relative w-full h-[340px] bg-cover bg-center overflow-hidden"
+            style={{
+              backgroundImage:
+                "url('https://www.barcelo.com/pinamar/wp-content/uploads/sites/91/2023/02/hotel-room-banner.jpg')",
+            }}
+          >
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <h2 className="text-white text-5xl font-serif tracking-wide text-center">
+                Book your stay in Lumé
+              </h2>
             </div>
           </section>
 
+          {/* Search Bar */}
+          <div className="relative z-20 flex justify-center mt-[-2.5rem]">
+            <BookingSearchBar setInfo={setInfo} onFilterChange={setFilters} />
+          </div>
+
           {/* Room List */}
-          <main className="max-w-6xl mx-auto px-4 space-y-6 pb-10">
+          <main className="max-w-6xl mx-auto px-6 py-12">
+            <h3 className="text-lg font-semibold text-gray-800 mb-6">
+              Explore rooms
+            </h3>
             {filteredRooms.length > 0 ? (
-              filteredRooms.map((room) => (
-                <RoomCard
-                  key={room.roomId}
-                  room={room}
-                  info={info}
-                  setShowBookingModal={setShowBookingModal}
-                  setSelectedRoom={setSelectedRoom}
-                />
-              ))
+              <div className="space-y-8">
+                {filteredRooms.map((room) => (
+                  <RoomCard
+                    key={room.roomId}
+                    room={room}
+                    info={info}
+                    setShowBookingModal={setShowBookingModal}
+                    setSelectedRoom={setSelectedRoom}
+                  />
+                ))}
+              </div>
             ) : (
               <p className="text-center text-gray-600">
-                No hay habitaciones disponibles para los criterios seleccionados.
+                No rooms available for the selected criteria.
               </p>
             )}
           </main>

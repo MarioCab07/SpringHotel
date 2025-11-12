@@ -623,3 +623,26 @@ export const deleteServiceType = async (id) => {
     }
 };
 
+export const validateCardPayment = async (data) => {
+  try {
+    return await apiClient.post("/payment-methods/validate-card", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processDeposit = async (data) => {
+  try {
+    return await apiClient.post("/payment-methods/process-deposit", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processFullPayment = async (data) => {
+  try {
+    return await apiClient.post("/payment-methods/process-full-payment", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
