@@ -1,5 +1,6 @@
 package com.group07.hotel_API.dao;
 
+import com.group07.hotel_API.entities.PaymentMethod;
 import com.group07.hotel_API.entities.Reason;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +15,7 @@ public class InvoiceData {
     Double total;
     Double IVA;
     Double subtotal;
-    Long idPaymentMethod;
+    PaymentMethod paymentMethod;
     Integer idBooking;
     String  reason;
 }

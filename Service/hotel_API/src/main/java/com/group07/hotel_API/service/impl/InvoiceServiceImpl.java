@@ -56,14 +56,18 @@ public class InvoiceServiceImpl implements InvoiceService {
         Booking booking = bookingRepository.findById(invoiceData.getIdBooking()).orElseThrow(()-> new BookingNotFoundException("Booking not found"));
         Transmitter enterprise =  transmitterRepository.findByName("Lume Hotel & Suits").orElseThrow(()-> new RuntimeException("Transmitter not found"));
         Reason reason = reasonRepository.findByName(invoiceData.getReason()).orElseThrow(()-> new RuntimeException("Reason not found"));
-        PaymentMethod paymentMethod = paymentMethodRepository.findById(invoiceData.getIdPaymentMethod());
+
 
         Invoice invoice = Invoice.builder().code(code).clientName(invoiceData.getClientName()).clientEmail(invoiceData.getClientEmail())
                 .transmitter(enterprise).total(invoiceData.getTotal()).IVA(invoiceData.getIVA()).subtotal(invoiceData.getSubtotal()).reason(reason)
-                .date(LocalDateTime.now()).paymentMethod(paymentMethod).booking(booking).build();
+                .date(LocalDateTime.now()).paymentMethod(invoiceData.getPaymentMethod()).booking(booking).build();
         return invoiceRepository.save(invoice);
 
     }
+
+
+
+
 
 
 }
