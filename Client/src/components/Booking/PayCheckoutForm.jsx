@@ -1,26 +1,22 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import PayButton from "../Buttons/PayButton";
-import { createBooking, GetUserDetails } from "../../service/api.services";
+import React, { useEffect, useState } from "react";
+import {
+  createBooking,
+  GetUserDetails,
+  validateCardPayment,
+  processBookingPayment,
+} from "../../service/api.services";
 import { toast } from "react-toastify";
+import PaymentProcessing from "./PaymentProcessing";
 
 const CheckoutForm = ({
   selectedRoom,
   info,
-  setShowBookingModal,
-  setShowInvoiceModal,
-  setBookingData,
   setUser,
+  setBookingData,
+  setShowInvoiceModal,
+  setShowBookingModal,
 }) => {
-  const toLocalDateString = (dateInput) => {
-    const d = dateInput instanceof Date ? dateInput : new Date(dateInput);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     fullName: "",
     email: "",
     cardNumber: "",
@@ -28,128 +24,142 @@ const CheckoutForm = ({
     cvv: "",
   });
 
+  const deposit = 10;
+  const iva = deposit * 0.13;
+  const subtotal = deposit - iva;
+
   const [userId, setUserId] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [bookingForm, setBookingForm] = useState({
-    checkIn: toLocalDateString(info.startDate),
-    checkOut: toLocalDateString(info.endDate),
-    userId: null,
-    roomId: selectedRoom.roomId,
-  });
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await GetUserDetails();
-
-        if (response.status === 200) {
-          setUser(response.data.data);
-          const id = response.data.data.userId;
-          setBookingForm((prev) => {
-            return {
-              ...prev,
-              userId: id,
-            };
-          });
-        }
-      } catch (error) {
-        toast.error("Debes iniciar sesión para continuar.");
-      }
-    };
-
-    fetchUser();
+    GetUserDetails().then((res) => {
+      setUser(res.data.data);
+      setUserId(res.data.data.userId);
+    });
   }, []);
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handlePayment = async () => {
-    const { fullName, email, cardNumber, expiry, cvv } = formData;
-
-    if (!fullName || !email || !cardNumber || !expiry || !cvv) {
-      toast.error("Todos los campos son obligatorios.");
-      return;
+  const handlePay = async () => {
+    if (Object.values(form).some((v) => !v.trim())) {
+      return toast.error("Complete all fields");
     }
 
     try {
-      setIsSubmitting(true);
+      await validateCardPayment({
+        cardNumber: form.cardNumber.replace(/\s/g, ""),
+        month: parseInt(form.expiry.split("/")[0]),
+        year: parseInt("20" + form.expiry.split("/")[1]),
+        cvv: form.cvv,
+      });
 
-      const response = await createBooking(bookingForm);
-      console.log(response);
+      await processBookingPayment({
+        clientName: form.fullName,
+        clientEmail: form.email,
+        subtotal,
+        iva,
+        total: deposit,
+        paymentMethodId: 1,
+        bookingId: 0,
+      });
 
-      if (response.status === 201) {
-        setShowBookingModal(false);
+      setProcessingPayment(true);
+
+      setTimeout(async () => {
+        const booking = await createBooking({
+          roomId: selectedRoom.roomId,
+          userId,
+          checkIn: info.startDate,
+          checkOut: info.endDate,
+        });
+
+        setBookingData(booking.data.data);
         setShowInvoiceModal(true);
-        setBookingData(response.data.data);
-      }
-      toast.success("¡Reserva y pago procesados correctamente!");
-    } catch (error) {
-      console.log(error);
-
-      toast.error(
-        error?.response?.data?.message ||
-          "Ocurrió un error al procesar la reserva."
-      );
-    } finally {
-      setIsSubmitting(false);
+        setShowBookingModal(false);
+        setProcessingPayment(false);
+      }, 1800);
+    } catch (err) {
+      toast.error(err?.response?.data || "Error processing payment");
     }
   };
 
+  if (processingPayment) {
+    return <PaymentProcessing onFinish={() => {}} />;
+  }
+
   return (
-    <div className="space-y-6 text-[#1a1a1a]">
-      <h2 className="text-lg font-semibold">Cardholder information</h2>
-      <input
-        name="fullName"
-        value={formData.fullName}
-        onChange={handleChange}
-        type="text"
-        placeholder="Full name"
-        className="w-full px-4 py-2 rounded-lg bg-white border border-gray-300"
-      />
-      <input
-        name="email"
-        value={formData.email}
-        onChange={handleChange}
-        type="email"
-        placeholder="Email address"
-        className="w-full px-4 py-2 rounded-lg bg-white border border-gray-300"
-      />
+    <div className="w-[380px] bg-white rounded-xl shadow-md p-8 border border-gray-100">
+      {}
+      <h3 className="text-center text-[20px] font-medium tracking-wide mb-8">
+        Payment Details
+      </h3>
 
-      <h2 className="text-lg font-semibold">Card details</h2>
-      <div className="flex flex-col md:flex-row gap-4">
+      {}
+      <div className="space-y-6">
         <input
+          className="w-full border-b border-gray-300 focus:outline-none pb-1"
+          placeholder="Cardholder Name"
+          name="fullName"
+          onChange={handleChange}
+        />
+
+        <input
+          className="w-full border-b border-gray-300 focus:outline-none pb-1"
+          placeholder="Email"
+          name="email"
+          onChange={handleChange}
+        />
+
+        <input
+          className="w-full border-b border-gray-300 focus:outline-none pb-1"
+          placeholder="Card Number"
           name="cardNumber"
-          value={formData.cardNumber}
           onChange={handleChange}
-          type="text"
-          placeholder="•••• •••• •••• ••••"
-          className="w-full md:w-1/2 px-4 py-2 rounded-lg bg-white border border-gray-300"
         />
-        <input
-          name="expiry"
-          value={formData.expiry}
-          onChange={handleChange}
-          type="text"
-          placeholder="MM/YY"
-          className="w-full md:w-1/4 px-4 py-2 rounded-lg bg-white border border-gray-300"
-        />
-        <input
-          name="cvv"
-          value={formData.cvv}
-          onChange={handleChange}
-          type="text"
-          placeholder="CVV"
-          className="w-full md:w-1/4 px-4 py-2 rounded-lg bg-white border border-gray-300"
-        />
+
+        <div className="flex gap-6">
+          <input
+            className="w-1/2 border-b border-gray-300 pb-1 focus:outline-none"
+            placeholder="MM/YY"
+            name="expiry"
+            onChange={handleChange}
+          />
+          <input
+            className="w-1/2 border-b border-gray-300 pb-1 focus:outline-none"
+            placeholder="CVV"
+            name="cvv"
+            onChange={handleChange}
+          />
+        </div>
       </div>
 
-      <div className="flex justify-end">
-        <PayButton onClick={handlePayment} disabled={isSubmitting} />
+      {/* SUMMARY */}
+      <div className="mt-10 px-2">
+        <div className="flex justify-between mb-2">
+          <span>IVA (13%)</span>
+          <span>${iva.toFixed(2)}</span>
+        </div>
+
+        <div className="flex justify-between mb-2">
+          <span>Subtotal</span>
+          <span>${subtotal.toFixed(2)}</span>
+        </div>
+
+        <hr className="my-3" />
+
+        <div className="flex justify-between font-bold text-[18px]">
+          <span>Total</span>
+          <span>${deposit.toFixed(2)}</span>
+        </div>
       </div>
+
+      <button
+        onClick={handlePay}
+        className="w-full mt-8 bg-[#d4bf92] hover:bg-[#c6ae7b] py-3 rounded-md font-medium"
+      >
+        Pay
+      </button>
     </div>
   );
 };
