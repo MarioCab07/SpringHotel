@@ -1,13 +1,10 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import RoomCard from "../components/Booking/RoomCard";
-import logo from "../assets/Logo.png";
 import BookingSearchBar from "../components/Booking/BookingSearchBar";
-import SearchFilters from "../components/SearchFilters";
 import UserMenu from "../components/UserMenu";
-import { getAllRooms } from "../service/api.services";
-import { toast } from "react-toastify";
 import PaymentPage from "../pages/PaymentPage";
 import InvoiceComponent from "../components/Invoice/InvoiceComponent";
+import exploreBg from "../assets/backgrounds/explore.jpg";
 
 const RoomPage = () => {
   const [rooms, setRooms] = useState([]);
@@ -31,105 +28,83 @@ const RoomPage = () => {
     setUser(null);
   };
 
-  const imagesUrl = {
-    Suite:
-      "https://www.acevivillarroelbarcelona.com/img/jpg/habitaciones/Hab-Deluxe-01.jpg",
-    "Double Room":
-      "https://cdn.traveltripper.io/site-assets/512_863_12597/media/2018-02-22-041437/large_DDBDB.jpg",
-    "Single Room":
-      "https://hotelvilnia.lt/wp-content/uploads/2018/06/DSC07003-HDR-Edit-Edit-1.jpg",
-  };
-
-  const fecthRooms = async () => {
-    try {
-      const response = await getAllRooms();
-      if (response.status === 200) {
-        const _rooms = response.data.data.map((room) => {
-          return {
-            ...room,
-            roomType: {
-              ...room.roomType,
-              imageUrl:
-                imagesUrl[room.roomType.name] ||
-                "https://placehold.co/260x180?text=Room+Image",
-            },
-          };
-        });
-        setRooms(_rooms);
-      }
-    } catch (error) {
-      toast.error("Failed to fetch rooms. Please try again later.");
-    }
-  };
-
   useEffect(() => {
-    fecthRooms();
+    const fixedRooms = [
+      {
+        roomId: 1,
+        roomType: {
+          name: "Single Room",
+          description: "A cozy room for one person",
+          price: 160,
+          imageUrl:
+            "https://hotelvilnia.lt/wp-content/uploads/2018/06/DSC07003-HDR-Edit-Edit-1.jpg",
+        },
+      },
+      {
+        roomId: 2,
+        roomType: {
+          name: "Double Room",
+          description: "A spacious room for two people",
+          price: 220,
+          imageUrl:
+            "https://cdn.traveltripper.io/site-assets/512_863_12597/media/2018-02-22-041437/large_DDBDB.jpg",
+        },
+      },
+      {
+        roomId: 3,
+        roomType: {
+          name: "Suite",
+          description: "A luxurious suite with a living area",
+          price: 300,
+          imageUrl:
+            "https://www.acevivillarroelbarcelona.com/img/jpg/habitaciones/Hab-Deluxe-01.jpg",
+        },
+      },
+    ];
+
+    setRooms(fixedRooms);
   }, []);
-
-  const [filters, setFilters] = useState({
-    priceRange: [50, 500],
-    orderBy: { value: "price_low_high", label: "Price: Low to High" },
-  });
-
-  const filteredRooms = useMemo(() => {
-    let result = rooms.filter((room) => {
-      const { price, name } = room.roomType;
-      const { adults, children } = info;
-
-      const inPriceRange =
-        price >= filters.priceRange[0] && price <= filters.priceRange[1];
-
-      let show = false;
-
-      if (adults === 1 && children === 0) {
-        show = true; // Mostrar todas
-      } else if (adults === 2 && children === 0) {
-        show = name.includes("Double") || name.includes("Suite");
-      } else if (children > 0 || (adults > 2)) {
-        show = name.includes("Suite");
-      }
-
-      return inPriceRange && show;
-    });
-
-    switch (filters.orderBy.value) {
-      case "price_low_high":
-        result.sort((a, b) => a.roomType.price - b.roomType.price);
-        break;
-      case "price_high_low":
-        result.sort((a, b) => b.roomType.price - a.roomType.price);
-        break;
-      default:
-        break;
-    }
-
-    return result;
-  }, [filters, rooms, info]);
 
   return (
     <>
       {!showBookingModal && !showInvoiceModal && (
-        <div className="min-h-screen bg-[#D6ECF7]">
-          {/* Header */}
-          <header className="flex justify-between items-center px-6 pt-3 pb-1">
-            <img src={logo} alt="Hotel Logo" className="w-40 h-auto" />
+        <div className="min-h-screen bg-white text-gray-900 font-sans">
+          {/* Navbar */}
+          <header className="flex justify-between items-center px-12 py-6 border-b border-gray-200">
+            <h1 className="text-2xl font-serif tracking-wide">
+              LUMÉ HOTEL & SUITES
+            </h1>
             <UserMenu />
           </header>
+          {/* Hero */}
+<section className="flex justify-center mt-6">
+  <div
+    className="relative w-[92%] max-w-6xl h-[320px] rounded-3xl overflow-hidden bg-cover bg-center shadow-lg"
+    style={{
+      backgroundImage: `url(${exploreBg})`,
+    }}
+  >
+    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+      <h2 className="text-white text-5xl font-serif tracking-wide text-center drop-shadow-lg">
+        Book your stay in Lumé
+      </h2>
+    </div>
+  </div>
+</section>
 
-          {/* Search Bar + Filters */}
-          <section className="flex flex-col lg:flex-row justify-center lg:justify-between items-start gap-4 px-4 max-w-6xl mx-auto mb-6">
-            <div className="flex-1 flex justify-center lg:justify-start">
-              <BookingSearchBar setInfo={setInfo} />
-            </div>
-            <div className="flex justify-center lg:justify-end">
-              <SearchFilters onFilterChange={setFilters} />
-            </div>
-          </section>
+
+          {/* Search Bar */}
+          <div className="relative z-20 flex justify-center mt-[-2.5rem]">
+            <BookingSearchBar setInfo={setInfo} />
+          </div>
 
           {/* Room List */}
-          <main className="max-w-6xl mx-auto px-4 space-y-6 pb-10">
-            {filteredRooms.length > 0 ? (
-              filteredRooms.map((room) => (
+          <main className="max-w-6xl mx-auto px-6 py-12">
+            <h3 className="text-lg font-semibold text-gray-800 mb-6">
+              Explore rooms
+            </h3>
+            <div className="space-y-8">
+              {rooms.map((room) => (
                 <RoomCard
                   key={room.roomId}
                   room={room}
@@ -137,12 +112,8 @@ const RoomPage = () => {
                   setShowBookingModal={setShowBookingModal}
                   setSelectedRoom={setSelectedRoom}
                 />
-              ))
-            ) : (
-              <p className="text-center text-gray-600">
-                No hay habitaciones disponibles para los criterios seleccionados.
-              </p>
-            )}
+              ))}
+            </div>
           </main>
         </div>
       )}

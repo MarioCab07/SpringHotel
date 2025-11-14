@@ -623,3 +623,50 @@ export const deleteServiceType = async (id) => {
     }
 };
 
+export const validateCardPayment = async (data) => {
+  try {
+    return await apiClient.post("/payment-methods/validate-card", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processDeposit = async (data) => {
+  try {
+    return await apiClient.post("/payment-methods/process-deposit", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processFullPayment = async (data) => {
+  try {
+    return await apiClient.post("/payment-methods/process-full-payment", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processBookingPayment = async (data) => {
+  try {
+    return await apiClient.post("/payments/booking", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processCheckInPayment = async (data) => {
+  try {
+    return await apiClient.post("/payments/checkin", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processCheckOutPayment = async (data) => {
+  try {
+    return await apiClient.post("/payments/checkout", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
