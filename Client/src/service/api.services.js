@@ -646,3 +646,27 @@ export const processFullPayment = async (data) => {
     throw error.response ? error.response.data : error;
   }
 };
+
+export const processBookingPayment = async (data) => {
+  try {
+    return await apiClient.post("/payments/booking", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processCheckInPayment = async (data) => {
+  try {
+    return await apiClient.post("/payments/checkin", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processCheckOutPayment = async (data) => {
+  try {
+    return await apiClient.post("/payments/checkout", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};

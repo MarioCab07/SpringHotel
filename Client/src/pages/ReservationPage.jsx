@@ -1,177 +1,178 @@
 import React, { useEffect, useState } from "react";
+import MUIDataTable from "mui-datatables";
+import logo from "../assets/Logo.png";
+import UserMenu from "../components/UserMenu";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
 import {
   getAllBookings,
   getRoomById,
-  updateBooking,
-  deleteBooking
+  GetUser,
+  checkOut,
 } from "../service/api.services";
-import { toast } from "react-toastify";
-import logo from "../assets/Logo.png";
 
 const ReservationsPage = () => {
-  const [bookings, setBookings] = useState([]);
-  const [searchId, setSearchId] = useState("");
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const fetchBookings = async () => {
+  const navigate = useNavigate();
+
+  const loadData = async () => {
     try {
       const res = await getAllBookings();
-      const rawBookings = res.data.data;
+      const all = res.data.data;
+
+      const active = all.filter((b) => b.status === "ACTIVE");
 
       const enriched = await Promise.all(
-        rawBookings.map(async (b) => {
-          let roomType = "N/A";
-          let roomNumber = "N/A";
+        active.map(async (b) => {
+          let room, user;
 
           try {
-            const roomRes = await getRoomById(b.roomId);
-            roomType = roomRes.data.data.roomType?.name || "Sin tipo";
-            roomNumber = roomRes.data.data.roomNumber || "N/A";
-          } catch (error) {
-            console.error(`Error cargando habitación ${b.roomId}:`, error);
-          }
+            room = (await getRoomById(b.roomId)).data.data;
+          } catch {}
+
+          try {
+            user = (await GetUser(b.userId)).data.data;
+          } catch {}
 
           return {
-            ...b,
-            roomType,
-            roomNumber,
-            checkIn: b.startDate || b.checkIn,
-            checkOut: b.endDate || b.checkOut,
+            id: b.id,
+            userId: b.userId,
+            client: user?.fullName || "N/A",
+            roomNumber: room?.roomNumber || "N/A",
+            roomType: room?.roomType?.name || "N/A",
+            checkIn: b.checkIn,
+            checkOut: b.checkOut,
+            status: "ACTIVE",
           };
         })
       );
 
-      setBookings(enriched);
-    } catch (err) {
-      toast.error("Error al cargar reservaciones");
-      console.error("Error cargando reservaciones:", err);
-    }
-  };
-
-  const handleStatusChange = async (bookingId, newStatus) => {
-    try {
-      await updateBooking(bookingId, {
-        bookingId: bookingId,
-        status: newStatus,
-      });
-      toast.success("Estado actualizado correctamente");
-
-      setBookings((prev) =>
-        prev.map((b) =>
-          b.id === bookingId ? { ...b, status: newStatus } : b
-        )
-      );
-    } catch (err) {
-      toast.error("Error actualizando estado");
-      console.error("Error actualizando estado:", err);
-    }
-  };
-
-  const handleDelete = async (bookingId) => {
-    if (!window.confirm("¿Seguro que deseas borrar esta reserva?")) return;
-    try {
-      await deleteBooking(bookingId);
-      toast.success("Reserva eliminada correctamente");
-      setBookings(prev => prev.filter(b => b.id !== bookingId));
-    } catch (err) {
-      toast.error("Error al borrar reserva");
-      console.error("Error al borrar reserva:", err);
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "No definida";
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
+      setRows(enriched);
     } catch {
-      return dateString;
+      toast.error("Error al cargar reservas.");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBookings();
+    loadData();
   }, []);
 
-  const filteredBookings = bookings.filter((booking) =>
-    searchId === "" ? true : booking.id.toString() === searchId
-  );
+  const formatDate = (date) => {
+    if (!date) return "N/A";
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const handleGlobalCheckOut = async () => {
+    const userId = prompt("Enter the user ID to Check-Out:");
+    if (!userId) return;
+
+    try {
+      await checkOut(userId);
+      toast.success("Check-Out realizado correctamente.");
+      loadData();
+    } catch {
+      toast.error("Error al realizar Check-Out.");
+    }
+  };
+
+  const columns = [
+  { name: "id", label: "Reservation ID" }, 
+
+  { name: "roomNumber", label: "Room #" },
+  { name: "roomType", label: "Room Type" },
+
+  {
+    name: "checkIn",
+    label: "Check-In",
+    options: {
+      customBodyRender: (value) => formatDate(value),
+    },
+  },
+  {
+    name: "checkOut",
+    label: "Check-Out",
+    options: {
+      customBodyRender: (value) => formatDate(value),
+    },
+  },
+  {
+    name: "status",
+    label: "Status",
+    options: {
+      customBodyRender: () => (
+        <span className="font-semibold text-green-600">ACTIVE</span>
+      ),
+    },
+  },
+];
+
+
+  const options = {
+    selectableRows: "none",
+    elevation: 3,
+    rowsPerPage: 5,
+    rowsPerPageOptions: [5, 10, 20],
+    search: true,
+    filter: true,
+    print: false,
+    download: true,
+  };
 
   return (
-    <div className="min-h-screen bg-[#D6ECF7] py-12">
-      <header className="flex justify-start items-center px-8 py-4">
-        <img src={logo} alt="Hotel Logo" className="w-40 h-auto" />
-      </header>
+    <div className="min-h-screen bg-[#D6ECF7] py-10">
 
-      <main className="max-w-6xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-center mb-4">Todas las Reservas</h1>
+      {/* HEADER */}
+      <div className="max-w-6xl mx-auto flex justify-between items-center mb-6 px-4">
+        <h1 className="text-3xl font-bold">Active Reservations</h1>
 
-        <div className="mb-6 text-center">
-          <input
-            type="text"
-            placeholder="Buscar por ID exacto..."
-            value={searchId}
-            onChange={(e) => setSearchId(e.target.value)}
-            className="px-4 py-2 border rounded shadow-sm w-72"
-          />
+        <div className="flex gap-3">
+
+          {/* NUEVO CHECK-IN PAGE */}
+          <button
+            onClick={() => navigate("/employee/check-in")}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-full"
+          >
+            Check-In
+          </button>
+
+          {/* LEGACY CHECK-OUT */}
+          <button
+            onClick={handleGlobalCheckOut}
+            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full"
+          >
+            Check-Out
+          </button>
         </div>
+      </div>
 
-        {filteredBookings.length === 0 ? (
-          <p className="text-center text-gray-600">No hay reservas encontradas.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full bg-white rounded-lg shadow-lg">
-              <thead className="bg-[#f2789f] text-white">
-                <tr>
-                  <th className="px-6 py-3 text-left">ID</th>
-                  <th className="px-6 py-3 text-left">Habitación</th>
-                  <th className="px-6 py-3 text-left">Tipo</th>
-                  <th className="px-6 py-3 text-left">Check-In</th>
-                  <th className="px-6 py-3 text-left">Check-Out</th>
-                  <th className="px-6 py-3 text-left">Estado</th>
-                  <th className="px-6 py-3 text-left">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredBookings.map((booking) => (
-                  <tr key={booking.id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-4">{booking.id}</td>
-                    <td className="px-6 py-4">{booking.roomNumber}</td>
-                    <td className="px-6 py-4">{booking.roomType}</td>
-                    <td className="px-6 py-4">{formatDate(booking.checkIn)}</td>
-                    <td className="px-6 py-4">{formatDate(booking.checkOut)}</td>
-                    <td className="px-6 py-4">
-                      <select
-                        value={booking.status}
-                        onChange={(e) =>
-                          handleStatusChange(booking.id, e.target.value)
-                        }
-                        className="border rounded p-1 text-sm"
-                      >
-                        <option value="PENDING">Pendiente</option>
-                        <option value="CONFIRMED">Confirmado</option>
-                        <option value="CANCELLED">Cancelado</option>
-                        <option value="ACTIVE">Activo</option>
-                      </select>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleDelete(booking.id)}
-                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
-                      >
-                        Borrar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </main>
+      {/* TABLE */}
+      <div className="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-xl">
+        <MUIDataTable
+          title={"Reservations"}
+          data={rows}
+          columns={columns}
+          options={options}
+        />
+      </div>
+
+      {/* BACK */}
+      <div className="flex justify-center mt-10">
+        <button
+          className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] px-8 py-3 rounded-full"
+          onClick={() => (window.location.href = "/admin")}
+        >
+          Back to Menu
+        </button>
+      </div>
     </div>
   );
 };
