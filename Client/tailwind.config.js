@@ -8,6 +8,8 @@ module.exports = {
             fontFamily: {
                 edu: ['"Edu VIC WA NT Hand Pre"', 'cursive'],
                 madi: ['"Ms Madi"', 'cursive'],
+                display: ['"Playfair Display"', "serif"],
+                inter: ['Inter', "sans-serif"],
             },
             animation: {
                 'scale-in-center': 'scale-in-center 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both',
