@@ -22,19 +22,29 @@ const RoomBookingCard = ({ selectedRoom, info }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-8 flex gap-10 w-[900px] mx-auto">
-      {}
+
+      {/* Room Image */}
       <img
         src={selectedRoom?.roomType?.imageUrl}
         alt="Room"
         className="w-96 h-64 object-cover rounded-lg shadow-md"
       />
 
-      {}
       <div className="flex flex-col justify-between flex-1">
         <div>
+
+          {/* Title */}
           <h2 className="text-2xl font-semibold mb-2">
             {selectedRoom?.roomType?.name}
           </h2>
+
+          {/* 🔥 Room Number */}
+          <p className="text-gray-700 text-sm font-medium mb-3">
+            Room Number:{" "}
+            <span className="font-semibold">
+              {selectedRoom?.roomNumber}
+            </span>
+          </p>
 
           <p className="text-gray-600 mb-6 leading-relaxed">
             {selectedRoom?.roomType?.description}
@@ -60,7 +70,7 @@ const RoomBookingCard = ({ selectedRoom, info }) => {
             </div>
           </div>
 
-          {}
+          {/* Price */}
           <div className="mt-6">
             <p className="text-lg font-semibold">
               ${pricePerNight}
@@ -73,7 +83,7 @@ const RoomBookingCard = ({ selectedRoom, info }) => {
             </p>
           </div>
 
-          {}
+          {/* Amenities */}
           <div className="flex gap-4 mt-6">
             <div className="px-5 py-2 bg-[#f4f4f4] text-gray-700 rounded-full text-sm shadow-sm">
               1 bathroom
@@ -87,6 +97,7 @@ const RoomBookingCard = ({ selectedRoom, info }) => {
               Kitchen
             </div>
           </div>
+
         </div>
       </div>
     </div>

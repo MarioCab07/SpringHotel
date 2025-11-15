@@ -5,15 +5,19 @@ import UserMenu from "../components/UserMenu";
 import PaymentPage from "../pages/PaymentPage";
 import InvoiceComponent from "../components/Invoice/InvoiceComponent";
 import exploreBg from "../assets/backgrounds/explore.jpg";
+import { getAllRooms } from "../service/api.services";
 
 const RoomPage = () => {
   const [rooms, setRooms] = useState([]);
+  const [allRooms, setAllRooms] = useState([]);
+
   const [info, setInfo] = useState({
     startDate: new Date(),
     endDate: new Date(),
     adults: 1,
     children: 0,
   });
+
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
@@ -26,43 +30,62 @@ const RoomPage = () => {
     setSelectedRoom(null);
     setBookingData(null);
     setUser(null);
+    loadRooms(); 
+  };
+
+  const loadRooms = async () => {
+    try {
+      const res = await getAllRooms();
+      const data = res.data.data || [];
+
+      setAllRooms(data);
+
+      const available = data.filter((room) => room.roomStatus === "AVAILABLE");
+      const grouped = Object.values(
+        available.reduce((acc, room) => {
+          if (!acc[room.roomType.id]) acc[room.roomType.id] = room;
+          return acc;
+        }, {})
+      );
+
+      const roomsWithImage = grouped.map((room) => {
+        let img = "";
+
+        switch (room.roomType.name) {
+          case "Single Room":
+            img =
+              "https://hotelvilnia.lt/wp-content/uploads/2018/06/DSC07003-HDR-Edit-Edit-1.jpg";
+            break;
+          case "Double Room":
+            img =
+              "https://cdn.traveltripper.io/site-assets/512_863_12597/media/2018-02-22-041437/large_DDBDB.jpg";
+            break;
+          case "Suite":
+            img =
+              "https://www.acevivillarroelbarcelona.com/img/jpg/habitaciones/Hab-Deluxe-01.jpg";
+            break;
+          default:
+            img =
+              "https://images.unsplash.com/photo-1590490350335-4043dc518d89?auto=format";
+        }
+
+        return {
+          ...room,
+          roomType: {
+            ...room.roomType,
+            imageUrl: img,
+          },
+        };
+      });
+
+      setRooms(roomsWithImage);
+    } catch (error) {
+      console.error("Error loading rooms:", error);
+    }
   };
 
   useEffect(() => {
-    const fixedRooms = [
-      {
-        roomId: 1,
-        roomType: {
-          name: "Single Room",
-          description: "A cozy room for one person",
-          price: 160,
-          imageUrl:
-            "https://hotelvilnia.lt/wp-content/uploads/2018/06/DSC07003-HDR-Edit-Edit-1.jpg",
-        },
-      },
-      {
-        roomId: 2,
-        roomType: {
-          name: "Double Room",
-          description: "A spacious room for two people",
-          price: 220,
-          imageUrl:
-            "https://cdn.traveltripper.io/site-assets/512_863_12597/media/2018-02-22-041437/large_DDBDB.jpg",
-        },
-      },
-      {
-        roomId: 3,
-        roomType: {
-          name: "Suite",
-          description: "A luxurious suite with a living area",
-          price: 300,
-          imageUrl:
-            "https://www.acevivillarroelbarcelona.com/img/jpg/habitaciones/Hab-Deluxe-01.jpg",
-        },
-      },
-    ];
-
-    setRooms(fixedRooms);
+    loadRooms();
   }, []);
 
   return (
@@ -76,38 +99,38 @@ const RoomPage = () => {
             </h1>
             <UserMenu />
           </header>
-          {/* Hero */}
-<section className="flex justify-center mt-6">
-  <div
-    className="relative w-[92%] max-w-6xl h-[320px] rounded-3xl overflow-hidden bg-cover bg-center shadow-lg"
-    style={{
-      backgroundImage: `url(${exploreBg})`,
-    }}
-  >
-    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-      <h2 className="text-white text-5xl font-serif tracking-wide text-center drop-shadow-lg">
-        Book your stay in Lumé
-      </h2>
-    </div>
-  </div>
-</section>
 
+          {}
+          <section className="flex justify-center mt-6">
+            <div
+              className="relative w-[92%] max-w-6xl h-[320px] rounded-3xl overflow-hidden bg-cover bg-center shadow-lg"
+              style={{ backgroundImage: `url(${exploreBg})` }}
+            >
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <h2 className="text-white text-5xl font-serif tracking-wide text-center drop-shadow-lg">
+                  Book your stay in Lumé
+                </h2>
+              </div>
+            </div>
+          </section>
 
-          {/* Search Bar */}
+          {}
           <div className="relative z-20 flex justify-center mt-[-2.5rem]">
             <BookingSearchBar setInfo={setInfo} />
           </div>
 
-          {/* Room List */}
+          {}
           <main className="max-w-6xl mx-auto px-6 py-12">
             <h3 className="text-lg font-semibold text-gray-800 mb-6">
               Explore rooms
             </h3>
+
             <div className="space-y-8">
               {rooms.map((room) => (
                 <RoomCard
                   key={room.roomId}
                   room={room}
+                  allRooms={allRooms}
                   info={info}
                   setShowBookingModal={setShowBookingModal}
                   setSelectedRoom={setSelectedRoom}
