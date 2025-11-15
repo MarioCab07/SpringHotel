@@ -4,7 +4,7 @@ import {
   GetUserDetails,
   validateCardPayment,
   processBookingPayment,
-  updateRoom
+  updateRoom,
 } from "../../service/api.services";
 import { toast } from "react-toastify";
 import PaymentProcessing from "./PaymentProcessing";
@@ -90,15 +90,6 @@ const CheckoutForm = ({
       });
 
       // Procesar pago fake
-      await processBookingPayment({
-        clientName: form.fullName,
-        clientEmail: form.email,
-        subtotal,
-        iva,
-        total: deposit,
-        paymentMethodId: 1,
-        bookingId: 0,
-      });
 
       // Animación
       setProcessingPayment(true);
@@ -112,6 +103,17 @@ const CheckoutForm = ({
           checkOut: info.endDate,
         });
 
+        await processBookingPayment({
+          clientName: form.fullName,
+          clientEmail: form.email,
+          subtotal,
+          iva,
+          total: deposit,
+          paymentMethodId: 1,
+          bookingId: booking.data.data.id,
+        });
+
+        // 🚀 Cambiar habitación a RESERVED
         // Actualizar estado de la habitación
         await updateRoom(selectedRoom.roomId, {
           roomNumber: selectedRoom.roomNumber,
@@ -126,9 +128,8 @@ const CheckoutForm = ({
       }, 1800);
 
     } catch (err) {
-      const msg = err?.response?.data || "Error al procesar el pago.";
-      setErrorMessage(msg);
-      toast.error(msg);
+      toast.error(err?.response?.data || "Error processing payment");
+      console.log(err);
     }
   };
 

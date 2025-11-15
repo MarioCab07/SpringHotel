@@ -1,10 +1,32 @@
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('101', 'AVAILABLE', 1, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('102', 'AVAILABLE', 2, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('103', 'AVAILABLE', 3, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('104', 'AVAILABLE', 1, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('105', 'AVAILABLE', 2, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('106', 'AVAILABLE', 3, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('107', 'AVAILABLE', 1, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('108', 'AVAILABLE', 2, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('109', 'AVAILABLE', 3, NULL);
-INSERT INTO rooms (room_number, room_status, room_type_id, last_cleaned_at) VALUES ('110', 'AVAILABLE', 1, NULL);
+INSERT INTO public.reason (reason_id, name)
+SELECT 1, 'Reserva'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM public.reason
+    WHERE reason_id = 1
+);
+
+INSERT INTO public.reason (reason_id, name)
+SELECT 2, 'Check-in'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM public.reason
+    WHERE reason_id = 2
+);
+
+INSERT INTO public.reason (reason_id, name)
+SELECT 3, 'Check-out'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM public.reason
+    WHERE reason_id = 3
+);
+
+INSERT INTO payment_method (id, name, description)
+VALUES (1, 'Card', 'Payment made with a debit or credit card')
+ON CONFLICT (id) DO NOTHING;
+
+-- 2) CASH → ID 2
+INSERT INTO payment_method (id, name, description)
+VALUES (2, 'Cash', 'Payment made with physical currency')
+ON CONFLICT (id) DO NOTHING;
