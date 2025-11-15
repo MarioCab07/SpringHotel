@@ -66,6 +66,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new RoomNotFoundException("Room not found"));
 
         Booking booking = BookingMapper.toBookingCreate(request, user, room);
+        System.out.println(booking);
         return BookingMapper.toDTO(bookingRepository.save(booking));
     }
 

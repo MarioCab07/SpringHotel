@@ -1,5 +1,6 @@
 package com.group07.hotel_API.controller;
 
+import com.group07.hotel_API.dao.InvoiceData;
 import com.group07.hotel_API.dto.request.Payment.PaymentRequest;
 import com.group07.hotel_API.dto.response.Payment.PaymentResponse;
 import com.group07.hotel_API.entities.Payment;
@@ -21,7 +22,7 @@ public class PaymentController {
 
     @PostMapping("/booking")
     public ResponseEntity<Map<String, Object>> processBookingPayment(@RequestBody PaymentRequest req) {
-        return processGenericPayment(req, "Reserva");
+        return processGenericPayment(req, "Booking");
     }
 
     @PostMapping("/checkin")
@@ -49,15 +50,19 @@ public class PaymentController {
                     type // motivo pago
             );
 
+
             response.put("success", true);
             response.put("paymentId", payment.getId());
             response.put("message", payment.getMessage());
             response.put("total", payment.getTotal());
             response.put("method", payment.getPaymentMethod());
             response.put("date", payment.getPaymentDate());
+
+
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            e.getCause().printStackTrace();
             response.put("success", false);
             response.put("message", " Error procesando el pago: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);

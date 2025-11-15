@@ -23,6 +23,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final TransmitterRepository transmitterRepository;
     private final ReasonRepository reasonRepository;
     private final PaymentMethodRepository paymentMethodRepository;
+    private final InvoiceDetailRepository invoiceDetailRepository;
 
     @Transactional
     private String createInvoiceSequence() {
@@ -61,9 +62,32 @@ public class InvoiceServiceImpl implements InvoiceService {
         Invoice invoice = Invoice.builder().code(code).clientName(invoiceData.getClientName()).clientEmail(invoiceData.getClientEmail())
                 .transmitter(enterprise).total(invoiceData.getTotal()).IVA(invoiceData.getIVA()).subtotal(invoiceData.getSubtotal()).reason(reason)
                 .date(LocalDateTime.now()).paymentMethod(invoiceData.getPaymentMethod()).booking(booking).build();
-        return invoiceRepository.save(invoice);
+        return invoice;
 
     }
+
+    public void createBookingDetail(Invoice invoice){
+        InvoiceDetail invoiceDetail = InvoiceDetail.builder().invoice(invoice).code(invoice.getCode())
+                .subtotal(10f)
+                .productName("Booking")
+                .idProduct(0)
+                .bookingDays(0)
+                .build();
+
+        invoice.getDetails().add(invoiceDetail);
+
+    }
+
+    @Transactional
+    public Invoice createInvoiceForBooking(InvoiceData invoiceData){
+        Invoice invoice = createInvoice(invoiceData);
+
+        createBookingDetail(invoice);
+
+        return invoiceRepository.save(invoice);
+    }
+
+
 
 
 

@@ -4,7 +4,7 @@ import {
   GetUserDetails,
   validateCardPayment,
   processBookingPayment,
-  updateRoom
+  updateRoom,
 } from "../../service/api.services";
 import { toast } from "react-toastify";
 import PaymentProcessing from "./PaymentProcessing";
@@ -57,15 +57,6 @@ const CheckoutForm = ({
       });
 
       // Procesar pago fake
-      await processBookingPayment({
-        clientName: form.fullName,
-        clientEmail: form.email,
-        subtotal,
-        iva,
-        total: deposit,
-        paymentMethodId: 1,
-        bookingId: 0,
-      });
 
       setProcessingPayment(true);
 
@@ -76,6 +67,16 @@ const CheckoutForm = ({
           userId,
           checkIn: info.startDate,
           checkOut: info.endDate,
+        });
+
+        await processBookingPayment({
+          clientName: form.fullName,
+          clientEmail: form.email,
+          subtotal,
+          iva,
+          total: deposit,
+          paymentMethodId: 1,
+          bookingId: booking.data.data.id,
         });
 
         // 🚀 Cambiar habitación a RESERVED
@@ -92,6 +93,7 @@ const CheckoutForm = ({
       }, 1800);
     } catch (err) {
       toast.error(err?.response?.data || "Error processing payment");
+      console.log(err);
     }
   };
 
@@ -106,13 +108,38 @@ const CheckoutForm = ({
       </h3>
 
       <div className="space-y-6">
-        <input className="w-full border-b pb-1" placeholder="Cardholder Name" name="fullName" onChange={handleChange} />
-        <input className="w-full border-b pb-1" placeholder="Email" name="email" onChange={handleChange} />
-        <input className="w-full border-b pb-1" placeholder="Card Number" name="cardNumber" onChange={handleChange} />
+        <input
+          className="w-full border-b pb-1"
+          placeholder="Cardholder Name"
+          name="fullName"
+          onChange={handleChange}
+        />
+        <input
+          className="w-full border-b pb-1"
+          placeholder="Email"
+          name="email"
+          onChange={handleChange}
+        />
+        <input
+          className="w-full border-b pb-1"
+          placeholder="Card Number"
+          name="cardNumber"
+          onChange={handleChange}
+        />
 
         <div className="flex gap-6">
-          <input className="w-1/2 border-b pb-1" placeholder="MM/YY" name="expiry" onChange={handleChange} />
-          <input className="w-1/2 border-b pb-1" placeholder="CVV" name="cvv" onChange={handleChange} />
+          <input
+            className="w-1/2 border-b pb-1"
+            placeholder="MM/YY"
+            name="expiry"
+            onChange={handleChange}
+          />
+          <input
+            className="w-1/2 border-b pb-1"
+            placeholder="CVV"
+            name="cvv"
+            onChange={handleChange}
+          />
         </div>
       </div>
 
