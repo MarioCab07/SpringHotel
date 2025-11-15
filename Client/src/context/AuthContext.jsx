@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Login, Logout } from "../service/api.services";
-import { Loading } from "../components/Loading";
 
 const AuthContext = createContext();
 
@@ -13,6 +12,7 @@ export const AuthProvider = ({ children }) => {
     if (response.status === 200) {
       sessionStorage.setItem("token", response.data.accessToken);
       sessionStorage.setItem("role", response.data.role);
+      sessionStorage.setItem("user", JSON.stringify(response.data));
       setUser(response.data);
     }
     return response;
@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
   const loginGoogle = (response) => {
     sessionStorage.setItem("token", response.jwt);
     sessionStorage.setItem("role", response.role);
+    sessionStorage.setItem("user", JSON.stringify(response));
     setUser(response);
   };
 
@@ -28,6 +29,7 @@ export const AuthProvider = ({ children }) => {
     await Logout();
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("role");
+    sessionStorage.removeItem("user");
     setUser(null);
   };
 
@@ -41,7 +43,14 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, loading, loginGoogle, setLoading }}
+      value={{
+        user,
+        login,
+        logout,
+        loading,
+        loginGoogle,
+        setLoading,
+      }}
     >
       {children}
     </AuthContext.Provider>

@@ -1,4 +1,21 @@
 spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: lumehotelsuites@gmail.com
+    password: hguf xfsv stno fjau
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: smtp.gmail.com
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
   sql:
     init:
       mode: always
@@ -58,6 +75,6 @@ enterprise:
   phone_number: "+503 2265-8742"
   lineBusiness: "Servicios hoteleros y turísticos"
   nit: 0614-120923-102-4
-  email: contactlumehotel@gmail.com
+  email: lumehotelsuites@gmail.com
 
 

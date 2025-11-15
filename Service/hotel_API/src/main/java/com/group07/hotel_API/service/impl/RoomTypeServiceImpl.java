@@ -71,5 +71,9 @@ public class RoomTypeServiceImpl implements RoomTypeService {
                 .orElseThrow(() -> new RoomTypeNotFoundException("Room service not found with id " + id));
         roomTypeRepository.delete(entity);
     }
+    @Override
+    public List<RoomType> findAllEntities() {
+        return roomTypeRepository.findAll();
+    }
 
 }

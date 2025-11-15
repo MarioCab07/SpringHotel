@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -56,5 +58,9 @@ public class Invoice {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_booking", nullable = false)
     private Booking booking;
+
+    @OneToMany(mappedBy = "invoice",cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<InvoiceDetail> details = new ArrayList<>();
 
 }

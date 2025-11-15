@@ -10,6 +10,6 @@ public interface InvoiceService {
 
     Optional<Invoice> findById(UUID id);
     Invoice createInvoice(InvoiceData invoiceData);
-
+    Invoice createInvoiceForBooking(InvoiceData invoiceData);
 
 }

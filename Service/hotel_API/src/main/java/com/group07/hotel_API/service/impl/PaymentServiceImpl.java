@@ -1,10 +1,15 @@
 package com.group07.hotel_API.service.impl;
 
+import com.group07.hotel_API.dao.InvoiceData;
 import com.group07.hotel_API.dto.response.Payment.PaymentResponse;
+import com.group07.hotel_API.entities.Invoice;
 import com.group07.hotel_API.entities.Payment;
 import com.group07.hotel_API.entities.PaymentMethod;
 import com.group07.hotel_API.repository.PaymentMethodRepository;
 import com.group07.hotel_API.repository.PaymentRepository;
+import com.group07.hotel_API.service.EmailService;
+import com.group07.hotel_API.service.InvoicePdfService;
+import com.group07.hotel_API.service.InvoiceService;
 import com.group07.hotel_API.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +22,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentMethodRepository paymentMethodRepository;
+    private final InvoiceService  invoiceService;
+    private final InvoicePdfService invoicePdfService;
+    private final EmailService  emailService;
 
     @Override
     public PaymentResponse processPayment(String clientName,
@@ -28,7 +36,7 @@ public class PaymentServiceImpl implements PaymentService {
                                           Integer bookingId,
                                           String reason) {
 
-        var method = paymentMethodRepository.findById(paymentMethodId)
+        PaymentMethod method = paymentMethodRepository.findById(paymentMethodId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("Método de pago no encontrado con ID: " + paymentMethodId));
 
@@ -46,7 +54,29 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
 
         paymentRepository.save(payment);
-        //ACA IMPLEMENTARE FACTURACION
+
+        if(reason.equals("Booking")){
+            InvoiceData invoiceData = InvoiceData.builder()
+                    .clientName(clientName)
+                    .clientEmail(clientEmail)
+                    .total(total)
+                    .subtotal(subtotal)
+                    .IVA(iva)
+                    .paymentMethod(method)
+                    .idBooking(bookingId)
+                    .reason(reason)
+                    .build();
+
+            Invoice invoice = invoiceService.createInvoiceForBooking(invoiceData);
+            byte[] pdf = invoicePdfService.generateInvoicePdf(invoice);
+
+            emailService.sendEmail(invoice.getClientEmail(), "Invoice"+invoice.getCode(),"Thank you for your payment. Your invoice is attached in PDF format.",pdf
+                    , "invoice-" + invoice.getCode() + ".pdf");
+
+
+        }
+
+
 
         return PaymentResponse.builder()
                 .id(payment.getId())
