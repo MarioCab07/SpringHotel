@@ -25,6 +25,8 @@ const CheckoutForm = ({
     cvv: "",
   });
 
+  const [errorMessage, setErrorMessage] = useState("");
+
   const deposit = 10;
   const iva = deposit * 0.13;
   const subtotal = deposit - iva;
@@ -43,8 +45,39 @@ const CheckoutForm = ({
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handlePay = async () => {
+    // Limpiar mensaje previo
+    setErrorMessage("");
+
+    if (!info.startDate || !info.endDate) {
+      const msg = "Debe seleccionar fechas válidas para continuar.";
+      setErrorMessage(msg);
+      toast.error(msg);
+      return;
+    }
+
+    const start = new Date(info.startDate);
+    const end = new Date(info.endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      const msg = "Las fechas seleccionadas no son válidas.";
+      setErrorMessage(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (start >= end) {
+      const msg =
+        "La fecha de salida debe ser mayor que la fecha de entrada.";
+      setErrorMessage(msg);
+      toast.error(msg);
+      return;
+    }
+
     if (Object.values(form).some((v) => !v.trim())) {
-      return toast.error("Complete all fields");
+      const msg = "Debe completar todos los campos antes de continuar.";
+      setErrorMessage(msg);
+      toast.error(msg);
+      return;
     }
 
     try {
@@ -58,6 +91,7 @@ const CheckoutForm = ({
 
       // Procesar pago fake
 
+      // Animación
       setProcessingPayment(true);
 
       setTimeout(async () => {
@@ -80,6 +114,7 @@ const CheckoutForm = ({
         });
 
         // 🚀 Cambiar habitación a RESERVED
+        // Actualizar estado de la habitación
         await updateRoom(selectedRoom.roomId, {
           roomNumber: selectedRoom.roomNumber,
           roomType: selectedRoom.roomType.id,
@@ -91,6 +126,7 @@ const CheckoutForm = ({
         setShowBookingModal(false);
         setProcessingPayment(false);
       }, 1800);
+
     } catch (err) {
       toast.error(err?.response?.data || "Error processing payment");
       console.log(err);
@@ -143,6 +179,7 @@ const CheckoutForm = ({
         </div>
       </div>
 
+      {}
       <div className="mt-10 px-2">
         <div className="flex justify-between mb-2">
           <span>IVA (13%)</span>
@@ -162,9 +199,17 @@ const CheckoutForm = ({
         </div>
       </div>
 
+      {}
+      {errorMessage && (
+        <div className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <strong className="font-bold">Error: </strong>
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
       <button
         onClick={handlePay}
-        className="w-full mt-8 bg-[#d4bf92] hover:bg-[#c6ae7b] py-3 rounded-md font-medium"
+        className="w-full mt-4 py-3 rounded-md font-medium bg-[#d4bf92] hover:bg-[#c6ae7b]"
       >
         Pay
       </button>
