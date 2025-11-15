@@ -684,3 +684,11 @@ export const getRandomAvailableRooms = async () => {
   }
 };
 
+export const getBookingById = async (id) => {
+    try {
+        return await apiClient.get(`/bookings/${id}`);
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+

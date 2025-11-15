@@ -20,7 +20,10 @@ import CleaningStaff from "./pages/CleaningStaffPage";
 import UserService from "./pages/UserService";
 import InvoicePage from "./components/Invoice/InvoicePage";
 import PaymentPage from "./pages/PaymentPage";
+import ReservationsPage from "./pages/ReservationPage";
+import EmployeeCheckInPage from "./pages/EmployeeCheckInPage";
 import EditInventoryPage from "./components/EditInventoryPage";
+
 
 function App() {
   return (
@@ -28,30 +31,39 @@ function App() {
       <section>
         <AuthProvider>
           <Routes>
+            {/* PUBLIC ROUTES */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
 
+            {/* ADMIN ONLY */}
             <Route element={<ProtectedRoutes allowedRoles={["ADMIN"]} />}>
               <Route path="/admin" element={<AdminPage />} />
             </Route>
 
+            {/* EMPLOYEE + ADMIN */}
             <Route element={<ProtectedRoutes allowedRoles={["EMPLOYEE", "ADMIN"]} />}>
               <Route path="/employee" element={<EmployeePage />} />
+
+              {/* ➤ RUTAS QUE FALTABAN */}
+              <Route path="/employee/reservations" element={<ReservationsPage />} />
+              <Route path="/employee/check-in" element={<EmployeeCheckInPage />} />
             </Route>
 
+            {/* INVENTORY (ADMIN + CLEANING STAFF) */}
             <Route element={<ProtectedRoutes allowedRoles={["ADMIN", "CLEANING_STAFF"]} />}>
               <Route path="/inventory" element={<InvoicePage />} />
               <Route path="/inventory/edit" element={<EditInventoryPage />} />
             </Route>
 
+            {/* CLEANING STAFF */}
             <Route element={<ProtectedRoutes allowedRoles={["CLEANING_STAFF", "ADMIN"]} />}>
               <Route path="/cleaning-staff" element={<CleaningStaff />} />
               <Route path="/services/:serviceId" element={<RoomDetailServicePage />}/>
             </Route>
 
-            <Route element={<ProtectedRoutes allowedRoles={["USER", "EMPLOYEE"]} />}
-            >
+            {/* USER + EMPLOYEE */}
+            <Route element={<ProtectedRoutes allowedRoles={["USER", "EMPLOYEE"]} />}>
               <Route path="/rooms" element={<RoomPage />} />
               <Route path="/my-bookings" element={<MyBookingsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
@@ -59,9 +71,11 @@ function App() {
               <Route path="/bookings/:id" element={<UserService />} />
               <Route path="/invoice/:bookingId" element={<InvoicePage />} />
             </Route>
+
           </Routes>
         </AuthProvider>
 
+        {/* NOTIFICATIONS */}
         <ToastContainer
           position="top-right"
           autoClose={5000}
