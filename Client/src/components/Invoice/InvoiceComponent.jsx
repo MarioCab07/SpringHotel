@@ -1,5 +1,4 @@
 import React from "react";
-import logo from "../../assets/Logo.png";
 import UserMenu from "../UserMenu";
 
 const InvoiceComponent = ({ booking, user, room, info, onClose }) => {
@@ -35,7 +34,7 @@ const InvoiceComponent = ({ booking, user, room, info, onClose }) => {
       {}
       <div className="max-w-xl mx-auto mt-10 bg-white shadow-lg rounded-2xl p-10 border">
 
-        { }
+        {}
         <div className="text-center">
           <h2 className="text-xl font-serif tracking-wide">
             LUMÉ HOTEL & SUITES
@@ -48,11 +47,8 @@ const InvoiceComponent = ({ booking, user, room, info, onClose }) => {
         </div>
 
         {}
-        <h3 className="text-center text-lg mt-6 font-semibold">
-          Booking
-        </h3>
+        <h3 className="text-center text-lg mt-6 font-semibold">Booking</h3>
 
-        {}
         <div className="mt-8 space-y-4 text-[15px]">
           <p>
             <strong>Name:</strong> {user.fullName}
@@ -64,8 +60,15 @@ const InvoiceComponent = ({ booking, user, room, info, onClose }) => {
             <strong>Phone Number:</strong> {user.phoneNumber}
           </p>
 
+          {}
           <p className="pt-4">
             <strong>Type:</strong> {room.roomType.name}
+          </p>
+
+          {}
+          <p className="mt-1">
+            <strong>Room Number:</strong>{" "}
+            <span className="font-semibold">{room.roomNumber}</span>
           </p>
 
           <div className="flex justify-between">
@@ -87,7 +90,7 @@ const InvoiceComponent = ({ booking, user, room, info, onClose }) => {
           </div>
         </div>
 
-        {/* TOTAL */}
+        {}
         <div className="mt-8">
           <div className="h-[2px] bg-[#d4bf92] w-full"></div>
 
@@ -107,7 +110,7 @@ const InvoiceComponent = ({ booking, user, room, info, onClose }) => {
           <p>We look forward to your stay.</p>
         </div>
 
-        {/* BUTTON */}
+        {}
         <div className="flex justify-center mt-8">
           <button
             onClick={onClose}

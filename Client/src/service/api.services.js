@@ -7,33 +7,30 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(
-    (config)=>{
-        const excludedPaths = ['/auth/login', '/auth/register','/auth/google'];
+  (config) => {
+    const excluded = [
+      "/auth/login",
+      "/auth/register/user",
+      "/auth/google",
+    ];
 
-        try {
-            
-            const fullUrl = new URL(config.url, API_BASE_URL);
-            const path = fullUrl.pathname;
+    const path = config.url; 
 
-            const shouldExclude = excludedPaths.includes(path);
+    const isExcluded = excluded.some((ex) => path.includes(ex));
 
-            if (!shouldExclude) {
-                const token = sessionStorage.getItem("token");
-                if (token) {
-                    config.headers.Authorization = `Bearer ${token}`;
-                }
-            }
+    if (!isExcluded) {
+      const token = sessionStorage.getItem("token");
 
-        } catch (e) {
-            
-        }
-        
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
+
 
 export const LoginWithGoogle = async(data)=>{
     try {
@@ -670,3 +667,20 @@ export const processCheckOutPayment = async (data) => {
     throw error.response ? error.response.data : error;
   }
 };
+
+export const getRoomSummary = async () => {
+  try {
+    return await apiClient.get("/room/summary");
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getRandomAvailableRooms = async () => {
+  try {
+    return await apiClient.get("/room/random");
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+

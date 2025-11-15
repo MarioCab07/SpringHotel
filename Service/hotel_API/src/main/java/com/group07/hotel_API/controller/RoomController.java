@@ -27,7 +27,7 @@ public class RoomController {
         this.roomService = roomService;
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE', 'CLEANING_STAFF' , 'USER')")
+    @PreAuthorize("permitAll()")
     @GetMapping()
     public ResponseEntity<GeneralResponse> getAllRooms(){
         List<RoomResponse> room = roomService.findAll();
@@ -45,7 +45,7 @@ public class RoomController {
         return buildResponse("Room found successfully", HttpStatus.OK, room);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE', 'CLEANING_STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE', 'CLEANING_STAFF' , 'USER')")
     @GetMapping("/status/{status}")
     public ResponseEntity<GeneralResponse> getRoomsByStatus(@PathVariable String status) {
         List<RoomResponse> rooms = roomService.findByStatus(status);
@@ -80,12 +80,16 @@ public class RoomController {
         return buildResponse("Room created successfully", HttpStatus.CREATED, createdRoom);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @PutMapping("/{id}")
-    public ResponseEntity<GeneralResponse> updateRoom(@Valid @PathVariable Integer id, @RequestBody RoomUpdateRequest roomRequest) {
+    public ResponseEntity<GeneralResponse> updateRoom(
+            @Valid @PathVariable Integer id,
+            @RequestBody RoomUpdateRequest roomRequest
+    ) {
         RoomResponse updatedRoom = roomService.update(id, roomRequest);
         return buildResponse("Room updated successfully", HttpStatus.OK, updatedRoom);
     }
+
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
@@ -94,6 +98,20 @@ public class RoomController {
         roomService.delete(id);
         return buildResponse("Room deleted successfully", HttpStatus.OK, room);
     }
+    @PreAuthorize("permitAll()")
+    @GetMapping("/summary")
+    public ResponseEntity<GeneralResponse> getRoomSummary() {
+        var summary = roomService.getRoomTypesSummary();
+        return buildResponse("Room summary", HttpStatus.OK, summary);
+    }
+
+    @PreAuthorize("permitAll()")
+    @GetMapping("/random")
+    public ResponseEntity<GeneralResponse> getRandomAvailableRooms() {
+        var data = roomService.getRandomAvailableRooms();
+        return buildResponse("Random available rooms", HttpStatus.OK, data);
+    }
+
 
     public ResponseEntity<GeneralResponse> buildResponse(String message, HttpStatus status, Object data) {
         String uri = ServletUriComponentsBuilder.fromCurrentRequestUri().build().getPath();
