@@ -88,8 +88,8 @@ public class AuthController {
         return buildResponse("User details retrieved successfully", HttpStatus.OK, user);
     }
 
-    @GetMapping("get/user/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/get/user/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<GeneralResponse> getUserById(@PathVariable String id){
         UserResponse user = authService.getUserById(Integer.parseInt(id));
         return buildResponse("User details retrieved successfully", HttpStatus.OK, user);

@@ -62,9 +62,8 @@ public class PaymentController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            e.getCause().printStackTrace();
             response.put("success", false);
-            response.put("message", " Error procesando el pago: " + e.getMessage());
+            response.put("message", "Error procesando el pago: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }

@@ -80,7 +80,7 @@ public class RoomController {
         return buildResponse("Room created successfully", HttpStatus.CREATED, createdRoom);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER', 'EMPLOYEE')")
     @PutMapping("/{id}")
     public ResponseEntity<GeneralResponse> updateRoom(
             @Valid @PathVariable Integer id,
