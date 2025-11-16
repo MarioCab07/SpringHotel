@@ -38,7 +38,7 @@ const EmployeeCheckInPage = () => {
       if (!b) return toast.error("Reserva no encontrada");
 
       if (b.status !== "PENDING") {
-        toast.error("Solo puedes buscar reservas PENDING");
+        toast.error("Solo puedes buscar reservas con estado PENDING");
         return;
       }
 
@@ -108,9 +108,9 @@ const EmployeeCheckInPage = () => {
       await processCheckInPayment({
         clientName: user.fullName,
         clientEmail: user.email,
-        subtotal: 0,
-        iva: 0,
-        total: 0,
+        subtotal,
+        iva,
+        total,
         paymentMethodId: 1,
         bookingId: booking.id,
         reason: "Check-In",
@@ -137,7 +137,13 @@ const EmployeeCheckInPage = () => {
       )
     : 0;
 
-  const total = room ? room.roomType.price * nights : 0;
+  const pricePerNight = room ? room.roomType.price : 0;
+  const totalReservationPrice = pricePerNight * nights;
+  const deposit = 10;
+  const remaining = totalReservationPrice - deposit;
+  const subtotal = remaining / 1.13;
+  const iva = remaining - subtotal;
+  const total = remaining;
 
   const toLocalDate = (date) =>
     new Date(date).toLocaleDateString("en-US", {
@@ -147,11 +153,10 @@ const EmployeeCheckInPage = () => {
     });
 
   return (
-    <div className="min-h-screen bg-[#f4f3f0] flex flex-col items-center p-10">
+    <div className="min-h-screen bg-[#eee9df] flex flex-col items-center p-10">
 
       {processing && <PaymentProcessing onFinish={() => {}} />}
 
-      {}
       <h1 className="text-4xl font-bold mb-10 text-[#3a3a3a] tracking-wide">
         Employee Check-In
       </h1>
@@ -176,7 +181,6 @@ const EmployeeCheckInPage = () => {
       {booking && user && room && (
         <div className="bg-white p-10 rounded-3xl shadow-2xl w-[650px] border border-[#e8e6e2]">
 
-          {}
           <div className="text-center mb-6">
             <h2 className="text-2xl font-serif tracking-wide">LUMÉ HOTEL & SUITES</h2>
 
@@ -205,7 +209,7 @@ const EmployeeCheckInPage = () => {
             </p>
 
             <div className="flex justify-between">
-              <p><strong>Price / Night:</strong> ${room.roomType.price}</p>
+              <p><strong>Price / Night:</strong> ${pricePerNight}</p>
               <p><strong>Nights:</strong> {nights}</p>
             </div>
 
@@ -215,15 +219,44 @@ const EmployeeCheckInPage = () => {
             </div>
 
             {}
-            <div className="mt-6">
-              <div className="h-[2px] bg-[#d4bf92] w-full"></div>
+            <div className="mt-8 bg-[#f7f6f3] p-6 rounded-xl shadow-inner">
 
-              <div className="flex justify-between items-center mt-3 text-[17px]">
-                <p className="font-semibold">
-                  <span className="text-xl">$</span>{total}
-                  <span className="text-sm italic ml-1">Total</span>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Payment Breakdown
+              </h3>
+
+              <div className="space-y-2 text-gray-700 text-[15px]">
+
+                <div className="flex justify-between">
+                  <span>Total reservation:</span>
+                  <span>${totalReservationPrice.toFixed(2)}</span>
+                </div>
+
+                <div className="flex justify-between text-[#b18a3f] font-semibold">
+                  <span>Deposit applied:</span>
+                  <span>- $10.00</span>
+                </div>
+
+                <div className="h-[1px] bg-gray-300 my-3"></div>
+
+                <div className="flex justify-between">
+                  <span>Subtotal:</span>
+                  <span>${subtotal.toFixed(2)}</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span>IVA (13%):</span>
+                  <span>${iva.toFixed(2)}</span>
+                </div>
+
+                <div className="flex justify-between font-bold text-[18px] pt-2">
+                  <span>Total to pay:</span>
+                  <span>${total.toFixed(2)}</span>
+                </div>
+
+                <p className="text-sm text-gray-600 mt-3 italic">
+                  *A $10.00 deposit from the booking has been applied.*
                 </p>
-                <p className="text-sm">{toLocalDate(new Date())}</p>
               </div>
             </div>
           </div>
@@ -233,7 +266,7 @@ const EmployeeCheckInPage = () => {
 
             <button
               onClick={handleCashPayment}
-  className="w-full bg-[#d4bf92] hover:bg-[#b99f6c] transition text-white py-3 rounded-full font-semibold shadow-lg"
+              className="w-full bg-[#d4bf92] hover:bg-[#b99f6c] transition text-white py-3 rounded-full font-semibold shadow-lg"
             >
               Pago en efectivo
             </button>
@@ -265,7 +298,7 @@ const EmployeeCheckInPage = () => {
 
               <button
                 onClick={handleCardPayment}
-  className="w-full bg-[#d4bf92] hover:bg-[#b99f6c] transition text-white py-3 rounded-full font-semibold shadow-lg"
+                className="w-full bg-[#d4bf92] hover:bg-[#b99f6c] transition text-white py-3 rounded-full font-semibold shadow-lg"
               >
                 Pagar con tarjeta
               </button>
