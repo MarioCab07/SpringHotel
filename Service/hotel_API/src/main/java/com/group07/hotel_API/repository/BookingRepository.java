@@ -53,4 +53,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     Optional<Booking> findActiveBookingByRoomId(@Param("roomId") Integer roomId,
                                                 @Param("today") LocalDate today);
 
+    Optional<Booking> findByIdAndStatus(Integer id, BookingStatus status);
+
+
 }

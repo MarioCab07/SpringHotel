@@ -1,5 +1,5 @@
 INSERT INTO public.reason (reason_id, name)
-SELECT 1, 'Reserva'
+SELECT 1, 'Booking'
 WHERE NOT EXISTS (
     SELECT 1
     FROM public.reason

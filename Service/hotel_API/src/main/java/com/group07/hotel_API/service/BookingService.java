@@ -19,5 +19,7 @@ public interface BookingService {
     BookingResponse findActiveByRoomId(Integer roomId);
     BookingResponse checkIn(int userId);
     BookingResponse checkOut(int userId);
+    BookingResponse findPendingBookingById(int id);
+
 
 }

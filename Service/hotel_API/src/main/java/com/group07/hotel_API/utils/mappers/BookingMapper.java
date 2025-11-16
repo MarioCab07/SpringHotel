@@ -35,7 +35,13 @@ public class BookingMapper {
                 .checkOut(booking.getCheckOut())
                 .status(booking.getStatus().toString())
                 .userId(booking.getUser().getId())
+                .userName(booking.getUser().getName())
+                .userEmail(booking.getUser().getEmail())
                 .roomId(booking.getRoom().getId())
+                .roomNumber(booking.getRoom().getRoomNumber())
+                .roomType(booking.getRoom().getRoomType().getName())
+                .roomStatus(booking.getRoom().getStatus().toString())
+
                 .build();
     }
 

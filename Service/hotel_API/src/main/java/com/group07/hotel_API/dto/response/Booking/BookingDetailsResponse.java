@@ -2,23 +2,25 @@ package com.group07.hotel_API.dto.response.Booking;
 
 import lombok.Builder;
 import lombok.Data;
+
 import java.time.LocalDate;
 
-@Data
 @Builder
-public class BookingResponse {
-
+@Data
+public class BookingDetailsResponse {
     private Integer id;
+    private String status;
     private LocalDate checkIn;
     private LocalDate checkOut;
-    private String status;
-
-    private Integer userId;
-    private String userName;
-    private String userEmail;
 
     private Integer roomId;
     private String roomNumber;
     private String roomType;
-    private String roomStatus;
+    private Double roomPrice;
+
+    private Integer customerId;
+    private String customerName;
+    private String customerEmail;
+    private String customerPhone;
 }
+

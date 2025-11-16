@@ -13,8 +13,6 @@ import java.time.LocalDate;
 public class BookingUpdateRequest {
 
 
-        @NotNull(message = "You must provide a booking ID")
-        private Integer bookingId;
         @Future(message = "Check-in date cannot be in the past")
         private LocalDate checkIn;
         @Future(message = "Check-out date cannot be in the past")
