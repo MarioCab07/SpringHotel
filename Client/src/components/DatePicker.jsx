@@ -6,8 +6,16 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 const DatePickerValue = ({ date, setDate, label }) => {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+          width: "100%",
+        }}
+      >
         <DatePicker
+          sx={{ width: "100%" }}
           label={label}
           value={date}
           onChange={(newValue) => {
@@ -20,30 +28,38 @@ const DatePickerValue = ({ date, setDate, label }) => {
               variant: "outlined",
               size: "small",
               sx: {
-                "& .MuiInputBase-root": {
-                  backgroundColor: "transparent",
+                "& .MuiOutlinedInput-root": {
+                  height: "56px",
+                  "& fieldset": {
+                    borderWidth: 2,
+                    borderColor: "#D9C696",
+                  },
+                  "&:hover fieldset": {
+                    borderWidth: 2,
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderWidth: 2,
+                  },
                 },
-                "& .MuiInputBase-input": {
-                  color: "white",
-                },
+
+                // 🔹 Placeholder gris
                 "& .MuiInputLabel-root": {
-                  color: "white",
+                  color: "#B3B3B3",
                 },
                 "& .MuiInputLabel-root.Mui-focused": {
-                  color: "white",
+                  color: "#B3B3B3",
                 },
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "white",
+
+                // 🔹 Texto seleccionado negro
+                "& .MuiInputBase-input": {
+                  color: "#000000",
                 },
-                "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "white",
-                },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "white",
-                },
+
+                // Ícono del datepicker blanco (opcional)
                 "& .MuiSvgIcon-root": {
                   color: "white",
                 },
+
                 borderRadius: "8px",
               },
             },
