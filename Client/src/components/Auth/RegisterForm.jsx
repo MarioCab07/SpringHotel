@@ -8,8 +8,9 @@ import { useAuth } from "../../context/AuthContext";
 import dayjs from "dayjs";
 import { GoogleLogin } from "@react-oauth/google";
 import { LoginWithGoogle } from "../../service/api.services";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, Button } from "@mui/material";
 import Backdrop from "@mui/material/Backdrop";
+import { Box, Typography, FormControl, TextField, Grid } from "@mui/material";
 
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -115,114 +116,132 @@ const RegisterForm = () => {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        <h2 className="text-2xl font-bold text-white text-center">Registro</h2>
+      <Typography
+        variant="h2"
+        sx={{ fontFamily: "Times New Roman, Times, serif" }}
+      >
+        Sign Up{" "}
+      </Typography>
 
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Columna Izquierda */}
-          <div className="flex-1 flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-white font-medium">Nombre Completo</label>
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                className="border border-white bg-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                required
-              />
-            </div>
+      <Box
+        display={"flex"}
+        flexDirection={"column"}
+        width={"80%"}
+        padding={2}
+        gap={4}
+      >
+        <Box display={"flex"} justifyContent={"center"} gap={4}>
+          <TextField
+            fullWidth
+            value={formData.fullName}
+            label={"Full Name"}
+            name="fullName"
+            required
+            onChange={handleChange}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderWidth: 2, borderColor: "#D9C696" },
+                "&:hover fieldset": { borderWidth: 2 },
+                "&.Mui-focused fieldset": { borderWidth: 2 },
+              },
+            }}
+          />
+          <TextField
+            value={formData.documentNumber}
+            label={"Document"}
+            name="documentNumber"
+            required
+            placeholder="ID, Passport..."
+            onChange={handleChange}
+            fullWidth
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderWidth: 2, borderColor: "#D9C696" },
+                "&:hover fieldset": { borderWidth: 2 },
+                "&.Mui-focused fieldset": { borderWidth: 2 },
+              },
+            }}
+          />
+        </Box>
+        <Box display={"flex"} justifyContent={"center"} gap={4}>
+          <TextField
+            value={formData.phoneNumber}
+            label={"Phone Number"}
+            name="phoneNumber"
+            required
+            fullWidth
+            onChange={handleChange}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderWidth: 2, borderColor: "#D9C696" },
+                "&:hover fieldset": { borderWidth: 2 },
+                "&.Mui-focused fieldset": { borderWidth: 2 },
+              },
+            }}
+          />
+          <TextField
+            value={formData.email}
+            label={"Email"}
+            name="email"
+            required
+            fullWidth
+            onChange={handleChange}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderWidth: 2, borderColor: "#D9C696" },
+                "&:hover fieldset": { borderWidth: 2 },
+                "&.Mui-focused fieldset": { borderWidth: 2 },
+              },
+            }}
+          />
+        </Box>
+        <Box display={"flex"} justifyContent={"center"} gap={4}>
+          <TextField
+            fullWidth
+            value={formData.userName}
+            label={"Username"}
+            name="userName"
+            required
+            onChange={handleChange}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderWidth: 2, borderColor: "#D9C696" },
+                "&:hover fieldset": { borderWidth: 2 },
+                "&.Mui-focused fieldset": { borderWidth: 2 },
+              },
+            }}
+          />
+          <TextField
+            value={formData.password}
+            label={"Password"}
+            name="password"
+            type="password"
+            required
+            fullWidth
+            onChange={handleChange}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderWidth: 2, borderColor: "#D9C696" },
+                "&:hover fieldset": { borderWidth: 2 },
+                "&.Mui-focused fieldset": { borderWidth: 2 },
+              },
+            }}
+          />
+        </Box>
+        <Box display={"flex"} justifyContent={"center"} gap={4}>
+          <CountrySelector
+            value={formData.country}
+            onChange={handleCountryChange}
+          />
 
-            <div className="flex flex-col gap-2">
-              <label className="text-white font-medium">
-                Número de Documento
-              </label>
-              <input
-                type="text"
-                name="documentNumber"
-                value={formData.documentNumber}
-                onChange={handleChange}
-                className="border border-white bg-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                required
-              />
-            </div>
+          <DatePickerValue
+            date={birthDate}
+            setDate={setBirthDate}
+            label="Birth Date"
+          />
+        </Box>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-white font-medium">
-                Número de Teléfono
-              </label>
-              <input
-                type="text"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                className="border border-white bg-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-white font-medium">País</label>
-              <CountrySelector
-                value={formData.country}
-                onChange={handleCountryChange}
-                className="border border-white bg-white px-4 py-2 rounded-md focus-within:border-orange-500"
-              />
-            </div>
-          </div>
-
-          {/* Columna Derecha */}
-          <div className="flex-1 flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-white font-medium">
-                Nombre de Usuario
-              </label>
-              <input
-                type="text"
-                name="userName"
-                value={formData.userName}
-                onChange={handleChange}
-                className="border border-white bg-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-white font-medium">
-                Correo Electrónico
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="border border-white bg-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-white font-medium">Contraseña</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="border border-white bg-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-white font-medium">
-                Fecha de Nacimiento
-              </label>
-              <DatePickerValue date={birthDate} setDate={setBirthDate} />
-            </div>
-          </div>
-        </div>
-
-        {/* Errores */}
+        {/* Errores + Login + Botón + Google */}
         {errors.length > 0 && (
           <div className="text-red-400 text-sm">
             {errors.map((err, idx) => (
@@ -231,21 +250,30 @@ const RegisterForm = () => {
           </div>
         )}
 
-        <div className="text-center text-white">
-          ¿Ya tienes cuenta?{" "}
-          <Link to="/login" className="text-orange-300 hover:underline">
-            Inicia Sesión
-          </Link>
-        </div>
+        <Box display={"flex"} flexDirection={"column"} gap={2}>
+          <Typography color="gray">
+            Already have an account? Log In{" "}
+            <Link
+              to="/login"
+              style={{ color: "#D9C696" }}
+              className="hover:underline"
+            >
+              here
+            </Link>
+          </Typography>
 
-        <button
-          type="submit"
-          className="bg-orange-500 text-white font-semibold px-6 py-2 rounded hover:bg-orange-600 transition"
-        >
-          Crear cuenta
-        </button>
-        <GoogleLogin onSuccess={handleSuccess} onError={handleError} />
-      </form>
+          <Button
+            variant="contained"
+            sx={{ backgroundColor: "#D9C696" }}
+            onClick={handleSubmit}
+          >
+            Sign Up
+          </Button>
+
+          <GoogleLogin onSuccess={handleSuccess} onError={handleError} />
+        </Box>
+      </Box>
+
       <Backdrop open={loading}>
         <CircularProgress />
       </Backdrop>
@@ -254,3 +282,108 @@ const RegisterForm = () => {
 };
 
 export default RegisterForm;
+
+{
+  /* <Grid item xs={12} md={6}>
+            <TextField
+              value={formData.email}
+              label={"Email"}
+              name="email"
+              required
+              onChange={handleChange}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderWidth: 2, borderColor: "#D9C696" },
+                  "&:hover fieldset": { borderWidth: 2 },
+                  "&.Mui-focused fieldset": { borderWidth: 2 },
+                },
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <TextField
+              value={formData.documentNumber}
+              label={"Document"}
+              name="documentNumber"
+              required
+              placeholder="ID, Passport..."
+              onChange={handleChange}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderWidth: 2, borderColor: "#D9C696" },
+                  "&:hover fieldset": { borderWidth: 2 },
+                  "&.Mui-focused fieldset": { borderWidth: 2 },
+                },
+              }}
+            />
+          </Grid>
+
+          
+          <Grid item xs={12} md={6}>
+            <TextField
+              value={formData.phoneNumber}
+              label={"Phone Number"}
+              name="phoneNumber"
+              required
+              onChange={handleChange}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderWidth: 2, borderColor: "#D9C696" },
+                  "&:hover fieldset": { borderWidth: 2 },
+                  "&.Mui-focused fieldset": { borderWidth: 2 },
+                },
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <TextField
+              value={formData.password}
+              label={"Password"}
+              name="password"
+              type="password"
+              required
+              onChange={handleChange}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderWidth: 2, borderColor: "#D9C696" },
+                  "&:hover fieldset": { borderWidth: 2 },
+                  "&.Mui-focused fieldset": { borderWidth: 2 },
+                },
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <CountrySelector
+              value={formData.country}
+              onChange={handleCountryChange}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <DatePickerValue
+              date={birthDate}
+              setDate={setBirthDate}
+              label="Birth Date"
+            />
+          </Grid> 
+          <TextField
+            fullWidth
+            value={formData.userName}
+            label={"Username"}
+            name="userName"
+            required
+            onChange={handleChange}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderWidth: 2, borderColor: "#D9C696" },
+                "&:hover fieldset": { borderWidth: 2 },
+                "&.Mui-focused fieldset": { borderWidth: 2 },
+              },
+            }}
+          />
+          
+          */
+}
