@@ -73,10 +73,7 @@ const MyBookingsPage = () => {
   return (
     <div className="min-h-screen bg-white pb-20">
       {/* NAVBAR */}
-      <header className="flex justify-between items-center px-12 py-6 border-b border-gray-200">
-        <h1 className="text-2xl font-serif tracking-wide">
-          LUMÉ HOTEL & SUITES
-        </h1>
+       <header className="py-3">
         <UserMenu />
       </header>
 

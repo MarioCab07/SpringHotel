@@ -1,41 +1,51 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const UserMenu = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleSignOut = () => {
-    sessionStorage.clear();
-    window.location.href = "/";
-  };
+  // Función para saber si una ruta está activa
+  const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="flex items-center gap-10 text-base font-medium tracking-wide text-[#1a1a1a]">
-      <button
-        onClick={() => navigate("/profile")}
-        className="hover:text-[#bfa166] transition-colors duration-200"
-      >
-        Profile
-      </button>
-      <button
-        onClick={() => navigate("/my-bookings")}
-        className="hover:text-[#bfa166] transition-colors duration-200"
-      >
-        My Bookings
-      </button>
-      <button
+    <header className="flex justify-between items-center px-12 pt-4 w-full">
+
+      {/* TITULO IZQUIERDA */}
+      <div
+        className="text-black font-display tracking-wide cursor-pointer"
+        style={{ fontFamily: '"Playfair Display", serif' }}
         onClick={() => navigate("/rooms")}
-        className="hover:text-[#bfa166] transition-colors duration-200"
       >
-        Rooms
-      </button>
-      <button
-        onClick={handleSignOut}
-        className="text-red-600 hover:text-red-700 font-semibold transition-colors duration-200"
-      >
-        Sign Out
-      </button>
-    </nav>
+        <h3 className="text-md md:text-lg lg:text-lg hover:text-[#bfa166] transition-colors">
+          Lumé Hotel & Suites
+        </h3>
+      </div>
+
+      {/* MENU DERECHA */}
+      <nav className="flex items-center gap-10 text-base font-medium tracking-wide">
+
+        <button
+          onClick={() => navigate("/my-bookings")}
+          className={`transition-colors duration-200 ${
+            isActive("/my-bookings") ? "text-[#bfa166]" : "text-[#1a1a1a] hover:text-[#bfa166]"
+          }`}
+        >
+          My Bookings
+        </button>
+
+            <button
+          onClick={() => navigate("/profile")}
+          className={`transition-colors duration-200 ${
+            isActive("/profile") ? "text-[#bfa166]" : "text-[#1a1a1a] hover:text-[#bfa166]"
+          }`}
+        >
+          Profile
+        </button>
+
+      </nav>
+
+    </header>
   );
 };
 

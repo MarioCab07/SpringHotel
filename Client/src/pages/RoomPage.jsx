@@ -93,14 +93,10 @@ const RoomPage = () => {
       {!showBookingModal && !showInvoiceModal && (
         <div className="min-h-screen bg-white text-gray-900 font-sans">
           {/* Navbar */}
-          <header className="flex justify-between items-center px-12 py-6 border-b border-gray-200">
-            <h1 className="text-2xl font-serif tracking-wide">
-              LUMÉ HOTEL & SUITES
-            </h1>
+          <header className="py-3">
             <UserMenu />
           </header>
 
-          {}
           <section className="flex justify-center mt-6">
             <div
               className="relative w-[92%] max-w-6xl h-[320px] rounded-3xl overflow-hidden bg-cover bg-center shadow-lg"
