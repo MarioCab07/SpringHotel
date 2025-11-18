@@ -1,6 +1,7 @@
 package com.group07.hotel_API.entities;
 
 import com.group07.hotel_API.utils.enums.CleaningStatus;
+import com.group07.hotel_API.utils.enums.ShiftStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,6 +31,10 @@ public class RoomCleaning {
     @JoinColumn(name = "id_user_client", referencedColumnName = "id")
     private UserClient user;
 
+    @ManyToOne
+    @JoinColumn(name = "id_booking", referencedColumnName = "id")
+    private Booking booking;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private CleaningStatus status;
@@ -39,4 +44,8 @@ public class RoomCleaning {
 
     @Column(name = "comments")
     private String comments;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "shift")
+    private ShiftStatus shift;
 }

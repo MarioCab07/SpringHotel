@@ -53,6 +53,21 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     Optional<Booking> findActiveBookingByRoomId(@Param("roomId") Integer roomId,
                                                 @Param("today") LocalDate today);
 
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.checkIn <= :today
+        AND b.status = 'ACTIVE'
+       """)
+    List<Booking> findRoomsWithCheckInActive(LocalDate today);
+
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.checkOut <= :today
+        AND b.status = 'COMPLETED'
+       """)
+    List<Booking> findRoomsWithCheckOutDone(LocalDate today);
+
     Optional<Booking> findByIdAndStatus(Integer id, BookingStatus status);
 
 

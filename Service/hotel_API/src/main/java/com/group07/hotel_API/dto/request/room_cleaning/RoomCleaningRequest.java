@@ -11,14 +11,22 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class RoomCleaningRequest {
-    @NotNull(message = "Room roomID cannot be null")
+    @NotNull(message = "Room ID cannot be null")
     private Integer roomId;
-    @NotNull(message = "User userID cannot be null")
+
+    @NotNull(message = "User ID cannot be null")
     private Integer userId;
+
+    private Integer bookingId;
+
     @NotBlank(message = "Status cannot be blank")
     private String status;
+
     @NotNull(message = "Cleaned at cannot be null")
-    @FutureOrPresent(message = "Cleaned at must be in the present or future")
     private LocalDateTime cleanedAt;
+
     private String comments;
+
+    @NotBlank(message = "Shift cannot be blank")
+    private String shift;
 }
