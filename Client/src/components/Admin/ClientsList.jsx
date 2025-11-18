@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { GetUsersByRole } from "../../service/api.services";
 import { Loading } from "../Loading";
 import { toast } from "react-toastify";
-import { BsPencilSquare } from "react-icons/bs";
 import UpdateClient from "./UpdateUserComp";
 
 const ClientsList = () => {
@@ -37,6 +36,7 @@ const ClientsList = () => {
 
   const closeModal = () => {
     setShowModal(false);
+    setUserClient(null);
   };
 
   const handleUpdateSuccess = () => {
@@ -47,96 +47,70 @@ const ClientsList = () => {
 
   return (
     <>
-      <article className="w-full h-full flex flex-col gap-4 items-center justify-between relative">
-        <h4
-          style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
-          className="rounded-b-2xl bg-white font-zain-extrabold p-4 w-1/3 text-3xl text-center"
-        >
-          Listado de Clientes
-        </h4>
-        <div className="w-full h-full flex-1  flex flex-col py-5 items-center justify-center overflow-scroll">
-          {loading && <Loading fullscreen={false} />}
-          {!loading && clients.length === 0 && (
-            <>
-              <h2 className="text-center text-2xl font-bold">
-                No hay clientes registrados
-              </h2>
-            </>
-          )}
+      <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        {loading && <Loading fullscreen={false} />}
+        {!loading && clients.length === 0 && (
+          <div className="text-center py-8">
+            <h2 className="text-lg font-semibold text-gray-600">
+              No hay clientes registrados
+            </h2>
+          </div>
+        )}
 
-          {!loading && clients.length > 0 && (
-            <>
-              <div
-                style={{
-                  boxShadow: "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px",
-                }}
-                className="w-full max-w-6xl h-full mx-auto p-4 bg-white rounded-3xl"
-              >
-                <div className="grid grid-cols-6 gap-4 mb-4 text-center font-bold">
-                  <h5 className="col-span-1 flex items-center justify-center">
+        {!loading && clients.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
                     ID
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Nombre
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Teléfono
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
+                  </th>
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                    Name
+                  </th>
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                    Phone Number
+                  </th>
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
                     Email
-                  </h5>
-
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Usuario
-                  </h5>
-                </div>
-                <hr />
-                {clients.map((client) => {
-                  return (
-                    <div
-                      key={client.userId}
-                      className="bg-white py-4 rounded-lg shadow-md mb-4 grid grid-cols-6 gap-4 w-full"
-                    >
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {client.userId}
-                      </p>
-                      <h3 className="text-xl font-semibold flex items-center justify-center text-center">
-                        {client.fullName}
-                      </h3>
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {client.phoneNumber}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {client.email}
-                      </p>
-
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {client.userName}
-                      </p>
-                      <button
-                        onClick={() => {
-                          openModal(client);
-                        }}
-                        className="text-gray-600 flex items-center justify-center"
-                      >
-                        <BsPencilSquare className="text-blue-500 cursor-pointer hover:text-blue-700 transition-colors duration-300" />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </div>
-      </article>
+                  </th>
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                    User
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.map((client) => (
+                  <tr
+                    key={client.userId}
+                    onClick={() => openModal(client)}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    <td className="py-2 px-3 text-sm text-gray-600">{client.userId}</td>
+                    <td className="py-2 px-3 text-sm text-gray-900 font-medium">
+                      {client.fullName}
+                    </td>
+                    <td className="py-2 px-3 text-sm text-gray-600">
+                      {client.phoneNumber}
+                    </td>
+                    <td className="py-2 px-3 text-sm text-gray-600">{client.email}</td>
+                    <td className="py-2 px-3 text-sm text-gray-600">
+                      {client.userName}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
       {showModal && (
-        <>
-          <UpdateClient
-            user={userClient}
-            onClose={closeModal}
-            onSuccess={handleUpdateSuccess}
-          />
-        </>
+        <UpdateClient
+          isOpen={showModal}
+          user={userClient}
+          onClose={closeModal}
+          onSuccess={handleUpdateSuccess}
+        />
       )}
     </>
   );

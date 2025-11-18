@@ -1,4 +1,3 @@
-import logo from "../assets/Logo.png";
 import { sidebarItems } from "./SideBarItems";
 
 const SideBar = ({ option, setOption }) => {
@@ -9,28 +8,28 @@ const SideBar = ({ option, setOption }) => {
   });
 
   return (
-    <>
-      <aside className="w-[355px] h-screen bg-blue-100 p-4 flex flex-col items-center shadow-md">
-  <div className="mb-10">
-    <img src={logo} alt="Logo" className="w-24 h-auto" />
-  </div>
-  <nav className="flex flex-col gap-3 text-black text-lg">
-    {itemsToShow.map((item, index) => (
-      <div
-        key={index}
-        className={`flex items-center gap-4 cursor-pointer px-3 pb-4 rounded 
-          ${option === item.label ? "bg-white text-black" : "hover:text-blue-600"}
-          transition-all duration-300 ease-in-out`}
-        onClick={() => setOption(item.label)}
-      >
-        <div className="text-2xl">{item.icon}</div>
-        <span className="font-medium">{item.label}</span>
-      </div>
-    ))}
-  </nav>
-</aside>
-
-    </>
+    <aside className="w-full md:w-[240px] lg:w-[260px] bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col">
+      <nav className="flex flex-col w-full">
+        {itemsToShow.map((item, index) => (
+          <div key={index} className="w-full">
+            <div
+              className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg transition-all duration-200 ${
+                option === item.label
+                  ? "bg-gray-100 text-gray-900 font-semibold"
+                  : "text-gray-700 hover:bg-gray-50"
+              }`}
+              onClick={() => setOption(item.label)}
+            >
+              <div className="text-lg">{item.icon}</div>
+              <span className="text-sm">{item.label}</span>
+            </div>
+            {index < itemsToShow.length - 1 && (
+              <hr className="my-1 border-gray-200" />
+            )}
+          </div>
+        ))}
+      </nav>
+    </aside>
   );
 };
 

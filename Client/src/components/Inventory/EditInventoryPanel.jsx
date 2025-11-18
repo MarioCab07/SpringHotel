@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { FaChevronLeft } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-
-import Layout from "../components/Layout";
-import InventoryEditCard from "../components/Inventory/InventoryEditCard";
-import EditCategoryModal from "../components/Modals/EditCategoryModal"
-import SearchSortBar from "../components/SearchSortBar";
-import AddNewDropdownButton from "../components/Buttons/AddNewDropdownButton";
-import AddCategoryModal from "./Modals/AddCategoryModal";
-import AddItemModal from "./Modals/AddItemModal";
-import EditItemModal from "../components/Modals/EditItemModal"
-
-
+import InventoryEditCard from "./InventoryEditCard";
+import EditCategoryModal from "../Modals/EditCategoryModal";
+import SearchSortBar from "../SearchSortBar";
+import AddNewDropdownButton from "../Buttons/AddNewDropdownButton";
+import AddCategoryModal from "../Modals/AddCategoryModal";
+import AddItemModal from "../Modals/AddItemModal";
+import EditItemModal from "../Modals/EditItemModal";
 import {
   createInventoryItem,
   createCategory,
@@ -21,29 +18,23 @@ import {
   updateInventoryItem,
   deleteInventoryItem,
   deleteCategory,
-} from "../service/api.services";
+} from "../../service/api.services";
 
-const EditInventoryPage = () => {
-  const navigate = useNavigate();
-
+const EditInventoryPanel = ({ isOpen, onClose, onSuccess }) => {
   const [query, setQuery] = useState("");
   const [groupedData, setGroupedData] = useState({});
-
   const [editCategoryData, setEditCategoryData] = useState(null);
   const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
-
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [filteredCategories, setFilteredCategories] = useState([]);
-
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
-
   const [editItemData, setEditItemData] = useState(null);
   const [showEditItemModal, setShowEditItemModal] = useState(false);
 
   const countProductsInCategory = (categoryId) => {
-  return items.filter((item) => item.categoryId === categoryId).length;
+    return items.filter((item) => item.categoryId === categoryId).length;
   };
 
   const fetchData = async () => {
@@ -74,6 +65,12 @@ const EditInventoryPage = () => {
   };
 
   useEffect(() => {
+    if (isOpen) {
+      fetchData();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     if (Object.keys(groupedData).length > 0) {
       const filtered = Object.entries(groupedData)
         .filter(([category]) =>
@@ -87,44 +84,39 @@ const EditInventoryPage = () => {
     }
   }, [query, groupedData]);
 
-  // Cargar datos desde API
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-
-
   const handleSaveItem = async (newItem) => {
     try {
       await createInventoryItem(newItem);
       toast.success("Producto creado correctamente");
       setShowAddItemModal(false);
       fetchData();
+      onSuccess?.();
     } catch (error) {
       toast.error("Error al guardar producto");
     }
   };
-  
 
   const handleSaveCategory = async (newCategory) => {
-  const categoryExists = categories.some(
-    (cat) => cat.name.toLowerCase() === newCategory.toLowerCase()
-  );
+    const categoryExists = categories.some(
+      (cat) => cat.name.toLowerCase() === newCategory.toLowerCase()
+    );
 
-  if (categoryExists) {
-    toast.warning("La categoría ya existe");
-    return;
-  }
+    if (categoryExists) {
+      toast.warning("La categoría ya existe");
+      return;
+    }
 
-  try {
-    await createCategory({ name: newCategory });
-    toast.success("Categoría creada correctamente");
-    setShowAddCategoryModal(false);
-    fetchData(); // ✅ ya funciona aquí
-  } catch (error) {
-    toast.error("Error al guardar categoría");
-  }
-};
+    try {
+      await createCategory({ name: newCategory });
+      toast.success("Categoría creada correctamente");
+      setShowAddCategoryModal(false);
+      fetchData();
+      onSuccess?.();
+    } catch (error) {
+      toast.error("Error al guardar categoría");
+    }
+  };
+
   const handleEditSection = (categoryName) => {
     const category = categories.find((cat) => cat.name === categoryName);
     if (category) {
@@ -134,9 +126,9 @@ const EditInventoryPage = () => {
   };
 
   const handleEditItem = (item) => {
-  setEditItemData(item);
-  setShowEditItemModal(true);
-};
+    setEditItemData(item);
+    setShowEditItemModal(true);
+  };
 
   const handleUpdateCategory = async (updatedCategory) => {
     try {
@@ -144,6 +136,7 @@ const EditInventoryPage = () => {
       toast.success("Categoría actualizada correctamente");
       setShowEditCategoryModal(false);
       fetchData();
+      onSuccess?.();
     } catch (error) {
       toast.error("Error actualizando categoría");
     }
@@ -155,6 +148,7 @@ const EditInventoryPage = () => {
       toast.success("Producto actualizado correctamente");
       setShowEditItemModal(false);
       fetchData();
+      onSuccess?.();
     } catch (error) {
       toast.error("Error actualizando producto");
     }
@@ -173,6 +167,7 @@ const EditInventoryPage = () => {
       toast.success("Categoría eliminada correctamente");
       setShowEditCategoryModal(false);
       fetchData();
+      onSuccess?.();
     } catch (error) {
       toast.error("Error al eliminar categoría");
     }
@@ -184,44 +179,73 @@ const EditInventoryPage = () => {
       toast.success("Producto eliminado correctamente");
       setShowEditItemModal(false);
       fetchData();
+      onSuccess?.();
     } catch (error) {
       console.error("Error eliminando producto:", error);
       toast.error("Error eliminando producto");
     }
   };
 
-  return (
-    <Layout
-      headerTitle="Edit Inventory"
-      backTo="/admin"
-      backLabel="Administrador de Inventario"
-    >
-      <div className="p-6 space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 w-full">
-          <div className="flex flex-wrap items-center gap-3">
-            <SearchSortBar
-              query={query}
-              setQuery={setQuery}
-              onSearch={() => {}} 
-              onSortChange={() => {}}
-            />
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      
+      <div className="relative ml-auto w-1/2 h-full bg-white shadow-xl flex flex-col">
+        <header className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded transition">
+            <FaChevronLeft size={18} className="text-gray-700" />
+          </button>
+          <h2 className="font-serif text-lg text-gray-900">Editar Inventario</h2>
+          <div className="w-20" /> {/* Spacer para centrar el título */}
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-4 w-full">
+            <div className="flex flex-wrap items-center gap-3 flex-1">
+              <SearchSortBar
+                query={query}
+                setQuery={setQuery}
+                onSearch={() => {}}
+                onSortChange={() => {}}
+                initialSort="Sort By"
+                options={[]}
+              />
+            </div>
+
+            <div className="shrink-0">
+              <AddNewDropdownButton
+                onAddCategory={() => setShowAddCategoryModal(true)}
+                onAddItem={() => setShowAddItemModal(true)}
+              />
+            </div>
           </div>
 
-          <div className="shrink-0">
-            <AddNewDropdownButton
-              onAddCategory={() => setShowAddCategoryModal(true)}
-              onAddItem={() => setShowAddItemModal(true)}
-            />
-          </div>
+          {filteredCategories.length === 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+              <p className="text-gray-500 text-lg">
+                {query ? "No se encontraron categorías con ese nombre" : "No hay categorías disponibles"}
+              </p>
+            </div>
+          )}
+
+          {filteredCategories.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              {filteredCategories.map(([category, products], idx) => (
+                <InventoryEditCard
+                  key={category}
+                  category={category}
+                  products={products}
+                  onEdit={() => handleEditSection(category)}
+                  onItemEdit={handleEditItem}
+                  isFirst={idx === 0}
+                  isLast={idx === filteredCategories.length - 1}
+                />
+              ))}
+            </div>
+          )}
         </div>
-
-        {filteredCategories.length === 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-            <p className="text-gray-500 text-lg">
-              {query ? "No se encontraron categorías con ese nombre" : "No hay categorías disponibles"}
-            </p>
-          </div>
-        )}
 
         {showAddCategoryModal && (
           <AddCategoryModal
@@ -267,25 +291,11 @@ const EditInventoryPage = () => {
             productCount={countProductsInCategory(editCategoryData?.id)}
           />
         )}
-
-        {filteredCategories.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            {filteredCategories.map(([category, products], idx) => (
-              <InventoryEditCard
-                key={category}
-                category={category}
-                products={products}
-                onEdit={() => handleEditSection(category)}
-                onItemEdit={handleEditItem}
-                isFirst={idx === 0}
-                isLast={idx === filteredCategories.length - 1}
-              />
-            ))}
-          </div>
-        )}
       </div>
-    </Layout>
+    </div>,
+    document.body
   );
 };
 
-export default EditInventoryPage;
+export default EditInventoryPanel;
+
