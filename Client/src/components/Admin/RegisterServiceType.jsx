@@ -1,92 +1,120 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { createPortal } from "react-dom";
+import { FaChevronLeft } from "react-icons/fa";
 import { createServiceType } from "../../service/api.services";
 import { toast } from "react-toastify";
-import { BsArrowLeftShort } from "react-icons/bs";
-import StandardInput from "../StandardInput";
 
-const RegisterServiceType = ({ onClose, onSuccess }) => {
+const RegisterServiceType = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: "",
-    price: 0,
+    price: "",
   });
-  const [errors, setErrors] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "price") {
+      const numericValue = value.replace(/\D/g, "");
+      setFormData((prev) => ({ ...prev, [name]: numericValue }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrors([]);
+
+    if (!formData.name.trim() || !formData.price || formData.price <= 0) {
+      toast.error("Por favor completa todos los campos requeridos");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await createServiceType(formData);
+      const data = {
+        name: formData.name.trim(),
+        price: parseFloat(formData.price),
+      };
+      const response = await createServiceType(data);
       if (response.status === 201) {
         toast.success("Servicio creado exitosamente");
         setFormData({
           name: "",
-          price: 0,
+          price: "",
         });
         setTimeout(() => {
           onSuccess();
-        }, 3000);
+        }, 2000);
       }
     } catch (error) {
-      toast.error("Error al crear el servicio: " + error.message);
-      setErrors(Array.isArray(error.message) ? error.message : [error.message]);
+      toast.error("Error al crear el servicio: " + (error.message || "Error desconocido"));
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <>
-      <section className="fixed inset-0 z-50 flex">
-        <div className="w-2/3 bg-black opacity-30" onClick={onClose} />
-        <div className="w-1/3 bg-gray-500 flex flex-col">
-          <header className="bg-[#0C0950] text-white flex items-center p-2">
-            <button onClick={onClose} className="hover:text-pink-400">
-              <BsArrowLeftShort size={30} />
-            </button>
-            <h4 className="flex-1 text-center text-2xl font-bold">
-              Registrar Servicio
-            </h4>
-          </header>
-          <form
-            onSubmit={handleSubmit}
-            className="p-6 space-y-4 flex flex-col gap-4"
-          >
-            <StandardInput
-              label="Nombre del Servicio"
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      
+      <div className="relative ml-auto w-1/2 h-full bg-white shadow-xl flex flex-col">
+        <header className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded transition">
+            <FaChevronLeft size={18} className="text-gray-700" />
+          </button>
+          <h2 className="font-serif text-lg text-gray-900">Registrar Servicio</h2>
+          <div className="w-20" /> {/* Spacer para centrar el título */}
+        </header>
+
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nombre del Servicio
+            </label>
+            <input
+              type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              type="text"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
+              placeholder="Ej: Servicio de Limpieza"
+              required
             />
-            <StandardInput
-              label="Precio del Servicio"
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Precio del Servicio
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               name="price"
               value={formData.price}
               onChange={handleChange}
-              type="number"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
+              placeholder="Ej: 500"
+              required
             />
+            <p className="text-xs text-gray-500 mt-1">Solo se permiten números</p>
+          </div>
 
-            {errors.length > 0 && (
-              <ul className="text-red-500">
-                {errors.map((err, i) => (
-                  <li key={i}>{err}</li>
-                ))}
-              </ul>
-            )}
-
+          <div className="flex justify-end pt-4">
             <button
               type="submit"
-              className="w-full bg-pink-400 cursor-pointer rounded-2xl text-white py-2 hover:bg-pink-600 transition-colors duration-300 ease-in-out"
+              disabled={loading}
+              className="px-5 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
             >
-              Registrar
+              {loading ? "Registrando..." : "Registrar"}
             </button>
-          </form>
-        </div>
-      </section>
-    </>
+          </div>
+        </form>
+      </div>
+    </div>,
+    document.body
   );
 };
 
