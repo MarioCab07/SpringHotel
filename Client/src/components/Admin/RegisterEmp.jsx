@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { createPortal } from "react-dom";
+import { FaChevronLeft } from "react-icons/fa";
 import { RegisterEmployee } from "../../service/api.services";
 import { toast } from "react-toastify";
-import { BsArrowLeftShort } from "react-icons/bs";
-import StandardInput from "../StandardInput";
-import DatePickerValue from "../DatePicker";
-import CountrySelector from "../CountrySelector";
+import Select from "react-select";
+import countryList from "react-select-country-list";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 
-const RegisterEmp = ({ onClose, onSuccess }) => {
+const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -16,47 +19,13 @@ const RegisterEmp = ({ onClose, onSuccess }) => {
     phoneNumber: "",
   });
 
+  const [birthDate, setBirthDate] = useState(dayjs());
   const [credentials, setCredentials] = useState({
     userName: "",
     password: "",
   });
-
-  const [errors, setErrors] = useState([]);
-
-  const [birthDate, setBirthDate] = useState(dayjs());
-  const handleSubmit = async () => {
-    try {
-      const data = {
-        ...formData,
-        birthDate: birthDate.format("YYYY-MM-DD"),
-        country: formData.country || "SV",
-      };
-      toast.update("Registrando empleado...");
-      const response = await RegisterEmployee(data);
-      if (response.status === 201) {
-        toast.success("Empleado registrado exitosamente");
-        setFormData({
-          fullName: "",
-          email: "",
-          documentNumber: "",
-          country: "",
-          phoneNumber: "",
-        });
-        setBirthDate(dayjs());
-
-        setCredentials({
-          userName: response.data.data.userName,
-          password: response.data.data.generatedPassword,
-        });
-      }
-    } catch (error) {
-      toast.error("Error al registrar empleado: ");
-      setErrors(error.message);
-      setTimeout(() => {
-        setErrors([]);
-      }, 5000);
-    }
-  };
+  const [showCredentials, setShowCredentials] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -66,122 +35,295 @@ const RegisterEmp = ({ onClose, onSuccess }) => {
     }));
   };
 
-  return (
-    <>
-      <section className="w-full h-full mx-auto rounded-lg shadow-md right-0 absolute z-50 overflow-visible flex">
-        <article
-          className="w-2/3 bg-black opacity-30"
-          onClick={onClose}
-        ></article>
-        <article className="flex flex-col bg-gray-500 items-start  w-1/3   text-black">
-          <div className="bg-[#0C0950] text-white w-full flex items-center">
-            <button
-              onClick={onClose}
-              className="flex items-center justify-center p-2 hover:text-pink-400 transition-colors duration-300 cursor-pointer"
-            >
-              <BsArrowLeftShort size={40} />
-            </button>
-            <h4 className="flex-1 font-bold text-2xl text-center">
-              Registrar Empleado
-            </h4>
-          </div>
+  const handleCountryChange = (countryCode) => {
+    setFormData((prev) => ({ ...prev, country: countryCode }));
+  };
 
-          <form className="flex gap-36 w-full h-1/2 justify-center items-center ">
-            <div className="flex flex-col gap-8  ">
-              <StandardInput
-                label={"Nombre Completo"}
-                name={"fullName"}
-                value={formData.fullName}
-                onChange={handleChange}
-                type="text"
-              />
-              <StandardInput
-                label={"Correo Electrónico"}
-                name={"email"}
-                value={formData.email}
-                onChange={handleChange}
-                type="email"
-              />
-              <StandardInput
-                label={"Número de Documento"}
-                name={"documentNumber"}
-                value={formData.documentNumber}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="flex justify-center flex-col gap-10 ">
-              <StandardInput
-                label={"Número de Teléfono"}
-                name={"phoneNumber"}
-                value={formData.phoneNumber}
-                onChange={handleChange}
-              />
-              <CountrySelector
-                value={formData.country}
-                onChange={(value) =>
-                  setFormData((prev) => ({ ...prev, country: value }))
-                }
-                className="bg-white/70 border border-gray-300 focus-within:border-amber-500 shadow-sm rounded-lg"
-              />
-              <DatePickerValue
-                date={birthDate}
-                setDate={setBirthDate}
-                label={"Fecha de Nacimiento"}
-              />
-            </div>
-          </form>
-          <div className="flex w-full justify-center items-center gap-8 mt-4">
-            <button
-              onClick={handleSubmit}
-              type="submit"
-              style={{ boxShadow: "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px" }}
-              className="bg-pink-400 w-1/2 cursor-pointer rounded-2xl py-1 px-2   hover:bg-pink-600 transition-all 0.5s ease-in-out"
-            >
-              Registrar
-            </button>
-          </div>
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-          <div className="flex gap-4 flex-col items-center justify-center w-full p-4 text-white">
-            {credentials.userName && credentials.password && (
-              <>
-                <h5 className="font-bold">Credenciales para Empleado</h5>
-                <p>
-                  Usuario:{" "}
-                  <span className="font-semibold">{credentials.userName}</span>
+    if (
+      !formData.fullName.trim() ||
+      !formData.email.trim() ||
+      !formData.documentNumber.trim() ||
+      !formData.phoneNumber.trim() ||
+      !formData.country
+    ) {
+      toast.error("Por favor completa todos los campos requeridos");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = {
+        ...formData,
+        birthDate: birthDate.format("YYYY-MM-DD"),
+        country: formData.country || "SV",
+      };
+      
+      const response = await RegisterEmployee(data);
+      if (response.status === 201) {
+        toast.success("Empleado registrado exitosamente");
+        
+        setCredentials({
+          userName: response.data.data.userName,
+          password: response.data.data.generatedPassword,
+        });
+        setShowCredentials(true);
+
+        // Limpiar formulario
+        setFormData({
+          fullName: "",
+          email: "",
+          documentNumber: "",
+          country: "",
+          phoneNumber: "",
+        });
+        setBirthDate(dayjs());
+      }
+    } catch (error) {
+      toast.error("Error al registrar empleado: " + (error.message || "Error desconocido"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setShowCredentials(false);
+    setCredentials({ userName: "", password: "" });
+    onClose();
+  };
+
+  const handleContinue = () => {
+    setShowCredentials(false);
+    setCredentials({ userName: "", password: "" });
+    onSuccess();
+  };
+
+  if (!isOpen) return null;
+
+  const countryOptions = countryList().getData();
+  const selectedCountry = countryOptions.find((opt) => opt.value === formData.country);
+
+  const customSelectStyles = {
+    control: (base, state) => ({
+      ...base,
+      backgroundColor: "#f3f4f6",
+      borderColor: state.isFocused ? "#f2789f" : "#d1d5db",
+      borderRadius: "12px",
+      boxShadow: state.isFocused ? "0 0 0 2px rgba(242, 120, 159, 0.25)" : "none",
+      "&:hover": { borderColor: "#f2789f" },
+      minHeight: "48px",
+    }),
+    menu: (base) => ({ ...base, backgroundColor: "#ffffff", zIndex: 9999 }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isFocused ? "#fce7f3" : "#ffffff",
+      color: "#000000",
+      cursor: "pointer",
+    }),
+    singleValue: (base) => ({
+      ...base,
+      color: "#000000",
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: "#6b7280",
+    }),
+  };
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex">
+      <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
+      
+      <div className="relative ml-auto w-1/2 h-full bg-white shadow-xl flex flex-col">
+        <header className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <button onClick={handleClose} className="p-2 hover:bg-gray-100 rounded transition">
+            <FaChevronLeft size={18} className="text-gray-700" />
+          </button>
+          <h2 className="font-serif text-lg text-gray-900">Registrar Empleado</h2>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition"
+          >
+            {loading ? "Registrando..." : "Registrar"}
+          </button>
+        </header>
+
+        {showCredentials ? (
+          <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Empleado registrado exitosamente</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Usuario:
+                  </label>
+                  <p className="text-lg font-semibold text-gray-900 bg-white p-3 rounded-lg border border-gray-200">
+                    {credentials.userName}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Contraseña:
+                  </label>
+                  <p className="text-lg font-semibold text-gray-900 bg-white p-3 rounded-lg border border-gray-200">
+                    {credentials.password}
+                  </p>
+                </div>
+                <p className="text-sm text-gray-600 mt-4">
+                  Guarda estas credenciales. El empleado las necesitará para iniciar sesión.
                 </p>
-                <p>
-                  Contraseña:{" "}
-                  <span className="font-semibold">{credentials.password}</span>
-                </p>
-
+              </div>
+              <div className="flex gap-3 pt-4">
                 <button
-                  onClick={onSuccess}
-                  className="rounded-2xl p-4 bg-gray-400 text-white cursor-pointer hover:bg-gray-600 transition-all duration-300"
+                  onClick={handleContinue}
+                  className="flex-1 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg text-sm font-medium transition"
+                >
+                  Continuar
+                </button>
+                <button
+                  onClick={handleClose}
+                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition"
                 >
                   Cerrar
                 </button>
-              </>
-            )}
-            {errors.length > 0 && (
-              <>
-                {errors.map((error, index) => {
-                  return (
-                    <>
-                      <p className="text-white" key={index}>
-                        Error:{" "}
-                        <span key={index} className="font-bold">
-                          {error}
-                        </span>
-                      </p>
-                    </>
-                  );
-                })}
-              </>
-            )}
+              </div>
+            </div>
           </div>
-        </article>
-      </section>
-    </>
+        ) : (
+          <form onSubmit={handleSubmit} className="p-6 space-y-6 flex-1 overflow-y-auto">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nombre Completo
+              </label>
+              <input
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+                placeholder="Ej: Juan Pérez"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Correo Electrónico
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+                placeholder="Ej: juan@example.com"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Número de Documento
+              </label>
+              <input
+                type="text"
+                name="documentNumber"
+                value={formData.documentNumber}
+                onChange={handleChange}
+                className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+                placeholder="Ej: 12345678"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Número de Teléfono
+              </label>
+              <input
+                type="text"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+                placeholder="Ej: +1234567890"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                País
+              </label>
+              <Select
+                options={countryOptions}
+                value={selectedCountry}
+                onChange={(opt) => handleCountryChange(opt?.value ?? "")}
+                placeholder="Selecciona un país"
+                styles={customSelectStyles}
+                isClearable
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Fecha de Nacimiento
+              </label>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  value={birthDate}
+                  onChange={(newValue) => {
+                    if (newValue) {
+                      setBirthDate(newValue);
+                    }
+                  }}
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      fullWidth: true,
+                      sx: {
+                        "& .MuiInputBase-root": {
+                          backgroundColor: "#f3f4f6",
+                          borderRadius: "12px",
+                          border: "1px solid #d1d5db",
+                        },
+                        "& .MuiInputBase-input": {
+                          color: "#000000",
+                          padding: "12px",
+                        },
+                        "& .MuiInputLabel-root": {
+                          color: "#6b7280",
+                        },
+                        "& .MuiInputLabel-root.Mui-focused": {
+                          color: "#f2789f",
+                        },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#d1d5db",
+                        },
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#f2789f",
+                        },
+                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#f2789f",
+                          borderWidth: "2px",
+                        },
+                        "& .MuiSvgIcon-root": {
+                          color: "#6b7280",
+                        },
+                      },
+                    },
+                  }}
+                />
+              </LocalizationProvider>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>,
+    document.body
   );
 };
 

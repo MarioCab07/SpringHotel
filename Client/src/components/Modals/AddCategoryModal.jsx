@@ -26,25 +26,25 @@ const AddCategoryModal = ({ isOpen, onClose, onSave }) => {
           <button onClick={onClose} className="p-2">
             <FaChevronLeft size={18} />
           </button>
-          <h2 className="font-serif text-lg">Add Category</h2>
+          <h2 className="font-serif text-lg">Agregar Categoría</h2>
           <button
             onClick={handleSave}
             className="px-4 py-1 bg-[#f2789f] hover:bg-[#e76b91] rounded text-sm"
           >
-            Save
+            Guardar
           </button>
         </header>
 
         {/* Contenido del formulario */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 flex-1 overflow-y-auto">
           <div>
-            <label className="block text-sm font-medium">Category name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Nombre de la categoría</label>
             <input
               name="categoryName"
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
-              placeholder="Ej. Kitchen, Maintenance..."
-              className="w-full rounded-xl bg-gray-200 p-3 text-sm placeholder-gray-500 focus:outline-none"
+              placeholder="Ej. Cocina, Mantenimiento..."
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
             />
           </div>
         </div>

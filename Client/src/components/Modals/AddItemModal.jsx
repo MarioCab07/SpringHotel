@@ -74,36 +74,36 @@ const AddItemModal = ({ isOpen, onClose, onSave, categories = [] }) => {
           </button>
         </header>
 
-        <div className="p-6 space-y-6 overflow-y-auto">
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
           <div>
-            <label className="block text-sm font-medium">Nombre del producto</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Nombre del producto</label>
             <input
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full rounded-xl bg-gray-200 p-3 text-sm placeholder-gray-500 focus:outline-none"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
               placeholder="Ej: Botellas de agua"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Tipo</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
             <input
               name="type"
               value={formData.type}
               onChange={handleChange}
-              className="w-full rounded-xl bg-gray-200 p-3 text-sm placeholder-gray-500 focus:outline-none"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
               placeholder="Ej: Bebida, Limpieza, etc."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Categoría</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
             <select
               name="categoryId"
               value={formData.categoryId}
               onChange={handleChange}
-              className="w-full rounded-xl bg-gray-200 p-3 text-sm"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
             >
               <option value="">Selecciona una categoría</option>
               {categories?.map((category) => (
@@ -113,14 +113,15 @@ const AddItemModal = ({ isOpen, onClose, onSave, categories = [] }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Cantidad en stock</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Cantidad en stock</label>
             <input
               type="number"
               name="quantity"
-              value={formData.stock}
+              value={formData.quantity}
               onChange={handleChange}
-              className="w-full rounded-xl bg-gray-200 p-3 text-sm placeholder-gray-500 focus:outline-none"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
               placeholder="Ej: 20"
+              min="0"
             />
           </div>
         </div>

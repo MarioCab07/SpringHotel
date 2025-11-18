@@ -176,21 +176,19 @@ const EmployeeList = () => {
       </div>
 
       {showCreate && (
-        <>
-          <RegisterEmp
-            onClose={closeCreateModal}
-            onSuccess={handleCreateSuccess}
-          />
-        </>
+        <RegisterEmp
+          isOpen={showCreate}
+          onClose={closeCreateModal}
+          onSuccess={handleCreateSuccess}
+        />
       )}
       {showUpdate && (
-        <>
-          <UpdateEmployee
-            user={userEmployee}
-            onClose={closeUpdateModal}
-            onSuccess={handleUpdateSuccess}
-          />
-        </>
+        <UpdateEmployee
+          isOpen={showUpdate}
+          user={userEmployee}
+          onClose={closeUpdateModal}
+          onSuccess={handleUpdateSuccess}
+        />
       )}
       {showSetRole && (
         <>

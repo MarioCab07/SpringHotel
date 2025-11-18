@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { GetUsersByRole } from "../../service/api.services";
 import { Loading } from "../Loading";
 import { toast } from "react-toastify";
-import { BsPencilSquare } from "react-icons/bs";
 import UpdateClient from "./UpdateUserComp";
 
 const ClientsList = () => {
@@ -37,6 +36,7 @@ const ClientsList = () => {
 
   const closeModal = () => {
     setShowModal(false);
+    setUserClient(null);
   };
 
   const handleUpdateSuccess = () => {
@@ -77,16 +77,14 @@ const ClientsList = () => {
                   <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
                     User
                   </th>
-                  <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
-                    Actions
-                  </th>
                 </tr>
               </thead>
               <tbody>
                 {clients.map((client) => (
                   <tr
                     key={client.userId}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    onClick={() => openModal(client)}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
                   >
                     <td className="py-2 px-3 text-sm text-gray-600">{client.userId}</td>
                     <td className="py-2 px-3 text-sm text-gray-900 font-medium">
@@ -99,14 +97,6 @@ const ClientsList = () => {
                     <td className="py-2 px-3 text-sm text-gray-600">
                       {client.userName}
                     </td>
-                    <td className="py-2 px-3">
-                      <button
-                        onClick={() => openModal(client)}
-                        className="text-blue-500 hover:text-blue-700 transition-colors"
-                      >
-                        <BsPencilSquare className="w-4 h-4" />
-                      </button>
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -116,6 +106,7 @@ const ClientsList = () => {
       </div>
       {showModal && (
         <UpdateClient
+          isOpen={showModal}
           user={userClient}
           onClose={closeModal}
           onSuccess={handleUpdateSuccess}

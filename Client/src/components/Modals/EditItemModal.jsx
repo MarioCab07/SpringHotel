@@ -5,6 +5,7 @@ import { FaChevronLeft } from "react-icons/fa";
 const EditItemModal = ({ isOpen, onClose, item, categories, onUpdate, onDelete }) => {
   const [form, setForm] = useState({
     name: "",
+    type: "",
     quantity: 0,
     categoryId: "",
   });
@@ -13,6 +14,7 @@ const EditItemModal = ({ isOpen, onClose, item, categories, onUpdate, onDelete }
     if (item) {
       setForm({
         name: item.name,
+        type: item.type || "",
         quantity: item.quantity,
         categoryId: item.categoryId || item.category?.id || "",
       });
@@ -27,7 +29,7 @@ const EditItemModal = ({ isOpen, onClose, item, categories, onUpdate, onDelete }
   };
 
   const handleSubmit = () => {
-    if (!form.name.trim() || !form.categoryId || form.quantity < 0) return;
+    if (!form.name.trim() || !form.type.trim() || !form.categoryId || form.quantity < 0) return;
     onUpdate({ ...item, ...form });
     onClose();
   };
@@ -48,47 +50,59 @@ const EditItemModal = ({ isOpen, onClose, item, categories, onUpdate, onDelete }
           <button onClick={onClose} className="p-2">
             <FaChevronLeft size={18} />
           </button>
-          <h2 className="font-serif text-lg">Edit Item</h2>
+          <h2 className="font-serif text-lg">Editar Producto</h2>
           <button
             onClick={handleSubmit}
             className="px-4 py-1 bg-[#f2789f] hover:bg-[#e76b91] rounded text-sm"
           >
-            Save
+            Guardar
           </button>
         </header>
 
         <div className="p-6 space-y-6 flex-1 overflow-y-auto">
           <div>
-            <label className="block text-sm font-medium">Item name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Nombre del producto</label>
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
               placeholder="Nombre del producto"
-              className="w-full rounded-xl bg-gray-200 p-3 text-sm"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Quantity</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+            <input
+              name="type"
+              value={form.type}
+              onChange={handleChange}
+              placeholder="Ej: Bebida, Limpieza, etc."
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Cantidad</label>
             <input
               name="quantity"
               type="number"
               value={form.quantity}
               onChange={handleChange}
-              className="w-full rounded-xl bg-gray-200 p-3 text-sm"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+              min="0"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Category</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
             <select
               name="categoryId"
               value={form.categoryId}
               onChange={handleChange}
-              className="w-full rounded-xl bg-gray-200 p-3 text-sm"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
             >
-              <option value="">Select category</option>
+              <option value="">Selecciona una categoría</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
