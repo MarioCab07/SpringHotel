@@ -22,6 +22,8 @@ import com.group07.hotel_API.exception.ItemCategory.ItemCategoryNotFoundExceptio
 import com.group07.hotel_API.exception.user.EmailAlreadyExistsException;
 import com.group07.hotel_API.exception.user.UserNameAlreadyExistisException;
 import com.group07.hotel_API.exception.user.UserNotFoundException;
+import com.group07.hotel_API.exception.MaterialRequest.MaterialRequestNotFoundException;
+import com.group07.hotel_API.exception.MaterialRequest.InsufficientStockException;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -161,6 +163,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TokenNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleTokenNotFound(TokenNotFoundException e){
         return buildErrorResponse(e,HttpStatus.NOT_FOUND,e.getMessage());
+    }
+
+    @ExceptionHandler(MaterialRequestNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleMaterialRequestNotFound(MaterialRequestNotFoundException e){
+        return buildErrorResponse(e,HttpStatus.NOT_FOUND,e.getMessage());
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ApiErrorResponse> handleInsufficientStock(InsufficientStockException e){
+        return buildErrorResponse(e,HttpStatus.BAD_REQUEST,e.getMessage());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiErrorResponse> handleIllegalState(IllegalStateException e){
+        return buildErrorResponse(e,HttpStatus.BAD_REQUEST,e.getMessage());
     }
 
     public ResponseEntity<ApiErrorResponse> buildErrorResponse(Exception e, HttpStatus status, Object data){
