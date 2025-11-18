@@ -7,33 +7,30 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(
-    (config)=>{
-        const excludedPaths = ['/auth/login', '/auth/register','/auth/google'];
+  (config) => {
+    const excluded = [
+      "/auth/login",
+      "/auth/register/user",
+      "/auth/google",
+    ];
 
-        try {
-            
-            const fullUrl = new URL(config.url, API_BASE_URL);
-            const path = fullUrl.pathname;
+    const path = config.url; 
 
-            const shouldExclude = excludedPaths.includes(path);
+    const isExcluded = excluded.some((ex) => path.includes(ex));
 
-            if (!shouldExclude) {
-                const token = sessionStorage.getItem("token");
-                if (token) {
-                    config.headers.Authorization = `Bearer ${token}`;
-                }
-            }
+    if (!isExcluded) {
+      const token = sessionStorage.getItem("token");
 
-        } catch (e) {
-            
-        }
-        
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
+
 
 export const LoginWithGoogle = async(data)=>{
     try {
@@ -618,6 +615,78 @@ export const updateServiceType = async(id, data)=>{
 export const deleteServiceType = async (id) => {
     try {
         return await apiClient.delete(`/room-service-types/${id}`);
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const validateCardPayment = async (data) => {
+  try {
+    return await apiClient.post("/payment-methods/validate-card", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processDeposit = async (data) => {
+  try {
+    return await apiClient.post("/payment-methods/process-deposit", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processFullPayment = async (data) => {
+  try {
+    return await apiClient.post("/payment-methods/process-full-payment", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processBookingPayment = async (data) => {
+  try {
+    return await apiClient.post("/payments/booking", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processCheckInPayment = async (data) => {
+  try {
+    return await apiClient.post("/payments/checkin", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processCheckOutPayment = async (data) => {
+  try {
+    return await apiClient.post("/payments/checkout", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getRoomSummary = async () => {
+  try {
+    return await apiClient.get("/room/summary");
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getRandomAvailableRooms = async () => {
+  try {
+    return await apiClient.get("/room/random");
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getBookingById = async (id) => {
+    try {
+        return await apiClient.get(`/bookings/${id}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }

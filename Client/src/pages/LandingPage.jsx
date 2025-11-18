@@ -46,52 +46,34 @@ const LandingPage = () => {
   return (
     <>
       <section className="flex flex-col h-screen overflow-y-auto scroll-smooth">
+
         <article
-          className="w-full flex-none min-h-5/6 bg-cover bg-center bg-no-repeat"
+          className="relative w-full min-h-screen bg-cover bg-center bg-no-repeat flex flex-col"
           style={{ backgroundImage: `url(${LandingBg})` }}
         >
-          <header className="bg-black/25 p-4 flex items-center justify-between">
-            <div className="flex-1 flex items-center ">
-              <img src={logo} alt="Logo Hotel Spring" className="h-30 w-30" />
-            </div>
-            <div className="w-1/3 flex items-center text-white justify-center gap-10">
-              <a
-                className="hover:text-pink-400 transition duration-300"
-                target="blank"
-                href="https://es-la.facebook.com/"
-              >
-                {" "}
-                <AiFillFacebook size={25} />{" "}
-              </a>
-              <a
-                className="hover:text-pink-400 transition duration-300"
-                target="blank"
-                href="https://twitter.com/"
-              >
-                {" "}
-                <AiOutlineTwitter size={25} />{" "}
-              </a>
-              <a
-                className="hover:text-pink-400 transition duration-300"
-                target="blank"
-                href="https://www.pinterest.com/"
-              >
-                {" "}
-                <GrPinterest size={25} />{" "}
-              </a>
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-black/40"></div>
 
+          {/* NAVBAR SUPERIOR */}
+          <header className="relative z-20 flex items-center justify-between px-8 py-6">
+            {/* LOGO */}
+            <div className=" text-white font-display tracking-wide " style={{ fontFamily: '"Playfair Display", serif' }}>
+              <h3 className="text-md md:text-lg lg:text-lg">Lumé Hotel & Suites</h3>
+            </div>
+
+            {/* BUTTONS RIGHT */}
+            <div className="flex items-center gap-4 text-white font-inter">
               {!role && (
                 <>
                   <Link
                     to="/register"
-                    className="bg-pink-500 rounded-2xl py-2 px-4 hover:bg-white hover:text-pink-500 cursor-pointer transition duration-300 font-bold"
+                    className="border border-white px-10 py-2 rounded-md hover:bg-white hover:text-black transition font-medium"
                   >
-                    {" "}
-                    Registrarse
+                    Sign Up
                   </Link>
                   <Link
-                    className="bg-white text-pink-500 rounded-2xl py-2 px-4 hover:bg-pink-500 hover:text-white cursor-pointer transition duration-300 font-bold"
                     to="/login"
+                    className="border border-white px-10 py-2 rounded-md hover:bg-white hover:text-black transition font-medium"
                   >
                     Log In
                   </Link>
@@ -99,123 +81,48 @@ const LandingPage = () => {
               )}
             </div>
           </header>
-          <div className="w-full flex justify-center items-center mt-8">
-            <nav className="flex items-center bg-white shadow-lg w-1/2">
-              <ul className="flex">
-                {navItems.map(({ label, hasDropdown }) => {
-                  const slug = label.toLowerCase().replace(/\s+/g, "-");
-                  return (
-                    <li key={slug}>
-                      <a
-                        href={`#${slug}`}
-                        onClick={handleScroll(slug)} // ← aquí
-                        className={`
-              block px-5 py-3 text-gray-700 hover:text-pink-600
-              ${label === "Home" ? "text-pink-600 font-semibold" : ""}
-            `}
-                      >
-                        <span className="inline-flex items-center">
-                          {label}
-                          {hasDropdown && (
-                            <span
-                              className="inline-block ml-1
-                              w-2 h-2
-                              border-t-2 border-r-2 border-current
-                              transform rotate-45"
-                            />
-                          )}
-                        </span>
-                      </a>
-                    </li>
-                  );
-                })}
-              </ul>
 
-              {/* Spacer flexible */}
-              <div className="flex-1" />
-
-              {/* Botón “BOOK NOW” */}
-
-              <a
-                onClick={handleNavigate}
-                className="
-    px-8 py-3 font-semibold
-    bg-[#ec1c4f]       
-    text-white         
-    hover:bg-gray-100     
-    hover:text-[#ec1c4f] 
-    transition duration-300
-    cursor-pointer
-  "
-                style={{
-                  clipPath: "polygon(6% 0, 100% 0, 100% 100%, 0 100%)",
-                }}
-              >
-                BOOK NOW
-              </a>
-            </nav>
-          </div>
-
-          <div className="h-1/2 w-full flex flex-col  items-center justify-center  font-bold">
-            <h1
-              className="
-    inline-block 
-    bg-black/40 
-    px-6 py-8 
-    rounded
-    text-center 
-    text-white 
-    text-8xl 
-     font-vibes
-  "
-            >
-              Spring Hotel
-            </h1>
-
-            {/* Líneas + Subtítulo */}
-            <div className="flex items-center mb-8 space-x-4">
-              <span className="block h-px w-20 bg-white/50" />
-              <span className="uppercase tracking-wider text-sm text-white">
-                The place where you looking to
-              </span>
-              <span className="block h-px w-20 bg-white/50" />
+          {/* HERO CONTENT */}
+          <div className="relative z-20 flex flex-col items-center justify-center text-center px-4 min-h-[70vh] md:min-h-[80vh] lg:min-h-[75vh]">
+            {/* Rating */}
+            <div className="flex items-center gap-1 text-amber-200 mb-3"  style={{ fontFamily: '"Playfair Display", serif' }}>
+              <span className="text-3xl">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
+              <span className="text-white font-inter ml-2 text-md">(4.0) </span>
             </div>
 
-            {/* Botón */}
+            {/* Subtitle */}
+            <p className="text-white text-lg font-inter tracking-wide my-3 " style={{ fontFamily: '"Playfair Display", serif' }}>
+              A haven of comfort and timeless elegance
+            </p>
+
+            {/* MAIN TITLE */}
+            <h1 className="text-white text-5xl md:text-6xl lg:text-7xl leading-snug max-w-5xl my-3"
+              style={{ fontFamily: '"Playfair Display", serif' }}>
+              Welcome to your luxury <span className="text-amber-200"> home </span> <br /> away from <span className="text-amber-200">home</span>
+            </h1>
+
+            {/* BOOK NOW BUTTON */}
             <button
-              className="
-          inline-flex items-center
-          bg-white text-gray-800
-          px-6 py-3
-          font-medium rounded
-          drop-shadow-md
-          hover:drop-shadow-lg
-          transition
-            duration-300
-            hover:bg-gray-400
-            cursor-pointer
-            hover:text-white
-        "
+              onClick={handleNavigate}
+              className="mt-10 px-8 py-3 bg-[#e6c084] text-black font-inter text-lg rounded-lg shadow-lg hover:bg-[#f8d7a2] transition"
             >
-              <span>Explore Now</span>
-              <AiOutlineArrowRight className="ml-2 text-pink-500" size={20} />
+              Book Now
             </button>
           </div>
         </article>
 
+
         <article className="w-full flex-none p-8" id="home">
           <div className="flex flex-col items-center mb-8 w-full ">
-            <h2 className="text-3xl font-bold mb-4">WELCOME TO HOTEL</h2>
+            <h2 className="text-3xl font-bold mb-4">Welcome to Lumé</h2>
             <img src={divider} className="w-30 h-30" alt="" />
             <p className="max-w-2xl mb-8 text-center">
-              Spring Hotel es un oasis de descanso y confort, ubicado en un
-              entorno natural único, donde cada detalle ha sido pensado para su
-              absoluta satisfacción. Disfrute de nuestras amplias habitaciones,
-              exquisita gastronomía local y exclusivos tratamientos de spa para
-              vivir una experiencia inolvidable.
+           Lumé Hotel & Suites is an oasis of rest and comfort, nestled in a unique natural setting, where every detail has been carefully 
+           considered for your complete satisfaction. Enjoy our spacious rooms, exquisite local cuisine, and exclusive spa treatments 
+           for an unforgettable experience.
             </p>
           </div>
-          <div className="flex flex-wrap justify-center items-center gap-4">
+          <div className="flex flex-wrap justify-center items-center gap-4 my-10">
             <img
               src="https://media.istockphoto.com/id/173587041/photo/hotel-bedroom.jpg?s=612x612&w=0&k=20&c=mzbT-i0sbivf2hK4aAJi0mdYVTUca8o5vij0bJq97Ks="
               alt=""
@@ -231,11 +138,6 @@ const LandingPage = () => {
               alt=""
               className="w-1/4 h-auto object-cover rounded-lg shadow-lg"
             />
-          </div>
-          <div className="flex justify-center">
-            <button className="rounded-md bg-[#EC1C4F] text-white px-4 py-2 cursor-pointer hover:bg-pink-700 transition duration-300 mt-8">
-              View All
-            </button>
           </div>
         </article>
 

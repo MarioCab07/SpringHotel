@@ -1,23 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
-import { FaUser } from "react-icons/fa";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 
 const UserMenu = () => {
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   const handleSignOut = () => {
     sessionStorage.clear();
@@ -25,57 +10,32 @@ const UserMenu = () => {
   };
 
   return (
-    <div className="relative" ref={menuRef}>
+    <nav className="flex items-center gap-10 text-base font-medium tracking-wide text-[#1a1a1a]">
       <button
-        className="text-slate-800 text-2xl bg-white p-2 rounded-full shadow hover:bg-slate-200 transition"
-        onClick={() => setOpen(!open)}
+        onClick={() => navigate("/profile")}
+        className="hover:text-[#bfa166] transition-colors duration-200"
       >
-        <FaUser />
+        Profile
       </button>
-
-      {open && (
-        <div className="absolute right-0 mt-2 w-48 bg-pink-200 rounded-md shadow-md border border-pink-300 z-50">
-          <ul className="divide-y divide-pink-300 text-center text-gray-800 font-semibold">
-            <li
-              className="py-2 hover:bg-pink-300 cursor-pointer transition"
-              onClick={() => {
-                setOpen(false);
-                navigate("/profile");
-              }}
-            >
-              Profile
-            </li>
-
-            <li
-              className="py-2 hover:bg-pink-300 cursor-pointer transition"
-              onClick={() => {
-                setOpen(false);
-                navigate("/my-bookings");
-              }}
-            >
-              Mis Reservaciones
-            </li>
-
-            <li
-              className="py-2 hover:bg-pink-300 cursor-pointer transition"
-              onClick={() => {
-                setOpen(false);
-                navigate("/rooms");
-              }}
-            >
-              Rooms
-            </li>
-
-            <li
-              className="py-2 hover:bg-red-300 cursor-pointer transition text-red-700"
-              onClick={handleSignOut}
-            >
-              Sign Out
-            </li>
-          </ul>
-        </div>
-      )}
-    </div>
+      <button
+        onClick={() => navigate("/my-bookings")}
+        className="hover:text-[#bfa166] transition-colors duration-200"
+      >
+        My Bookings
+      </button>
+      <button
+        onClick={() => navigate("/rooms")}
+        className="hover:text-[#bfa166] transition-colors duration-200"
+      >
+        Rooms
+      </button>
+      <button
+        onClick={handleSignOut}
+        className="text-red-600 hover:text-red-700 font-semibold transition-colors duration-200"
+      >
+        Sign Out
+      </button>
+    </nav>
   );
 };
 

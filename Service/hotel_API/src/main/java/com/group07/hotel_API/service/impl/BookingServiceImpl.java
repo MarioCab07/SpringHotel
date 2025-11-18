@@ -66,6 +66,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new RoomNotFoundException("Room not found"));
 
         Booking booking = BookingMapper.toBookingCreate(request, user, room);
+        System.out.println(booking);
         return BookingMapper.toDTO(bookingRepository.save(booking));
     }
 
@@ -144,5 +145,15 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new BookingNotFoundException("No active bookings found for room ID: " + roomId));
         return BookingMapper.toDTO(booking);
     }
+
+    @Override
+    public BookingResponse findPendingBookingById(int id) {
+        Booking booking = bookingRepository
+                .findByIdAndStatus(id, BookingStatus.PENDING)
+                .orElseThrow(() -> new BookingNotFoundException("No pending booking found with this ID"));
+
+        return BookingMapper.toDTO(booking);
+    }
+
 
 }
