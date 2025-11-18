@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { getAllRooms } from "../../service/api.services";
 import { useAuth } from "../../context/AuthContext";
 import { Loading } from "../Loading";
@@ -9,7 +9,7 @@ import RegisterRoom from "./RegisterRoom";
 import UpdateRoom from "./UpdateRoom";
 import DeleteRoom from "./DeleteRoom";
 
-const RoomList = () => {
+const RoomList = forwardRef((props, ref) => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -77,119 +77,95 @@ const RoomList = () => {
     fetchRooms();
   };
 
+  useImperativeHandle(ref, () => ({
+    openCreateModal,
+  }));
+
   return (
     <>
-      <article className="w-full h-full flex flex-col gap-4 items-center justify-between relative">
-        <h4
-          style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
-          className="rounded-b-2xl bg-white font-zain-extrabold p-4 w-1/3 text-3xl text-center"
-        >
-          Listado de Habitaciones
-        </h4>
-
-        {isAdmin && (
-          <div className="w-full flex justify-end px-4 py-2">
-            <button
-              onClick={openCreateModal}
-              className="bg-pink-400 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-lg shadow-md"
-            >
-              Crear Habitación
-            </button>
-          </div>
-        )}
-        <div className="w-full h-full flex-1  flex flex-col py-5 items-center justify-center overflow-scroll">
+      <div className="w-full flex flex-col gap-4">
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           {loading && <Loading fullscreen={false} />}
           {!loading && rooms.length === 0 && (
-            <>
-              <h2 className="text-center text-2xl font-bold">
+            <div className="text-center py-8">
+              <h2 className="text-lg font-semibold text-gray-600">
                 No hay habitaciones registradas
               </h2>
-            </>
+            </div>
           )}
 
           {!loading && rooms.length > 0 && (
-            <>
-              <div
-                style={{
-                  boxShadow: "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px",
-                }}
-                className="w-full max-w-8xl h-full mx-auto p-4 bg-white rounded-3xl"
-              >
-                <div
-                  className={`grid gap-2 mb-4 text-center font-bold ${
-                    isAdmin ? "grid-cols-8" : "grid-cols-6"
-                  }`}
-                >
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    ID
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Numero
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Estado
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Tipo
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Descripcion
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Precio
-                  </h5>
-                </div>
-                <hr />
-                {rooms.map((room) => {
-                  return (
-                    <div
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      ID
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Number
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      State
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Type
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Price
+                    </th>
+                    {isAdmin && (
+                      <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                        Actions
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rooms.map((room) => (
+                    <tr
                       key={room.roomId}
-                      className={`grid gap-2 py-4 rounded-lg shadow-md mb-4 w-full ${
-                        isAdmin ? "grid-cols-8" : "grid-cols-6"
-                      }`}
+                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {room.roomId}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
+                      <td className="py-2 px-3 text-sm text-gray-600">{room.roomId}</td>
+                      <td className="py-2 px-3 text-sm text-gray-900 font-medium">
                         {room.roomNumber}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-600">
                         {room.roomStatus}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-600">
                         {room.roomType.name}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {room.roomType.description}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {room.roomType.price}
-                      </p>
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-600">
+                        ${room.roomType.price}
+                      </td>
                       {isAdmin && (
-                        <>
-                          <button onClick={() => openUpdateModal(room)}>
-                            <BsPencilSquare
-                              size={25}
+                        <td className="py-2 px-3">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => openUpdateModal(room)}
                               className="text-blue-500 hover:text-blue-700 transition-colors"
-                            />
-                          </button>
-                          <button onClick={() => openDeleteModal(room)}>
-                            <AiFillDelete
-                              size={25}
+                            >
+                              <BsPencilSquare className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => openDeleteModal(room)}
                               className="text-red-500 hover:text-red-700 transition-colors"
-                            />
-                          </button>
-                        </>
+                            >
+                              <AiFillDelete className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
                       )}
-                    </div>
-                  );
-                })}
-              </div>
-            </>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
-      </article>
+      </div>
 
       {isAdmin && showCreate && (
         <RegisterRoom
@@ -213,6 +189,8 @@ const RoomList = () => {
       )}
     </>
   );
-};
+});
+
+RoomList.displayName = "RoomList";
 
 export default RoomList;

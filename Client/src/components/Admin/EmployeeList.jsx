@@ -76,116 +76,104 @@ const EmployeeList = () => {
 
   return (
     <>
-      <article className="w-full h-full flex flex-col gap-4 items-center justify-between relative">
-        <h4
-          style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
-          className="rounded-b-2xl bg-white font-zain-extrabold p-4 w-1/3 text-3xl text-center"
-        >
-          Listado de Empleados
-        </h4>
-        <div className="w-full flex justify-end px-4 py-2">
+      <div className="w-full flex flex-col gap-4">
+        <div className="w-full flex justify-end">
           <button
             onClick={openCreateModal}
-            style={{ boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px" }}
-            className="bg-pink-400 hover:bg-pink-600 transition-all ease-in-out 0.5s text-white font-bold py-2 px-4 cursor-pointer rounded-lg "
+            className="bg-pink-400 hover:bg-pink-600 transition-all ease-in-out text-white font-semibold py-2 px-4 rounded-lg shadow-md"
           >
             Registrar Empleado
           </button>
         </div>
-        <div className="w-full h-full flex-1  flex flex-col py-5 items-center justify-center overflow-scroll">
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           {loading && <Loading fullscreen={false} />}
           {!loading && employees.length === 0 && (
-            <>
-              <h2 className="text-center text-2xl font-bold">
-                No hay clientes registrados
+            <div className="text-center py-8">
+              <h2 className="text-lg font-semibold text-gray-600">
+                No hay empleados registrados
               </h2>
-            </>
+            </div>
           )}
 
           {!loading && employees.length > 0 && (
-            <>
-              <div
-                style={{
-                  boxShadow: "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px",
-                }}
-                className="w-full max-w-8xl h-full mx-auto p-4 bg-white rounded-3xl"
-              >
-                <div className="grid grid-cols-9 gap-4 mb-4 text-center font-bold">
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    ID
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Usuario
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Email
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Nombre
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Responsabilidad
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Telefono
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Numero de Documento
-                  </h5>
-                </div>
-                <hr />
-                {employees.map((employee) => {
-                  return (
-                    <div
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      ID
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Name
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Phone Number
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Email
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      DUI
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Responsibility
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {employees.map((employee) => (
+                    <tr
                       key={employee.userId}
-                      className="bg-white py-4 rounded-lg shadow-md mb-4 grid grid-cols-9 gap-3 w-full"
+                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
-                      <p className="text-gray-600 flex items-center justify-center">
+                      <td className="py-2 px-3 text-sm text-gray-600">
                         {employee.userId}
-                      </p>
-                      <h3 className="text-xl font-semibold flex items-center justify-center text-center">
-                        {employee.userName}
-                      </h3>
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {employee.email}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-900 font-medium">
                         {employee.fullName}
-                      </p>
-
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {employee.role}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-600">
                         {employee.phoneNumber}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-600">
+                        <a
+                          href={`mailto:${employee.email}`}
+                          className="text-blue-500 hover:underline"
+                        >
+                          {employee.email}
+                        </a>
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-600">
                         {employee.documentNumber}
-                      </p>
-                      <button
-                        onClick={() => {
-                          openUpdateModal(employee);
-                        }}
-                        className="text-gray-600 flex items-center justify-center"
-                      >
-                        <BsPencilSquare className="text-blue-500 cursor-pointer hover:text-blue-700 transition-colors duration-300" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          openSetRoleModal(employee);
-                        }}
-                        className="text-gray-600 flex items-center justify-center"
-                      >
-                        <RiUserSettingsLine className="text-blue-500 cursor-pointer hover:text-blue-700 transition-colors duration-300" />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-600">{employee.role}</td>
+                      <td className="py-2 px-3">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => openUpdateModal(employee)}
+                            className="text-blue-500 hover:text-blue-700 transition-colors"
+                          >
+                            <BsPencilSquare className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => openSetRoleModal(employee)}
+                            className="text-blue-500 hover:text-blue-700 transition-colors"
+                          >
+                            <RiUserSettingsLine className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
-      </article>
+      </div>
 
       {showCreate && (
         <>

@@ -78,102 +78,87 @@ const ServiceList = () => {
 
   return (
     <>
-      <article className="w-full h-full flex flex-col gap-4 items-center justify-between relative">
-        <h4
-          style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
-          className="rounded-b-2xl bg-white font-zain-extrabold p-4 w-1/3 text-3xl text-center"
-        >
-          Listado de Servicios
-        </h4>
-
+      <div className="w-full flex flex-col gap-4">
         {isAdmin && (
-          <div className="w-full flex justify-end px-4">
+          <div className="w-full flex justify-end">
             <button
               onClick={openCreateModal}
-              className="bg-pink-400 hover:bg-pink-600 text-white py-2 px-4 rounded-lg shadow-md"
+              className="bg-pink-400 hover:bg-pink-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors"
             >
               Crear Servicio
             </button>
           </div>
         )}
-
-        <div className="w-full h-full flex-1  flex flex-col py-5 items-center justify-center overflow-scroll">
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           {loading && <Loading fullscreen={false} />}
           {!loading && services.length === 0 && (
-            <>
-              <h2 className="text-center text-2xl font-bold">
-                No hay habitaciones registradas
+            <div className="text-center py-8">
+              <h2 className="text-lg font-semibold text-gray-600">
+                No hay servicios registrados
               </h2>
-            </>
+            </div>
           )}
 
           {!loading && services.length > 0 && (
-            <>
-              <div
-                style={{
-                  boxShadow: "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px",
-                }}
-                className="w-1/2 max-w-8xl h-full mx-auto p-4 bg-white rounded-3xl"
-              >
-                <div
-                  className={
-                    `grid gap-2 mb-4 text-center font-bold ` +
-                    (isAdmin ? "grid-cols-4" : "grid-cols-3")
-                  }
-                >
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    ID
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Servicio
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Precio
-                  </h5>
-                </div>
-
-                <hr />
-                {services.map((service) => {
-                  return (
-                    <div
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      ID
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Service
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Price
+                    </th>
+                    {isAdmin && (
+                      <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                        Actions
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {services.map((service) => (
+                    <tr
                       key={service.id}
-                      className={
-                        `grid gap-4 items-center py-4 mb-4 rounded-lg shadow ` +
-                        (isAdmin ? "grid-cols-4" : "grid-cols-3")
-                      }
+                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
-                      <h5 className="col-span-1 flex items-center justify-center">
-                        {service.id}
-                      </h5>
-                      <h5 className="col-span-1 flex items-center justify-center">
+                      <td className="py-2 px-3 text-sm text-gray-600">{service.id}</td>
+                      <td className="py-2 px-3 text-sm text-gray-900 font-medium">
                         {service.name}
-                      </h5>
-                      <h5 className="col-span-1 flex items-center justify-center">
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-600">
                         ${service.price}
-                      </h5>
+                      </td>
                       {isAdmin && (
-                        <div className="flex justify-center space-x-4">
-                          <button
-                            onClick={() => openUpdate(svc)}
-                            className="text-blue-500 hover:text-blue-700"
-                          >
-                            <BsPencilSquare size={20} />
-                          </button>
-                          <button
-                            onClick={() => openDelete(svc)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <AiFillDelete size={20} />
-                          </button>
-                        </div>
+                        <td className="py-2 px-3">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => openUpdateModal(service)}
+                              className="text-blue-500 hover:text-blue-700 transition-colors"
+                            >
+                              <BsPencilSquare className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => openDeleteModal(service)}
+                              className="text-red-500 hover:text-red-700 transition-colors"
+                            >
+                              <AiFillDelete className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
                       )}
-                    </div>
-                  );
-                })}
-              </div>
-            </>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
+      </div>
         {isAdmin && showCreate && (
           <RegisterServiceType
             onClose={closeCreateModal}
@@ -194,7 +179,6 @@ const ServiceList = () => {
             onSuccess={handleDeleteSuccess}
           />
         )}
-      </article>
     </>
   );
 };

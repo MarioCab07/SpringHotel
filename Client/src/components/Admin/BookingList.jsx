@@ -47,87 +47,66 @@ const BookingList = () => {
 
   return (
     <>
-      <article className="w-full h-full flex flex-col gap-4 items-center justify-between relative">
-        <h4
-          style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
-          className="rounded-b-2xl bg-white font-zain-extrabold p-4 w-1/3 text-3xl text-center"
-        >
-          Listado de Reservas
-        </h4>
-        <div className="w-full h-full flex-1  flex flex-col py-5 items-center justify-center overflow-scroll">
-          {loading && <Loading fullscreen={false} />}
-          {!loading && bookings.length === 0 && (
-            <>
-              <h2 className="text-center text-2xl font-bold">
-                No hay clientes registrados
-              </h2>
-            </>
-          )}
+      <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        {loading && <Loading fullscreen={false} />}
+        {!loading && bookings.length === 0 && (
+          <div className="text-center py-8">
+            <h2 className="text-lg font-semibold text-gray-600">
+              No hay reservas registradas
+            </h2>
+          </div>
+        )}
 
-          {!loading && bookings.length > 0 && (
-            <>
-              <div
-                style={{
-                  boxShadow: "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px",
-                }}
-                className="w-full max-w-6xl h-full mx-auto p-4 bg-white rounded-3xl"
-              >
-                <div className="grid grid-cols-6 gap-4 mb-4 text-center font-bold">
-                  <h5 className="col-span-1 flex items-center justify-center">
+        {!loading && bookings.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
                     ID
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Cliente
-                  </h5>
-
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    N.º Habitacion
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
+                  </th>
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                    Client
+                  </th>
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                    Room Number
+                  </th>
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
                     Check-In
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
+                  </th>
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
                     Check-Out
-                  </h5>
-
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Estado
-                  </h5>
-                </div>
-                <hr />
-
-                {bookings.map((booking) => {
-                  return (
-                    <div
-                      key={booking.id}
-                      className="bg-white py-4 rounded-lg shadow-md mb-4 grid grid-cols-6 gap-4 w-full"
-                    >
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {booking.id}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {booking.clientName}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {booking.roomNumber}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {booking.checkIn}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {booking.checkOut}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {booking.status}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </div>
-      </article>
+                  </th>
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                    State
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {bookings.map((booking) => (
+                  <tr
+                    key={booking.id}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="py-2 px-3 text-sm text-gray-600">{booking.id}</td>
+                    <td className="py-2 px-3 text-sm text-gray-900 font-medium">
+                      {booking.clientName}
+                    </td>
+                    <td className="py-2 px-3 text-sm text-gray-600">
+                      {booking.roomNumber}
+                    </td>
+                    <td className="py-2 px-3 text-sm text-gray-600">{booking.checkIn}</td>
+                    <td className="py-2 px-3 text-sm text-gray-600">
+                      {booking.checkOut}
+                    </td>
+                    <td className="py-2 px-3 text-sm text-gray-600">{booking.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </>
   );
 };
