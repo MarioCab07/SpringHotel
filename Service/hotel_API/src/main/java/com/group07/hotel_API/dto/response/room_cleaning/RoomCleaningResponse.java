@@ -9,7 +9,9 @@ public class RoomCleaningResponse {
     private Integer id;
     private Integer roomId;
     private Integer userId;
+    private Integer bookingId;
     private String status;
     private String cleanedAt;
     private String comments;
+    private String shift;
 }
