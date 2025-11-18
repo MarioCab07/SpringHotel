@@ -3,20 +3,15 @@ import { getAllRooms } from "../../service/api.services";
 import { useAuth } from "../../context/AuthContext";
 import { Loading } from "../Loading";
 import { toast } from "react-toastify";
-import { BsPencilSquare } from "react-icons/bs";
-import { AiFillDelete } from "react-icons/ai";
 import RegisterRoom from "./RegisterRoom";
-import UpdateRoom from "./UpdateRoom";
-import DeleteRoom from "./DeleteRoom";
+import RoomDetailPanel from "./RoomDetailPanel";
 
 const RoomList = forwardRef((props, ref) => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [showUpdate, setShowUpdate] = useState(false);
-  const [roomTypes, setRoomTypes] = useState([]);
+  const [showDetailPanel, setShowDetailPanel] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
 
   const role = sessionStorage.getItem("role");
   const isAdmin = role === "ADMIN";
@@ -39,16 +34,16 @@ const RoomList = forwardRef((props, ref) => {
     fetchRooms();
   }, []);
 
-  const openUpdateModal = (room) => {
+  const openDetailPanel = (room) => {
     setSelectedRoom(room);
-    setShowUpdate(true);
+    setShowDetailPanel(true);
   };
-  const closeUpdateModal = () => {
-    setShowUpdate(false);
+  const closeDetailPanel = () => {
+    setShowDetailPanel(false);
     setSelectedRoom(null);
   };
-  const handleUpdateSuccess = () => {
-    setShowUpdate(false);
+  const handleDetailSuccess = () => {
+    setShowDetailPanel(false);
     setSelectedRoom(null);
     fetchRooms();
   };
@@ -60,20 +55,6 @@ const RoomList = forwardRef((props, ref) => {
   };
   const handleCreateSuccess = () => {
     setShowCreate(false);
-    fetchRooms();
-  };
-  const openDeleteModal = (room) => {
-    setSelectedRoom(room);
-    setShowDelete(true);
-  };
-  const closeDeleteModal = () => {
-    setShowDelete(false);
-    setSelectedRoom(null);
-  };
-
-  const handleDeleteSuccess = () => {
-    setShowDelete(false);
-    setSelectedRoom(null);
     fetchRooms();
   };
 
@@ -114,18 +95,16 @@ const RoomList = forwardRef((props, ref) => {
                     <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
                       Price
                     </th>
-                    {isAdmin && (
-                      <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
-                        Actions
-                      </th>
-                    )}
                   </tr>
                 </thead>
                 <tbody>
                   {rooms.map((room) => (
                     <tr
                       key={room.roomId}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      onClick={() => isAdmin && openDetailPanel(room)}
+                      className={`border-b border-gray-100 transition-colors ${
+                        isAdmin ? "cursor-pointer hover:bg-gray-50" : ""
+                      }`}
                     >
                       <td className="py-2 px-3 text-sm text-gray-600">{room.roomId}</td>
                       <td className="py-2 px-3 text-sm text-gray-900 font-medium">
@@ -140,24 +119,6 @@ const RoomList = forwardRef((props, ref) => {
                       <td className="py-2 px-3 text-sm text-gray-600">
                         ${room.roomType.price}
                       </td>
-                      {isAdmin && (
-                        <td className="py-2 px-3">
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => openUpdateModal(room)}
-                              className="text-blue-500 hover:text-blue-700 transition-colors"
-                            >
-                              <BsPencilSquare className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => openDeleteModal(room)}
-                              className="text-red-500 hover:text-red-700 transition-colors"
-                            >
-                              <AiFillDelete className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -169,22 +130,17 @@ const RoomList = forwardRef((props, ref) => {
 
       {isAdmin && showCreate && (
         <RegisterRoom
+          isOpen={showCreate}
           onClose={closeCreateModal}
           onSuccess={handleCreateSuccess}
         />
       )}
-      {isAdmin && showUpdate && (
-        <UpdateRoom
+      {isAdmin && showDetailPanel && (
+        <RoomDetailPanel
+          isOpen={showDetailPanel}
           room={selectedRoom}
-          onClose={closeUpdateModal}
-          onSuccess={handleUpdateSuccess}
-        />
-      )}
-      {isAdmin && showDelete && (
-        <DeleteRoom
-          room={selectedRoom}
-          onClose={closeDeleteModal}
-          onSuccess={handleDeleteSuccess}
+          onClose={closeDetailPanel}
+          onSuccess={handleDetailSuccess}
         />
       )}
     </>

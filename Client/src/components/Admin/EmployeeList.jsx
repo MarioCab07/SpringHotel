@@ -2,19 +2,15 @@ import { useEffect, useState } from "react";
 import { GetAllEmployees } from "../../service/api.services";
 import { Loading } from "../Loading";
 import { toast } from "react-toastify";
-import { BsPencilSquare } from "react-icons/bs";
 import RegisterEmp from "./RegisterEmp";
-import UpdateEmployee from "./UpdateUserComp";
-import SetRoleComp from "./SetRoleComp";
-import { RiUserSettingsLine } from "react-icons/ri";
+import EmployeeDetailPanel from "./EmployeeDetailPanel";
 
 const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userEmployee, setUserEmployee] = useState(null);
-  const [showUpdate, setShowUpdate] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showDetailPanel, setShowDetailPanel] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
-  const [showSetRole, setShowSetRole] = useState(false);
 
   const fetchEmployees = async () => {
     setLoading(true);
@@ -34,17 +30,17 @@ const EmployeeList = () => {
     fetchEmployees();
   }, []);
 
-  const openUpdateModal = (employee) => {
-    setUserEmployee(employee);
-    setShowUpdate(true);
+  const openDetailPanel = (employee) => {
+    setSelectedEmployee(employee);
+    setShowDetailPanel(true);
   };
-  const closeUpdateModal = () => {
-    setShowUpdate(false);
-    setUserEmployee(null);
+  const closeDetailPanel = () => {
+    setShowDetailPanel(false);
+    setSelectedEmployee(null);
   };
-  const handleUpdateSuccess = () => {
-    setShowUpdate(false);
-    setUserEmployee(null);
+  const handleDetailSuccess = () => {
+    setShowDetailPanel(false);
+    setSelectedEmployee(null);
     fetchEmployees();
   };
 
@@ -59,28 +55,13 @@ const EmployeeList = () => {
     fetchEmployees();
   };
 
-  const openSetRoleModal = (employee) => {
-    setUserEmployee(employee);
-    setShowSetRole(true);
-  };
-
-  const closeSetRoleModal = () => {
-    setShowSetRole(false);
-    setUserEmployee(null);
-  };
-  const handleSetRoleSuccess = () => {
-    setShowSetRole(false);
-    setUserEmployee(null);
-    fetchEmployees();
-  };
-
   return (
     <>
       <div className="w-full flex flex-col gap-4">
         <div className="w-full flex justify-end">
           <button
             onClick={openCreateModal}
-            className="bg-pink-400 hover:bg-pink-600 transition-all ease-in-out text-white font-semibold py-2 px-4 rounded-lg shadow-md"
+            className="px-5 py-2 bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
           >
             Registrar Empleado
           </button>
@@ -118,16 +99,14 @@ const EmployeeList = () => {
                     <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
                       Responsibility
                     </th>
-                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
-                      Actions
-                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {employees.map((employee) => (
                     <tr
                       key={employee.userId}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      onClick={() => openDetailPanel(employee)}
+                      className="border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
                     >
                       <td className="py-2 px-3 text-sm text-gray-600">
                         {employee.userId}
@@ -142,6 +121,7 @@ const EmployeeList = () => {
                         <a
                           href={`mailto:${employee.email}`}
                           className="text-blue-500 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           {employee.email}
                         </a>
@@ -150,22 +130,6 @@ const EmployeeList = () => {
                         {employee.documentNumber}
                       </td>
                       <td className="py-2 px-3 text-sm text-gray-600">{employee.role}</td>
-                      <td className="py-2 px-3">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => openUpdateModal(employee)}
-                            className="text-blue-500 hover:text-blue-700 transition-colors"
-                          >
-                            <BsPencilSquare className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => openSetRoleModal(employee)}
-                            className="text-blue-500 hover:text-blue-700 transition-colors"
-                          >
-                            <RiUserSettingsLine className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -182,22 +146,13 @@ const EmployeeList = () => {
           onSuccess={handleCreateSuccess}
         />
       )}
-      {showUpdate && (
-        <UpdateEmployee
-          isOpen={showUpdate}
-          user={userEmployee}
-          onClose={closeUpdateModal}
-          onSuccess={handleUpdateSuccess}
+      {showDetailPanel && (
+        <EmployeeDetailPanel
+          isOpen={showDetailPanel}
+          employee={selectedEmployee}
+          onClose={closeDetailPanel}
+          onSuccess={handleDetailSuccess}
         />
-      )}
-      {showSetRole && (
-        <>
-          <SetRoleComp
-            employee={userEmployee}
-            onClose={closeSetRoleModal}
-            onSuccess={handleSetRoleSuccess}
-          />
-        </>
       )}
     </>
   );
