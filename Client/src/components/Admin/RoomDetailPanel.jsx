@@ -280,37 +280,49 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
 
           {activeTab === "delete" && (
             <form onSubmit={handleDeleteSubmit} className="p-6 space-y-6">
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">ID de Habitación:</span> {room.roomId}
-                </p>
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">Número de Habitación:</span> {room.roomNumber}
-                </p>
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">Tipo de Habitación:</span> {room.roomType?.name || room.roomType}
-                </p>
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">Estado:</span> {room.roomStatus}
-                </p>
+              <div className="bg-gray-50 rounded-lg p-6 space-y-4 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Información de la Habitación</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">ID de Habitación</p>
+                    <p className="text-sm font-medium text-gray-900">{room.roomId}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Número de Habitación</p>
+                    <p className="text-sm font-medium text-gray-900">{room.roomNumber}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Tipo de Habitación</p>
+                    <p className="text-sm font-medium text-gray-900">{room.roomType?.name || room.roomType}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Estado</p>
+                    <p className="text-sm font-medium text-gray-900">{room.roomStatus}</p>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-red-600 mb-2 text-center">
-                  Escribe <span className="font-bold">CONFIRMAR</span> para eliminar la habitación
-                </label>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 space-y-4">
+                <div className="text-center">
+                  <p className="text-sm font-medium text-red-700 mb-2">
+                    Esta acción no se puede deshacer
+                  </p>
+                  <p className="text-xs text-red-600 mb-4">
+                    Escribe <span className="font-bold">CONFIRMAR</span> para eliminar la habitación
+                  </p>
+                </div>
                 <input
                   type="text"
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
                   placeholder="CONFIRMAR"
-                  className="w-full rounded-xl bg-red-50 border-2 border-red-500 focus:border-red-700 p-3 text-sm text-center text-red-700 font-bold placeholder-red-300 focus:outline-none transition"
+                  className="w-full rounded-xl bg-white border-2 border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 p-3 text-sm text-center text-gray-900 font-semibold placeholder-red-300 focus:outline-none transition"
                   autoComplete="off"
                   required
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={onClose}
@@ -327,7 +339,7 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
                       : "bg-red-200 text-red-400 cursor-not-allowed opacity-70"
                   }`}
                 >
-                  Confirmar
+                  Eliminar
                 </button>
               </div>
             </form>

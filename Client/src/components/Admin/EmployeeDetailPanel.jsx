@@ -282,18 +282,27 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
 
           {activeTab === "role" && (
             <form onSubmit={handleRoleSubmit} className="p-6 space-y-6">
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">Nombre:</span> {employee.fullName}
-                </p>
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">Usuario:</span> {employee.userName}
-                </p>
+              <div className="bg-gray-50 rounded-lg p-6 space-y-4 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Información del Empleado</h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Nombre</p>
+                    <p className="text-sm font-medium text-gray-900">{employee.fullName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Usuario</p>
+                    <p className="text-sm font-medium text-gray-900">{employee.userName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Rol Actual</p>
+                    <p className="text-sm font-medium text-gray-900">{employee.role}</p>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Roles
+                  Seleccionar Nuevo Rol
                 </label>
                 <Select
                   options={roles.map((role) => ({ value: role, label: role }))}
@@ -303,9 +312,12 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
                   styles={customSelectStyles}
                   isClearable={false}
                 />
+                <p className="text-xs text-gray-500 mt-2">
+                  El cambio de rol afectará los permisos del empleado
+                </p>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={onClose}
@@ -318,7 +330,7 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
                   disabled={loading}
                   className="px-5 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
                 >
-                  {loading ? "Cambiando..." : "Confirmar"}
+                  {loading ? "Cambiando..." : "Confirmar Cambio"}
                 </button>
               </div>
             </form>

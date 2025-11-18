@@ -3,19 +3,15 @@ import { getAllServicesTypes } from "../../service/api.services";
 import { useAuth } from "../../context/AuthContext";
 import { Loading } from "../Loading";
 import { toast } from "react-toastify";
-import { BsPencilSquare } from "react-icons/bs";
-import { AiFillDelete } from "react-icons/ai";
 import RegisterServiceType from "./RegisterServiceType";
-import UpdateServiceType from "./UpdateServiceType";
-import DeleteServiceType from "./DeleteServiceType";
+import ServiceDetailPanel from "./ServiceDetailPanel";
 
 const ServiceList = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
-  const [showUpdate, setShowUpdate] = useState(false);
+  const [showDetailPanel, setShowDetailPanel] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
 
   const role = sessionStorage.getItem("role");
   const isAdmin = role === "ADMIN";
@@ -38,17 +34,16 @@ const ServiceList = () => {
     fetchServices();
   }, []);
 
-  const openUpdateModal = (service) => {
+  const openDetailPanel = (service) => {
     setSelectedService(service);
-    setShowUpdate(true);
+    setShowDetailPanel(true);
   };
-  const closeUpdateModal = () => {
-    setShowUpdate(false);
+  const closeDetailPanel = () => {
+    setShowDetailPanel(false);
     setSelectedService(null);
   };
-
-  const handleUpdateSuccess = () => {
-    setShowUpdate(false);
+  const handleDetailSuccess = () => {
+    setShowDetailPanel(false);
     setSelectedService(null);
     fetchServices();
   };
@@ -62,19 +57,6 @@ const ServiceList = () => {
     setShowCreate(false);
     fetchServices();
   };
-  const openDeleteModal = (service) => {
-    setSelectedService(service);
-    setShowDelete(true);
-  };
-  const closeDeleteModal = () => {
-    setShowDelete(false);
-    setSelectedService(null);
-  };
-  const handleDeleteSuccess = () => {
-    setShowDelete(false);
-    setSelectedService(null);
-    fetchServices();
-  };
 
   return (
     <>
@@ -83,7 +65,7 @@ const ServiceList = () => {
           <div className="w-full flex justify-end">
             <button
               onClick={openCreateModal}
-              className="bg-pink-400 hover:bg-pink-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors"
+              className="px-5 py-2 bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
             >
               Crear Servicio
             </button>
@@ -113,18 +95,16 @@ const ServiceList = () => {
                     <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
                       Price
                     </th>
-                    {isAdmin && (
-                      <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
-                        Actions
-                      </th>
-                    )}
                   </tr>
                 </thead>
                 <tbody>
                   {services.map((service) => (
                     <tr
                       key={service.id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      onClick={() => isAdmin && openDetailPanel(service)}
+                      className={`border-b border-gray-100 transition-colors ${
+                        isAdmin ? "cursor-pointer hover:bg-gray-50" : ""
+                      }`}
                     >
                       <td className="py-2 px-3 text-sm text-gray-600">{service.id}</td>
                       <td className="py-2 px-3 text-sm text-gray-900 font-medium">
@@ -133,24 +113,6 @@ const ServiceList = () => {
                       <td className="py-2 px-3 text-sm text-gray-600">
                         ${service.price}
                       </td>
-                      {isAdmin && (
-                        <td className="py-2 px-3">
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => openUpdateModal(service)}
-                              className="text-blue-500 hover:text-blue-700 transition-colors"
-                            >
-                              <BsPencilSquare className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => openDeleteModal(service)}
-                              className="text-red-500 hover:text-red-700 transition-colors"
-                            >
-                              <AiFillDelete className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -161,22 +123,17 @@ const ServiceList = () => {
       </div>
         {isAdmin && showCreate && (
           <RegisterServiceType
+            isOpen={showCreate}
             onClose={closeCreateModal}
             onSuccess={handleCreateSuccess}
           />
         )}
-        {isAdmin && showUpdate && (
-          <UpdateServiceType
+        {isAdmin && showDetailPanel && (
+          <ServiceDetailPanel
+            isOpen={showDetailPanel}
             service={selectedService}
-            onClose={closeUpdateModal}
-            onSuccess={handleUpdateSuccess}
-          />
-        )}
-        {isAdmin && showDelete && (
-          <DeleteServiceType
-            service={selectedService}
-            onClose={closeDeleteModal}
-            onSuccess={handleDeleteSuccess}
+            onClose={closeDetailPanel}
+            onSuccess={handleDetailSuccess}
           />
         )}
     </>
