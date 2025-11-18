@@ -295,7 +295,7 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
                 </p>
               </div>
 
-              <div>
+              <div className="space-y-3">
                 <label className="block text-sm font-medium text-red-600 mb-2 text-center">
                   Escribe <span className="font-bold">CONFIRMAR</span> para eliminar la habitación
                 </label>
@@ -323,7 +323,7 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
                   disabled={!isConfirmValid}
                   className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ease-in-out ${
                     isConfirmValid
-                      ? "bg-red-600 hover:bg-red-700 text-white cursor-pointer shadow-md hover:shadow-lg"
+                      ? "bg-red-600 hover:bg-red-700 text-white cursor-pointer shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"
                       : "bg-red-200 text-red-400 cursor-not-allowed opacity-70"
                   }`}
                 >

@@ -291,7 +291,7 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
                 </p>
               </div>
 
-              <div>
+              <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Roles
                 </label>

@@ -65,6 +65,16 @@ const RoomList = forwardRef((props, ref) => {
   return (
     <>
       <div className="w-full flex flex-col gap-4">
+        {isAdmin && (
+          <div className="w-full flex justify-end">
+            <button
+              onClick={openCreateModal}
+              className="px-5 py-2 bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
+            >
+              Add Room
+            </button>
+          </div>
+        )}
         <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           {loading && <Loading fullscreen={false} />}
           {!loading && rooms.length === 0 && (

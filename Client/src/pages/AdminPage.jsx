@@ -27,11 +27,6 @@ const AdminPage = () => {
     return titles[option] || option;
   };
 
-  const handleAddRoom = () => {
-    if (roomListRef.current && roomListRef.current.openCreateModal) {
-      roomListRef.current.openCreateModal();
-    }
-  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -39,9 +34,7 @@ const AdminPage = () => {
       <div className="w-full px-4 md:px-6 lg:px-8 py-4">
         <AdminBanner
           title={getSectionTitle()}
-          showButton={option === "Rooms"}
-          buttonText="Add Room"
-          onButtonClick={handleAddRoom}
+          showButton={false}
         />
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="w-full lg:w-auto">
