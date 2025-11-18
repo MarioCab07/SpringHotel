@@ -1,4 +1,27 @@
 spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: lumehotelsuites@gmail.com
+    password: hguf xfsv stno fjau
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: smtp.gmail.com
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+
+
   application:
     name: hotel_API
   security:
@@ -31,6 +54,7 @@ spring:
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+    defer-datasource-initialization: true
 
 app:
   jwt-secret: 63a3101ac990aa2382bc6233189c036035fff09b46f0e18834614273e252debd
@@ -44,3 +68,13 @@ admin:
   email: admin@hotel.com
   userName: adminUser
   password: 49SuF7B9Wtzd
+
+enterprise:
+  name: Lume Hotel & Suits
+  address: "Avenida Las Magnolias #123, Colonia San Benito, San Salvador, El Salvador"
+  phone_number: "+503 2265-8742"
+  lineBusiness: "Servicios hoteleros y turísticos"
+  nit: 0614-120923-102-4
+  email: lumehotelsuites@gmail.com
+
+

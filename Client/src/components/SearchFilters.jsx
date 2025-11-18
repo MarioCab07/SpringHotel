@@ -27,32 +27,43 @@ const SearchFilters = ({ onFilterChange }) => {
     <div className="relative inline-block text-left">
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center px-3 py-2 border rounded-md text-slate-700 hover:bg-slate-100 bg-white"
+        className="flex items-center px-4 py-2 border border-gray-200 rounded-full text-gray-700 hover:bg-gray-50 bg-white shadow-sm"
       >
         <FaSlidersH className="mr-2" />
         Filters
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 p-4 bg-white rounded-lg shadow-lg z-50">
+        <div className="absolute right-0 mt-3 w-80 bg-white border border-gray-200 rounded-xl shadow-xl p-5 z-50">
           <div className="mb-4">
-            <label className="block text-sm font-semibold mb-1">Price Range ($)</label>
+            <label className="block text-sm font-semibold mb-1 text-gray-800">
+              Price Range ($)
+            </label>
             <Slider
               value={priceRange}
               onChange={handlePriceChange}
               min={0}
               max={1000}
               valueLabelDisplay="auto"
-              sx={{ color: "#1e293b" }}
+              sx={{ color: "#bfa166" }}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-1">Sort By</label>
+            <label className="block text-sm font-semibold mb-1 text-gray-800">
+              Sort By
+            </label>
             <Select
               value={orderBy}
               onChange={handleOrderChange}
               options={orderOptions}
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  borderRadius: "9999px",
+                  borderColor: "#ddd",
+                }),
+              }}
             />
           </div>
         </div>

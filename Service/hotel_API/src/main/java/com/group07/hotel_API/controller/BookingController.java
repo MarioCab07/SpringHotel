@@ -1,6 +1,7 @@
 package com.group07.hotel_API.controller;
 
 
+import com.group07.hotel_API.dto.request.Booking.BookingModifyRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingUpdateRequest;
 import com.group07.hotel_API.dto.response.Booking.BookingResponse;
@@ -88,14 +89,41 @@ public class BookingController {
     }
 
     @GetMapping()
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE','CLEANING_STAFF')")
-    public ResponseEntity<GeneralResponse> getAllBookings(){
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
+    public ResponseEntity<GeneralResponse> getAllBookings() {
+
         List<BookingResponse> bookings = bookingService.findAll();
         if (bookings.isEmpty()) {
             return buildResponse("No bookings found", HttpStatus.NOT_FOUND, null);
         }
         return buildResponse("Bookings found successfully", HttpStatus.OK, bookings);
     }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','USER')")
+    public ResponseEntity<GeneralResponse> getBookingById(@PathVariable int id) {
+        BookingResponse booking = bookingService.findById(id);
+        return buildResponse("Booking found successfully", HttpStatus.OK, booking);
+    }
+
+    @PutMapping("/{id}/cancel")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<GeneralResponse> cancelBooking(@PathVariable int id) {
+        BookingResponse response = bookingService.cancel(id);
+        return buildResponse("Booking cancelled successfully", HttpStatus.OK, response);
+    }
+
+    @PutMapping("/{id}/modify")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<GeneralResponse> modifyBooking(
+            @PathVariable int id,
+            @RequestBody BookingModifyRequest request
+    ) {
+        BookingResponse response = bookingService.modify(id, request);
+        return buildResponse("Booking modified successfully", HttpStatus.OK, response);
+    }
+
+
 
     private ResponseEntity<GeneralResponse> buildResponse(String message, HttpStatus status, Object data) {
             String uri = ServletUriComponentsBuilder.fromCurrentRequestUri().build().getPath();

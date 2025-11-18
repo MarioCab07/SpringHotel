@@ -6,10 +6,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Integer> {
     List<Room> findByStatus(RoomStatus status);
     List<Room> findByRoomType_Id(Integer type);
     boolean existsByRoomNumber(String roomNumber);
+    Long countByRoomType_IdAndStatus(Integer typeId, RoomStatus status);
+
+
 }

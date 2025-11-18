@@ -1,6 +1,7 @@
 package com.group07.hotel_API.service.impl;
 
 
+import com.group07.hotel_API.dto.request.Booking.BookingModifyRequest;
 import com.group07.hotel_API.entities.UserClient;
 import com.group07.hotel_API.service.BookingService;
 import com.group07.hotel_API.dto.request.Booking.BookingRequest;
@@ -66,6 +67,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new RoomNotFoundException("Room not found"));
 
         Booking booking = BookingMapper.toBookingCreate(request, user, room);
+        System.out.println(booking);
         return BookingMapper.toDTO(bookingRepository.save(booking));
     }
 
@@ -144,5 +146,73 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new BookingNotFoundException("No active bookings found for room ID: " + roomId));
         return BookingMapper.toDTO(booking);
     }
+
+    @Override
+    public BookingResponse findPendingBookingById(int id) {
+        Booking booking = bookingRepository
+                .findByIdAndStatus(id, BookingStatus.PENDING)
+                .orElseThrow(() -> new BookingNotFoundException("No pending booking found with this ID"));
+
+        return BookingMapper.toDTO(booking);
+    }
+
+    // CANCEL BOOKING
+    @Override
+    @Transactional
+    public BookingResponse cancel(int id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new RuntimeException("This booking is already cancelled");
+        }
+
+        LocalDate today = LocalDate.now();
+        if (!today.isBefore(booking.getCheckIn())) {
+            throw new RuntimeException("Cannot cancel a booking on or after the check-in date");
+        }
+
+        booking.setStatus(BookingStatus.CANCELLED);
+
+        Booking saved = bookingRepository.save(booking);
+        return BookingMapper.toDTO(saved);
+    }
+
+    //MODIFY BOOKING BY USER
+    @Override
+    @Transactional
+    public BookingResponse modify(int id, BookingModifyRequest request) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new RuntimeException("Only pending bookings can be modified");
+        }
+
+        LocalDate today = LocalDate.now();
+        if (!today.isBefore(booking.getCheckIn())) {
+            throw new RuntimeException("Cannot modify a booking on or after the check-in date");
+        }
+
+        if (request.getCheckIn() == null || request.getCheckOut() == null) {
+            throw new RuntimeException("Both check-in and check-out are required");
+        }
+
+        LocalDate newCheckIn = LocalDate.parse(request.getCheckIn());
+        LocalDate newCheckOut = LocalDate.parse(request.getCheckOut());
+
+        if (!newCheckOut.isAfter(newCheckIn)) {
+            throw new RuntimeException("Check-out must be after check-in");
+        }
+
+        booking.setCheckIn(newCheckIn);
+        booking.setCheckOut(newCheckOut);
+
+        Booking saved = bookingRepository.save(booking);
+        return BookingMapper.toDTO(saved);
+    }
+
+
+
 
 }

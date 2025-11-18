@@ -68,4 +68,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
        """)
     List<Booking> findRoomsWithCheckOutDone(LocalDate today);
 
+    Optional<Booking> findByIdAndStatus(Integer id, BookingStatus status);
+
+
 }

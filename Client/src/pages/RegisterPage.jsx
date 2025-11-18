@@ -1,9 +1,36 @@
-import RegisterImage from "../assets/backgrounds/RegisterBg.jpg";
+import bg from "../assets/backgrounds/Auth.jpg";
 import RegisterForm from "../components/Auth/RegisterForm";
-
+import { Box, Typography } from "@mui/material";
+import logo from "../assets/Logo.png";
 const RegisterPage = () => {
   return (
-    <section
+    <>
+      <Box display={"flex"} sx={{ backgroundColor: "white" }}>
+        <Box
+          display={"flex"}
+          justifyContent={"center"}
+          alignItems={"center"}
+          flexDirection={"column"}
+          flex={1}
+          gap={10}
+        >
+          <RegisterForm />
+        </Box>
+        <Box flex={1}>
+          <div
+            className="min-h-screen w-full bg-cover bg-center flex items-center justify-center"
+            style={{ backgroundImage: `url(${bg})` }}
+          />
+        </Box>
+      </Box>
+    </>
+  );
+};
+
+export default RegisterPage;
+
+{
+  /* <section
       className="min-h-screen w-full bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: `url(${RegisterImage})` }}
     >
@@ -12,8 +39,5 @@ const RegisterPage = () => {
           <RegisterForm />
         </div>
       </div>
-    </section>
-  );
-};
-
-export default RegisterPage;
+    </section> */
+}
