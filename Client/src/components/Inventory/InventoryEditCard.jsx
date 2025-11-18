@@ -2,12 +2,41 @@ import React, { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import ToggleSwitch from "../Buttons/ToggleSwitch";
 
-const InventoryEditCard = ({ category, products, onEdit, onItemEdit, isFirst, isLast }) => {
+const InventoryEditCard = ({ category, products, onEdit, onItemEdit, onUpdateQuantity, isFirst, isLast }) => {
   const [enabled, setEnabled] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editValue, setEditValue] = useState("");
 
   const handleToggle = () => {
     setEnabled((prev) => !prev);
+  };
+
+  const handleQuantityClick = (e, product) => {
+    e.stopPropagation(); // Evitar que se active el onClick del item
+    setEditingId(product.id);
+    setEditValue(product.quantity?.toString() || "0");
+  };
+
+  const handleQuantityBlur = async (e, product) => {
+    e.stopPropagation();
+    if (editingId === product.id) {
+      const newQuantity = parseInt(editValue) || 0;
+      if (newQuantity !== product.quantity && onUpdateQuantity) {
+        await onUpdateQuantity(product.id, newQuantity);
+      }
+      setEditingId(null);
+      setEditValue("");
+    }
+  };
+
+  const handleQuantityKeyDown = async (e, product) => {
+    if (e.key === "Enter") {
+      e.target.blur();
+    } else if (e.key === "Escape") {
+      setEditingId(null);
+      setEditValue("");
+    }
   };
 
   return (
@@ -64,7 +93,31 @@ const InventoryEditCard = ({ category, products, onEdit, onItemEdit, isFirst, is
                 >
                   <div className="font-medium text-gray-900">{p.name}</div>
                   <div className="flex items-center gap-6">
-                    <span className="text-sm text-gray-600">{p.quantity} uds</span>
+                    {editingId === p.id ? (
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={editValue}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "");
+                          setEditValue(val);
+                        }}
+                        onBlur={(e) => handleQuantityBlur(e, p)}
+                        onKeyDown={(e) => handleQuantityKeyDown(e, p)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-20 text-sm font-medium text-gray-900 text-center border-2 border-[#D9C696] rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#D9C696] transition"
+                        autoFocus
+                      />
+                    ) : (
+                      <span
+                        onClick={(e) => handleQuantityClick(e, p)}
+                        className="text-sm text-gray-600 cursor-pointer hover:text-[#D9C696] hover:underline transition-colors"
+                        title="Click para editar cantidad"
+                      >
+                        {p.quantity} uds
+                      </span>
+                    )}
                     <span className={`text-sm font-medium ${availabilityColor}`}>{availability}</span>
                   </div>
                 </div>

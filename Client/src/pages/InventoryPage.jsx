@@ -21,6 +21,7 @@ import { getAllInventoryItems,
   updateInventoryItem,
   deleteInventoryItem,
   deleteCategory,
+  updateItemQuantity,
 } from "../service/api.services";
 
 const InventoryPage = () => {
@@ -80,6 +81,27 @@ const InventoryPage = () => {
     console.error("Error al actualizar estado del producto:", error);
   }
 };
+
+  const handleUpdateQuantity = async (id, quantity) => {
+    const toastId = toast.loading("Actualizando cantidad...");
+    try {
+      await updateItemQuantity(id, quantity);
+      toast.dismiss(toastId);
+      toast.success("Cantidad actualizada exitosamente");
+      // Actualizar el estado local
+      const updated = data.map((item) =>
+        item.id === id ? { ...item, quantity } : item
+      );
+      setData(updated);
+      // También actualizar en modo edición si está activo
+      if (isEditMode) {
+        fetchEditData();
+      }
+    } catch (error) {
+      toast.dismiss(toastId);
+      toast.error("Error al actualizar la cantidad: " + (error.message || "Error desconocido"));
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -365,6 +387,7 @@ if (sortOption === "Nombre A-Z") {
                 products={products}
                 onEdit={() => handleEditSection(category)}
                 onItemEdit={handleEditItem}
+                onUpdateQuantity={handleUpdateQuantity}
                 isFirst={idx === 0}
                 isLast={idx === filteredCategories.length - 1}
               />
@@ -463,6 +486,7 @@ if (sortOption === "Nombre A-Z") {
             }
             products={filteredData}
             onToggleAvailability={toggleAvailability}
+            onUpdateQuantity={handleUpdateQuantity}
           />
         </div>
       </div>

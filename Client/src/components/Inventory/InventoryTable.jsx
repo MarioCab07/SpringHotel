@@ -1,4 +1,34 @@
-const InventoryTable = ({ category, products, onToggleAvailability }) => {
+import { useState } from "react";
+
+const InventoryTable = ({ category, products, onToggleAvailability, onUpdateQuantity }) => {
+  const [editingId, setEditingId] = useState(null);
+  const [editValue, setEditValue] = useState("");
+
+  const handleQuantityClick = (product) => {
+    setEditingId(product.id);
+    setEditValue(product.quantity?.toString() || "0");
+  };
+
+  const handleQuantityBlur = async (product) => {
+    if (editingId === product.id) {
+      const newQuantity = parseInt(editValue) || 0;
+      if (newQuantity !== product.quantity && onUpdateQuantity) {
+        await onUpdateQuantity(product.id, newQuantity);
+      }
+      setEditingId(null);
+      setEditValue("");
+    }
+  };
+
+  const handleQuantityKeyDown = async (e, product) => {
+    if (e.key === "Enter") {
+      e.target.blur();
+    } else if (e.key === "Escape") {
+      setEditingId(null);
+      setEditValue("");
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200">
       <div className="px-6 py-4 font-semibold text-xl text-gray-900 border-b border-gray-200 bg-gray-50">
@@ -25,9 +55,30 @@ const InventoryTable = ({ category, products, onToggleAvailability }) => {
 
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-4 justify-end">
-                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                      {prod.quantity ?? 0} uds
-                    </span>
+                    {editingId === prod.id ? (
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={editValue}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "");
+                          setEditValue(val);
+                        }}
+                        onBlur={() => handleQuantityBlur(prod)}
+                        onKeyDown={(e) => handleQuantityKeyDown(e, prod)}
+                        className="w-20 text-sm font-medium text-gray-900 text-center border-2 border-[#D9C696] rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#D9C696] transition"
+                        autoFocus
+                      />
+                    ) : (
+                      <span
+                        onClick={() => handleQuantityClick(prod)}
+                        className="text-sm font-medium text-gray-700 whitespace-nowrap cursor-pointer hover:text-[#D9C696] hover:underline transition-colors"
+                        title="Click para editar cantidad"
+                      >
+                        {prod.quantity ?? 0} uds
+                      </span>
+                    )}
 
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
