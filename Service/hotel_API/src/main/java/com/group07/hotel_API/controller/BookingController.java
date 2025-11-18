@@ -1,6 +1,7 @@
 package com.group07.hotel_API.controller;
 
 
+import com.group07.hotel_API.dto.request.Booking.BookingModifyRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingUpdateRequest;
 import com.group07.hotel_API.dto.response.Booking.BookingResponse;
@@ -104,6 +105,25 @@ public class BookingController {
         BookingResponse booking = bookingService.findById(id);
         return buildResponse("Booking found successfully", HttpStatus.OK, booking);
     }
+
+    @PutMapping("/{id}/cancel")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<GeneralResponse> cancelBooking(@PathVariable int id) {
+        BookingResponse response = bookingService.cancel(id);
+        return buildResponse("Booking cancelled successfully", HttpStatus.OK, response);
+    }
+
+    @PutMapping("/{id}/modify")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<GeneralResponse> modifyBooking(
+            @PathVariable int id,
+            @RequestBody BookingModifyRequest request
+    ) {
+        BookingResponse response = bookingService.modify(id, request);
+        return buildResponse("Booking modified successfully", HttpStatus.OK, response);
+    }
+
+
 
     private ResponseEntity<GeneralResponse> buildResponse(String message, HttpStatus status, Object data) {
             String uri = ServletUriComponentsBuilder.fromCurrentRequestUri().build().getPath();

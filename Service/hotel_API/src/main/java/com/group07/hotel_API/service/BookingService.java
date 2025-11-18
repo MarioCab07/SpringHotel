@@ -2,6 +2,7 @@ package com.group07.hotel_API.service;
 
 
 
+import com.group07.hotel_API.dto.request.Booking.BookingModifyRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingUpdateRequest;
 import com.group07.hotel_API.dto.response.Booking.BookingResponse;
@@ -20,6 +21,6 @@ public interface BookingService {
     BookingResponse checkIn(int userId);
     BookingResponse checkOut(int userId);
     BookingResponse findPendingBookingById(int id);
-
-
+    BookingResponse cancel(int id);
+    BookingResponse modify(int id, BookingModifyRequest booking);
 }

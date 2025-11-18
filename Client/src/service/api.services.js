@@ -690,5 +690,26 @@ export const getBookingById = async (id) => {
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
+
+    
 };
+
+
+export const cancelBooking = async (id) => {
+    try {
+        return await apiClient.put(`/bookings/${id}/cancel`);
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const modifyBooking = async (id, data) => {
+  try {
+    return await apiClient.put(`/bookings/${id}/modify`, data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+
 

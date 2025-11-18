@@ -63,11 +63,16 @@ const EditProfilePage = () => {
   return (
     <div className="min-h-screen bg-white">
 
-      <header className="py-3">
+      <header className="py-3" >
         <UserMenu />
       </header>
 
-      <main className="flex justify-center items-center min-h-[75vh] gap-20">
+      <div className="flex justify-center mt-10"  style={{ fontFamily: '"Playfair Display", serif' }}>
+        <h1 className="text-4xl">Edit Profile</h1>
+      </div>
+
+      <main className="flex justify-center items-center min-h-[60vh] gap-20">
+
 
         <div className="flex items-center justify-center">
           <FaUserCircle className="text-gray-300 text-[200px]" />
