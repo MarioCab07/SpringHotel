@@ -145,7 +145,7 @@ const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition"
+            className="px-5 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400 disabled:hover:shadow-none disabled:hover:transform-none text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
           >
             {loading ? "Registrando..." : "Registrar"}
           </button>
@@ -179,7 +179,7 @@ const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={handleContinue}
-                  className="flex-1 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg text-sm font-medium transition"
+                  className="flex-1 px-4 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
                 >
                   Continuar
                 </button>

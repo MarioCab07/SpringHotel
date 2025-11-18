@@ -50,14 +50,14 @@ const EditCategoryModal = ({
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       <div className="relative ml-auto w-1/2 h-full bg-white shadow-xl flex flex-col">
-        <header className="bg-[#172A45] text-white p-4 flex items-center justify-between">
-          <button onClick={onClose} className="p-2">
-            <FaChevronLeft size={18} />
+        <header className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded transition">
+            <FaChevronLeft size={18} className="text-gray-700" />
           </button>
-          <h2 className="font-serif text-lg">Editar Categoría</h2>
+          <h2 className="font-serif text-lg text-gray-900">Editar Categoría</h2>
           <button
             onClick={handleUpdate}
-            className="px-4 py-1 bg-[#f2789f] hover:bg-[#e76b91] rounded text-sm"
+            className="px-5 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
           >
             Guardar
           </button>

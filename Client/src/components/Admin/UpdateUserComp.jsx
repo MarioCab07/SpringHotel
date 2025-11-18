@@ -106,7 +106,7 @@ const UpdateUserComp = ({ isOpen, user, onClose, onSuccess }) => {
           <h2 className="font-serif text-lg text-gray-900">Editar Cliente</h2>
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg text-sm font-medium transition"
+            className="px-5 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
           >
             Guardar
           </button>
