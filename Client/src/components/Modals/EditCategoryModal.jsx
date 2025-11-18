@@ -71,7 +71,7 @@ const EditCategoryModal = ({
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
               placeholder="Ej. Cocina, Mantenimiento..."
-              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
             />
           </div>
 

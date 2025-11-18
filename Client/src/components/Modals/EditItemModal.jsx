@@ -67,7 +67,7 @@ const EditItemModal = ({ isOpen, onClose, item, categories, onUpdate, onDelete }
               value={form.name}
               onChange={handleChange}
               placeholder="Nombre del producto"
-              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
             />
           </div>
 
@@ -78,7 +78,7 @@ const EditItemModal = ({ isOpen, onClose, item, categories, onUpdate, onDelete }
               value={form.type}
               onChange={handleChange}
               placeholder="Ej: Bebida, Limpieza, etc."
-              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
             />
           </div>
 
@@ -89,7 +89,7 @@ const EditItemModal = ({ isOpen, onClose, item, categories, onUpdate, onDelete }
               type="number"
               value={form.quantity}
               onChange={handleChange}
-              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
               min="0"
             />
           </div>
@@ -100,7 +100,7 @@ const EditItemModal = ({ isOpen, onClose, item, categories, onUpdate, onDelete }
               name="categoryId"
               value={form.categoryId}
               onChange={handleChange}
-              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
             >
               <option value="">Selecciona una categoría</option>
               {categories.map((cat) => (

@@ -20,19 +20,19 @@ const AddNewDropdownButton = ({ onAddCategory, onAddItem }) => {
     <div className="relative inline-block text-left" ref={ref}>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="bg-blue-900 text-white px-6 py-2 rounded-xl hover:bg-blue-800 transition"
+        className="px-5 py-2 bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
       >
         Add New
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow z-50">
+        <div className="absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
           <button
             onClick={() => {
               onAddCategory();
               setOpen(false);
             }}
-            className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+            className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors"
           >
             Add Category
           </button>
@@ -41,7 +41,7 @@ const AddNewDropdownButton = ({ onAddCategory, onAddItem }) => {
               onAddItem();
               setOpen(false);
             }}
-            className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+            className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors"
           >
             Add Item
           </button>

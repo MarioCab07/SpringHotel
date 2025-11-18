@@ -81,7 +81,7 @@ const AddItemModal = ({ isOpen, onClose, onSave, categories = [] }) => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
               placeholder="Ej: Botellas de agua"
             />
           </div>
@@ -92,7 +92,7 @@ const AddItemModal = ({ isOpen, onClose, onSave, categories = [] }) => {
               name="type"
               value={formData.type}
               onChange={handleChange}
-              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
               placeholder="Ej: Bebida, Limpieza, etc."
             />
           </div>
@@ -103,7 +103,7 @@ const AddItemModal = ({ isOpen, onClose, onSave, categories = [] }) => {
               name="categoryId"
               value={formData.categoryId}
               onChange={handleChange}
-              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
             >
               <option value="">Selecciona una categoría</option>
               {categories?.map((category) => (
@@ -119,7 +119,7 @@ const AddItemModal = ({ isOpen, onClose, onSave, categories = [] }) => {
               name="quantity"
               value={formData.quantity}
               onChange={handleChange}
-              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
               placeholder="Ej: 20"
               min="0"
             />
