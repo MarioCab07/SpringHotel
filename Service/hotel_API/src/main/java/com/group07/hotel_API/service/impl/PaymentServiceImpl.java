@@ -55,26 +55,29 @@ public class PaymentServiceImpl implements PaymentService {
 
         paymentRepository.save(payment);
 
-        if(reason.equals("Booking")){
-            InvoiceData invoiceData = InvoiceData.builder()
-                    .clientName(clientName)
-                    .clientEmail(clientEmail)
-                    .total(total)
-                    .subtotal(subtotal)
-                    .IVA(iva)
-                    .paymentMethod(method)
-                    .idBooking(bookingId)
-                    .reason(reason)
-                    .build();
+        InvoiceData invoiceData = InvoiceData.builder()
+                .clientName(clientName)
+                .clientEmail(clientEmail)
+                .total(total)
+                .subtotal(subtotal)
+                .IVA(iva)
+                .paymentMethod(method)
+                .idBooking(bookingId)
+                .reason(reason)
+                .build();
 
-            Invoice invoice = invoiceService.createInvoiceForBooking(invoiceData);
-            byte[] pdf = invoicePdfService.generateInvoicePdf(invoice);
+        Invoice invoice = new Invoice();
 
-            emailService.sendEmail(invoice.getClientEmail(), "Invoice"+invoice.getCode(),"Thank you for your payment. Your invoice is attached in PDF format.",pdf
-                    , "invoice-" + invoice.getCode() + ".pdf");
+        if(reason.equals("Booking")) invoice = invoiceService.createInvoiceForBooking(invoiceData);
 
 
-        }
+
+        if(reason.equals("Check-in")) invoice = invoiceService.createInvoiceForCheckIn(invoiceData);
+
+        byte[] pdf = invoicePdfService.generateInvoicePdf(invoice);
+
+        emailService.sendEmail(invoice.getClientEmail(), "Invoice"+invoice.getCode(),"Thank you for your payment. Your invoice is attached in PDF format.",pdf
+                , "invoice-" + invoice.getCode() + ".pdf");
 
 
 

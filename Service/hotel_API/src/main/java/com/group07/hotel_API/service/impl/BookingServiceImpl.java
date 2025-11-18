@@ -146,4 +146,14 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toDTO(booking);
     }
 
+    @Override
+    public BookingResponse findPendingBookingById(int id) {
+        Booking booking = bookingRepository
+                .findByIdAndStatus(id, BookingStatus.PENDING)
+                .orElseThrow(() -> new BookingNotFoundException("No pending booking found with this ID"));
+
+        return BookingMapper.toDTO(booking);
+    }
+
+
 }

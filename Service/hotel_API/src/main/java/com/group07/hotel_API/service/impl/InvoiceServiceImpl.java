@@ -3,6 +3,7 @@ package com.group07.hotel_API.service.impl;
 import com.group07.hotel_API.dao.InvoiceData;
 import com.group07.hotel_API.entities.*;
 import com.group07.hotel_API.exception.Booking.BookingNotFoundException;
+import com.group07.hotel_API.exception.room.RoomNotFoundException;
 import com.group07.hotel_API.repository.*;
 import com.group07.hotel_API.service.InvoiceService;
 import jakarta.transaction.Transactional;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,6 +26,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final ReasonRepository reasonRepository;
     private final PaymentMethodRepository paymentMethodRepository;
     private final InvoiceDetailRepository invoiceDetailRepository;
+    private final RoomRepository  roomRepository;
 
     @Transactional
     private String createInvoiceSequence() {
@@ -76,6 +79,28 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         invoice.getDetails().add(invoiceDetail);
 
+    }
+
+    public void createCheckInDetail(Invoice invoice){
+        Room room = roomRepository.findById(invoice.getBooking().getRoom().getId()).orElseThrow(()->new RoomNotFoundException("Room not found"));
+        int nights = (int) ChronoUnit.DAYS.between(invoice.getBooking().getCheckIn(),invoice.getBooking().getCheckOut());
+        InvoiceDetail invoiceDetail = InvoiceDetail.builder().invoice(invoice).code(invoice.getCode())
+                .subtotal(invoice.getSubtotal().floatValue())
+                .productName(room.getRoomType().getName())
+                .idProduct(room.getId())
+                .bookingDays(nights)
+                .build();
+
+        invoice.getDetails().add(invoiceDetail);
+    }
+
+    @Transactional
+    public Invoice createInvoiceForCheckIn(InvoiceData invoiceData){
+        Invoice invoice = createInvoice(invoiceData);
+
+        createCheckInDetail(invoice);
+
+        return invoiceRepository.save(invoice);
     }
 
     @Transactional

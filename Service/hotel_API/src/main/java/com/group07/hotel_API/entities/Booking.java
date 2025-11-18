@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Builder
@@ -42,4 +44,7 @@ public class Booking {
     @NotNull
     @Enumerated(EnumType.STRING)
     private BookingStatus status;
+
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = false)
+    private List<Invoice> invoices = new ArrayList<>();
 }
