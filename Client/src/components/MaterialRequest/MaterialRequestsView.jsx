@@ -119,12 +119,14 @@ const MaterialRequestsView = ({ onClose }) => {
                 </span>
               </div>
             </div>
-            {selectedRequest.notes && (
-              <div className="col-span-2">
-                <label className="text-xs text-gray-500">Notas</label>
-                <p className="text-sm text-gray-900">{selectedRequest.notes}</p>
+            <div className="col-span-2">
+              <label className="text-xs text-gray-500">Comentarios/Notas</label>
+              <div className="mt-1 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-sm text-gray-900 whitespace-pre-wrap">
+                  {selectedRequest.notes || "Sin comentarios"}
+                </p>
               </div>
-            )}
+            </div>
           </div>
 
           <div className="border-t border-gray-200 pt-4">
@@ -220,6 +222,9 @@ const MaterialRequestsView = ({ onClose }) => {
                   Estado
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Comentarios/Notas
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Acciones
                 </th>
               </tr>
@@ -269,6 +274,17 @@ const MaterialRequestsView = ({ onClose }) => {
                           {getStatusLabel(request.status)}
                         </span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                      {request.notes ? (
+                        <div className="bg-gray-50 rounded px-2 py-1 border border-gray-200">
+                          <p className="text-xs text-gray-700 break-words line-clamp-2">
+                            {request.notes}
+                          </p>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 italic text-xs">Sin comentarios</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button

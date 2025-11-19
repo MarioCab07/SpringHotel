@@ -413,26 +413,32 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                 <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                      Inventario
+                      {showMaterialRequest && isCleaningStaff ? "Solicitar Materiales" : "Inventario"}
                     </h3>
                     {isCleaningStaff && (
                       <button
                         onClick={() => setShowMaterialRequest(!showMaterialRequest)}
-                        className="text-xs px-3 py-1 bg-[#D9C696] hover:bg-[#c5b386] text-gray-900 rounded-lg font-medium transition-colors"
+                        className={`text-xs px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
+                          showMaterialRequest
+                            ? "bg-gray-600 hover:bg-gray-700 text-white"
+                            : "bg-[#D9C696] hover:bg-[#c5b386] text-gray-900 shadow-md hover:shadow-lg"
+                        }`}
                       >
-                        {showMaterialRequest ? "Ocultar Solicitud" : "Solicitar Materiales"}
+                        {showMaterialRequest ? "← Volver a Inventario" : "Solicitar Materiales"}
                       </button>
                     )}
                   </div>
                   
                   {showMaterialRequest && isCleaningStaff ? (
-                    <MaterialRequestForm
-                      onSuccess={() => {
-                        setShowMaterialRequest(false);
-                        fetchDetails(); // Recargar datos
-                      }}
-                      onCancel={() => setShowMaterialRequest(false)}
-                    />
+                    <div className="w-full">
+                      <MaterialRequestForm
+                        onSuccess={() => {
+                          setShowMaterialRequest(false);
+                          fetchDetails(); // Recargar datos
+                        }}
+                        onCancel={() => setShowMaterialRequest(false)}
+                      />
+                    </div>
                   ) : (
                     <InventoryByCategory
                       categories={categories}
