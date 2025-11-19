@@ -8,7 +8,10 @@ import {
 } from "../service/api.services";
 import UserMenu from "../components/UserMenu";
 import ChangeDatesModal from "../components/Booking/ChangeDatesModal";
+import ConfirmCancelModal from "../components/Booking/ConfirmCancelModal";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
 
 const MyBookingsPage = () => {
   const [user, setUser] = useState(null);
@@ -17,6 +20,9 @@ const MyBookingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState(null);
+
 
   const navigate = useNavigate();
 
@@ -28,7 +34,6 @@ const MyBookingsPage = () => {
     const bookingRes = await getUserBookings(userId);
     const fetched = bookingRes.data.data;
 
-    // Filter out cancelled bookings
     const filtered = fetched.filter((b) => b.status !== "CANCELLED");
 
     const roomMap = {};
@@ -76,22 +81,28 @@ const MyBookingsPage = () => {
   };
 
   const handleCancel = async (id) => {
-    const ok = window.confirm("Are you sure you want to cancel this reservation?");
-    if (!ok) return;
-
     try {
       await cancelBooking(id);
 
-      alert("Reservation cancelled successfully!");
+      toast.success("Reservation cancelled successfully!");
 
       setLoading(true);
       await loadBookings();
       setLoading(false);
+
+      setShowCancelModal(false);
+      setBookingToCancel(null);
+
     } catch (err) {
       console.log(err);
-      alert("Could not cancel reservation");
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Could not cancel reservation";
+      toast.error(msg);
     }
   };
+
 
   const openChangeDates = (booking) => {
     setSelectedBooking(booking);
@@ -100,19 +111,29 @@ const MyBookingsPage = () => {
 
   const handleSaveDates = async (newDates) => {
     try {
-      await modifyBooking(selectedBooking.id, newDates);
-      alert("Reservation updated successfully!");
+      const response = await modifyBooking(selectedBooking.id, newDates);
+
+      toast.success("Reservation updated successfully!");
 
       setLoading(true);
       await loadBookings();
       setShowModal(false);
       setSelectedBooking(null);
       setLoading(false);
+
     } catch (e) {
-      console.log(e);
-      alert("Could not modify reservation");
+      console.log("ERROR MODIFY:", e);
+
+      const msg =
+        e?.message ||
+        e?.data?.message ||
+        e?.response?.data?.message ||
+        "Could not modify reservation";
+
+      toast.error(msg);
     }
   };
+
 
   if (loading)
     return (
@@ -225,7 +246,11 @@ const MyBookingsPage = () => {
 
                 {["PENDING", "CONFIRMED", "ACTIVE"].includes(b.status) && (
                   <button
-                    onClick={() => handleCancel(b.id)}
+                    onClick={() => {
+                      setBookingToCancel(b.id);
+                      setShowCancelModal(true);
+                    }}
+
                     className="bg-[#C96E5E] hover:bg-[#B86254] text-black font-medium px-6 py-2 rounded-lg transition"
                   >
                     Cancel reservation
@@ -237,7 +262,6 @@ const MyBookingsPage = () => {
         })}
       </div>
 
-      {/* MODAL */}
       {showModal && selectedBooking && (
         <ChangeDatesModal
           booking={selectedBooking}
@@ -245,6 +269,15 @@ const MyBookingsPage = () => {
           onSave={handleSaveDates}
         />
       )}
+
+      {showCancelModal && bookingToCancel && (
+        <ConfirmCancelModal
+          bookingId={bookingToCancel}
+          onClose={() => setShowCancelModal(false)}
+          onConfirm={handleCancel}
+        />
+      )}
+
     </div>
   );
 };
