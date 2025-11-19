@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import SearchSortBar from "../components/SearchSortBar";
 import {
   FaCheckCircle,
@@ -9,6 +8,7 @@ import {
 } from "react-icons/fa";
 import DetailPanel from "../components/RoomStatus/DetailPanel";
 import ReportIssueModal from "../components/RoomStatus/ReportIssueModal";
+import RoomServiceDetailPanel from "../components/RoomStatus/RoomServiceDetailPanel";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 
@@ -55,7 +55,8 @@ const RoomStatusPage = () => {
   const [markLoadingId, setMarkLoadingId] = useState(null);
   const [inProgressLoadingId, setInProgressLoadingId] = useState(null);
   const [isReportOpen, setIsReportOpen] = useState(false);
-  const navigate = useNavigate();
+  const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(false);
+  const [selectedServiceId, setSelectedServiceId] = useState(null);
 
   const role = sessionStorage.getItem("role");
   const isAdmin = role === "ADMIN";
@@ -249,10 +250,73 @@ const RoomStatusPage = () => {
 
   const handleViewMore = useCallback(
     (item) => {
-      navigate(`/services/${item.id}`);
+      setSelectedServiceId(item.id);
+      setIsDetailPanelOpen(true);
     },
-    [navigate]
+    []
   );
+
+  const handleDetailPanelClose = () => {
+    setIsDetailPanelOpen(false);
+    setSelectedServiceId(null);
+  };
+
+  const handleDetailPanelSuccess = () => {
+    // Recargar las tareas después de marcar como limpio
+    const fetchTasks = async () => {
+      try {
+        const [svcResp, roomsResp, bookingsResp] = await Promise.all([
+          getAllRoomServices(),
+          getAllRooms(),
+          getAllBookings(),
+        ]);
+
+        const services = svcResp.data.data;
+        const rooms = roomsResp.data.data;
+        const bookings = bookingsResp.data.data;
+
+        const roomMap = rooms.reduce((map, r) => {
+          map[r.roomId] = r.roomNumber;
+          return map;
+        }, {});
+
+        const bookingMap = bookings.reduce((m, b) => {
+          m[b.id] = b.roomId;
+          return m;
+        }, {});
+
+        const mapped = services.map((s) => {
+          const roomId = bookingMap[s.bookingId];
+          const roomNum = roomMap[roomId];
+
+          return {
+            id: s.roomServiceId,
+            roomId,
+            bookingId: s.bookingId,
+            room: roomNum ? `Room ${roomNum}` : `#${roomId}`,
+            description: s.roomServiceDescription,
+            status: s.roomServiceStatus,
+            type: statusToType[s.roomServiceStatus] || "inProgress",
+            time: s.requestedAt
+              ? new Date(s.requestedAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "",
+          };
+        });
+
+        setTasks(mapped);
+        const updatedSelected = mapped.find((t) => t.id === selectedServiceId);
+        if (updatedSelected) {
+          setSelected(updatedSelected);
+        }
+      } catch (err) {
+        console.error("Error recargando tareas:", err);
+      }
+    };
+    fetchTasks();
+  };
 
   if (loading) return <div className="p-4 text-center text-gray-600">Cargando…</div>;
   if (error) return <div className="p-4 text-center text-red-600">{error}</div>;
@@ -330,6 +394,16 @@ const RoomStatusPage = () => {
           isOpen={isReportOpen}
           onClose={() => setIsReportOpen(false)}
           item={selected}
+        />
+      )}
+
+      {isDetailPanelOpen && (
+        <RoomServiceDetailPanel
+          isOpen={isDetailPanelOpen}
+          serviceId={selectedServiceId}
+          onClose={handleDetailPanelClose}
+          onSuccess={handleDetailPanelSuccess}
+          role={role}
         />
       )}
     </div>
