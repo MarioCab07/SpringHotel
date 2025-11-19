@@ -89,7 +89,7 @@ public class BookingController {
     }
 
     @GetMapping()
-    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE', 'CLEANING_STAFF')")
     public ResponseEntity<GeneralResponse> getAllBookings() {
 
         List<BookingResponse> bookings = bookingService.findAll();
@@ -100,7 +100,7 @@ public class BookingController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','USER')")
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','USER', 'CLEANING_STAFF')")
     public ResponseEntity<GeneralResponse> getBookingById(@PathVariable int id) {
         BookingResponse booking = bookingService.findById(id);
         return buildResponse("Booking found successfully", HttpStatus.OK, booking);

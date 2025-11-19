@@ -10,7 +10,7 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
   const [changeRoom, setChangeRoom] = useState({
     roomId: room?.roomId || "",
     roomNumber: room?.roomNumber || "",
-    roomType: room?.roomType?.roomTypeId || room?.roomType || null,
+    roomType: null,
     roomStatus: room?.roomStatus || "",
   });
   const [confirmText, setConfirmText] = useState("");
@@ -27,12 +27,31 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
     { value: "MAINTENANCE", label: "Mantenimiento" },
   ];
 
+  // Función auxiliar para obtener el ID del tipo de habitación
+  const getRoomTypeId = (room) => {
+    if (!room || !room.roomType) return null;
+    
+    // Intentar diferentes formas de obtener el ID
+    if (typeof room.roomType === 'number' || typeof room.roomType === 'string') {
+      return Number(room.roomType);
+    }
+    if (room.roomType.roomTypeId) {
+      return Number(room.roomType.roomTypeId);
+    }
+    if (room.roomType.id) {
+      return Number(room.roomType.id);
+    }
+    return null;
+  };
+
   useEffect(() => {
     if (room) {
+      const roomTypeId = getRoomTypeId(room);
+      
       setChangeRoom({
         roomId: room.roomId,
         roomNumber: room.roomNumber,
-        roomType: room.roomType?.roomTypeId || room.roomType,
+        roomType: roomTypeId,
         roomStatus: room.roomStatus,
       });
     }
@@ -51,12 +70,23 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
           }));
           setRoomTypeOptions(options);
           
+          // Establecer el tipo de habitación actual después de cargar las opciones
           if (room) {
-            const currentType = options.find(
-              (opt) => opt.value === (room.roomType?.roomTypeId || room.roomType)
-            );
-            if (currentType) {
-              setSelectedRoomType(currentType);
+            const roomTypeId = getRoomTypeId(room);
+            
+            if (roomTypeId) {
+              const currentType = options.find(
+                (opt) => Number(opt.value) === Number(roomTypeId)
+              );
+              
+              if (currentType) {
+                setSelectedRoomType(currentType);
+                // También actualizar changeRoom para asegurar consistencia
+                setChangeRoom((prev) => ({
+                  ...prev,
+                  roomType: currentType.value,
+                }));
+              }
             }
           }
         }
@@ -68,6 +98,29 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
       fetchTypes();
     }
   }, [isOpen, room]);
+
+  // Actualizar selectedRoomType cuando cambian las opciones o el room
+  useEffect(() => {
+    if (room && roomTypeOptions.length > 0 && isOpen) {
+      const roomTypeId = getRoomTypeId(room);
+      
+      if (roomTypeId) {
+        const currentType = roomTypeOptions.find(
+          (opt) => Number(opt.value) === Number(roomTypeId)
+        );
+        
+        if (currentType) {
+          setSelectedRoomType(currentType);
+        } else {
+          // Si no se encuentra, resetear
+          setSelectedRoomType(null);
+        }
+      } else {
+        setSelectedRoomType(null);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomTypeOptions, room, isOpen]);
 
   useEffect(() => {
     if (room && room.roomStatus) {
