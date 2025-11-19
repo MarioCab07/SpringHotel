@@ -19,6 +19,9 @@ public class RoomCleaningMapper {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public static RoomCleaning toEntity(RoomCleaningRequest dto, UserClient user, Room room, Booking booking) {
+        if (dto.getShift() == null || dto.getShift().isBlank()) {
+            throw new IllegalArgumentException("Shift cannot be null or blank");
+        }
         return RoomCleaning.builder()
                 .room(room)
                 .user(user)
@@ -33,6 +36,9 @@ public class RoomCleaningMapper {
     }
 
     public static RoomCleaning toEntityUpdate(Integer id, RoomCleaningUpdateRequest dto, UserClient user, Room room, Booking booking){
+        if (dto.getShift() == null || dto.getShift().isBlank()) {
+            throw new IllegalArgumentException("Shift cannot be null or blank");
+        }
         return RoomCleaning.builder()
                 .id(id)
                 .room(room)
