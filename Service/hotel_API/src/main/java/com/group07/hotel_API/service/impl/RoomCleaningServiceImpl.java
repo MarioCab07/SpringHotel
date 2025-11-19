@@ -168,7 +168,7 @@ public class RoomCleaningServiceImpl implements RoomCleaningService {
     public String sendShiftNotification() {
         LocalTime now = LocalTime.now();
 
-        return now.isBefore(LocalTime.of(15, 0))
+        return (now.isAfter(LocalTime.of(6,0)) && now.isBefore(LocalTime.of(18, 0)))
                 ? "MORNING"
                 : "EVENING";
     }
