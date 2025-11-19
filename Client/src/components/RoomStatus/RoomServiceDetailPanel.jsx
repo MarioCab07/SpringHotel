@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { FaChevronLeft } from "react-icons/fa";
 import { toast } from "react-toastify";
 import InventoryByCategory from "./InventoryByCategory";
+import MaterialRequestForm from "../MaterialRequest/MaterialRequestForm";
 import {
   getRoomById,
   getActiveBookingByRoomId,
@@ -32,7 +33,9 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
   const [checkedItems, setCheckedItems] = useState({});
   const [itemQuantities, setItemQuantities] = useState({});
   const [expandedCats, setExpandedCats] = useState({});
+  const [showMaterialRequest, setShowMaterialRequest] = useState(false);
   const isAdmin = role === "ADMIN";
+  const isCleaningStaff = role === "CLEANING_STAFF";
 
   const imagesUrl = {
     Suite: "https://www.acevivillarroelbarcelona.com/img/jpg/habitaciones/Hab-Deluxe-01.jpg",
@@ -42,10 +45,8 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
 
   const formatStatus = (s = "") => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 
-  useEffect(() => {
-    if (!isOpen || !serviceId) return;
-
-    const fetchDetails = async () => {
+  const fetchDetails = async () => {
+    if (!serviceId) return;
       setLoading(true);
       try {
         const [svcRes, typesRes] = await Promise.all([
@@ -109,8 +110,10 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
       } finally {
         setLoading(false);
       }
-    };
+  };
 
+  useEffect(() => {
+    if (!isOpen || !serviceId) return;
     fetchDetails();
   }, [isOpen, serviceId]);
 
@@ -408,16 +411,40 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
 
                 {/* Inventory Section */}
                 <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-                  <InventoryByCategory
-                    categories={categories}
-                    inventoryItems={inventoryItems}
-                    checkedItems={checkedItems}
-                    itemQuantities={itemQuantities}
-                    expandedCats={expandedCats}
-                    onToggleCategory={toggleCategory}
-                    onToggleItem={toggleItem}
-                    onChangeQty={changeQty}
-                  />
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                      Inventario
+                    </h3>
+                    {isCleaningStaff && (
+                      <button
+                        onClick={() => setShowMaterialRequest(!showMaterialRequest)}
+                        className="text-xs px-3 py-1 bg-[#D9C696] hover:bg-[#c5b386] text-gray-900 rounded-lg font-medium transition-colors"
+                      >
+                        {showMaterialRequest ? "Ocultar Solicitud" : "Solicitar Materiales"}
+                      </button>
+                    )}
+                  </div>
+                  
+                  {showMaterialRequest && isCleaningStaff ? (
+                    <MaterialRequestForm
+                      onSuccess={() => {
+                        setShowMaterialRequest(false);
+                        fetchDetails(); // Recargar datos
+                      }}
+                      onCancel={() => setShowMaterialRequest(false)}
+                    />
+                  ) : (
+                    <InventoryByCategory
+                      categories={categories}
+                      inventoryItems={inventoryItems}
+                      checkedItems={checkedItems}
+                      itemQuantities={itemQuantities}
+                      expandedCats={expandedCats}
+                      onToggleCategory={toggleCategory}
+                      onToggleItem={toggleItem}
+                      onChangeQty={changeQty}
+                    />
+                  )}
                 </div>
 
                 {/* Action Buttons */}
