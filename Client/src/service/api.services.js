@@ -189,9 +189,13 @@ export const updateInventoryItem = async(id, data) => {
     }
 };
 
-export const updateItemQuantity = async(id, data) =>{
+export const updateItemQuantity = async(id, quantity) =>{
     try {
-        return await apiClient.patch(`/inventory/${id}/quantity`, data);
+        return await apiClient.patch(`/inventory/${id}/quantity`, quantity, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
         throw error.response ? error.response.data : error
     }

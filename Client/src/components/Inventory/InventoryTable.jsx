@@ -1,10 +1,11 @@
 import { useState } from "react";
 
-const InventoryTable = ({ category, products, onToggleAvailability, onUpdateQuantity }) => {
+const InventoryTable = ({ category, products, onToggleAvailability, onUpdateQuantity, allowEdit = false }) => {
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState("");
 
   const handleQuantityClick = (product) => {
+    if (!allowEdit) return;
     setEditingId(product.id);
     setEditValue(product.quantity?.toString() || "0");
   };
@@ -73,8 +74,12 @@ const InventoryTable = ({ category, products, onToggleAvailability, onUpdateQuan
                     ) : (
                       <span
                         onClick={() => handleQuantityClick(prod)}
-                        className="text-sm font-medium text-gray-700 whitespace-nowrap cursor-pointer hover:text-[#D9C696] hover:underline transition-colors"
-                        title="Click para editar cantidad"
+                        className={`text-sm font-medium text-gray-700 whitespace-nowrap ${
+                          allowEdit 
+                            ? "cursor-pointer hover:text-[#D9C696] hover:underline transition-colors" 
+                            : "cursor-default"
+                        }`}
+                        title={allowEdit ? "Click para editar cantidad" : ""}
                       >
                         {prod.quantity ?? 0} uds
                       </span>
