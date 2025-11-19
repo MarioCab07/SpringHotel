@@ -715,5 +715,38 @@ export const modifyBooking = async (id, data) => {
   }
 };
 
+// Material Request Services
+export const createMaterialRequest = async (data) => {
+  try {
+    return await apiClient.post("/inventory/requests", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getMyMaterialRequests = async () => {
+  try {
+    return await apiClient.get("/inventory/requests/me");
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getAllMaterialRequests = async () => {
+  try {
+    return await apiClient.get("/inventory/requests");
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getMaterialRequestById = async (id) => {
+  try {
+    return await apiClient.get(`/inventory/requests/${id}`);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
 
 
