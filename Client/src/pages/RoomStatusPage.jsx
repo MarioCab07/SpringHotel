@@ -8,6 +8,7 @@ import {
   FaTimesCircle,
 } from "react-icons/fa";
 import DetailPanel from "../components/RoomStatus/DetailPanel";
+import ServiceDetailPanel from "../components/RoomStatus/ServiceDetailPanel";
 import ReportIssueModal from "../components/RoomStatus/ReportIssueModal";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
@@ -55,6 +56,8 @@ const RoomStatusPage = () => {
   const [markLoadingId, setMarkLoadingId] = useState(null);
   const [inProgressLoadingId, setInProgressLoadingId] = useState(null);
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [showDetailPanel, setShowDetailPanel] = useState(false);
+  const [selectedServiceId, setSelectedServiceId] = useState(null);
   const navigate = useNavigate();
 
   const role = sessionStorage.getItem("role");
@@ -249,10 +252,73 @@ const RoomStatusPage = () => {
 
   const handleViewMore = useCallback(
     (item) => {
-      navigate(`/services/${item.id}`);
+      setSelectedServiceId(item.id);
+      setShowDetailPanel(true);
     },
-    [navigate]
+    []
   );
+
+  const handleCloseDetailPanel = useCallback(() => {
+    setShowDetailPanel(false);
+    setSelectedServiceId(null);
+  }, []);
+
+  const handleDetailMarkClean = useCallback(() => {
+    // Refrescar la lista después de marcar como limpio
+    const fetchTasks = async () => {
+      try {
+        const [svcResp, roomsResp, bookingsResp] = await Promise.all([
+          getAllRoomServices(),
+          getAllRooms(),
+          getAllBookings(),
+        ]);
+
+        const services = svcResp.data.data;
+        const rooms = roomsResp.data.data;
+        const bookings = bookingsResp.data.data;
+
+        const roomMap = rooms.reduce((map, r) => {
+          map[r.roomId] = r.roomNumber;
+          return map;
+        }, {});
+
+        const bookingMap = bookings.reduce((m, b) => {
+          m[b.id] = b.roomId;
+          return m;
+        }, {});
+
+        const mapped = services.map((s) => {
+          const roomId = bookingMap[s.bookingId];
+          const roomNum = roomMap[roomId];
+
+          return {
+            id: s.roomServiceId,
+            roomId,
+            bookingId: s.bookingId,
+            room: roomNum ? `Room ${roomNum}` : `#${roomId}`,
+            description: s.roomServiceDescription,
+            status: s.roomServiceStatus,
+            type: statusToType[s.roomServiceStatus] || "inProgress",
+            time: s.requestedAt
+              ? new Date(s.requestedAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "",
+          };
+        });
+
+        setTasks(mapped);
+        const updatedTask = mapped.find((t) => t.id === selectedServiceId);
+        if (updatedTask) {
+          setSelected(updatedTask);
+        }
+      } catch (err) {
+        console.error("Error refreshing tasks:", err);
+      }
+    };
+    fetchTasks();
+  }, [selectedServiceId]);
 
   if (loading) return <div className="p-4 text-center text-gray-600">Cargando…</div>;
   if (error) return <div className="p-4 text-center text-red-600">{error}</div>;
@@ -330,6 +396,16 @@ const RoomStatusPage = () => {
           isOpen={isReportOpen}
           onClose={() => setIsReportOpen(false)}
           item={selected}
+        />
+      )}
+
+      {showDetailPanel && (
+        <ServiceDetailPanel
+          isOpen={showDetailPanel}
+          serviceId={selectedServiceId}
+          onClose={handleCloseDetailPanel}
+          onMarkClean={handleDetailMarkClean}
+          userId={userId}
         />
       )}
     </div>
