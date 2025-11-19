@@ -54,6 +54,7 @@ const RoomStatusPage = () => {
   const [userId, setUserId] = useState(null);
   const [markLoadingId, setMarkLoadingId] = useState(null);
   const [inProgressLoadingId, setInProgressLoadingId] = useState(null);
+  const [isReportOpen, setIsReportOpen] = useState(false);
   const navigate = useNavigate();
 
   const role = sessionStorage.getItem("role");
@@ -253,87 +254,84 @@ const RoomStatusPage = () => {
     [navigate]
   );
 
-  if (loading) return <div>Cargando…</div>;
-  if (error) return <div className="text-red-600">{error}</div>;
+  if (loading) return <div className="p-4 text-center text-gray-600">Cargando…</div>;
+  if (error) return <div className="p-4 text-center text-red-600">{error}</div>;
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex items-center px-6 pt-3 pb-1">
-          <div className="flex justify-center w-full">
-            <h4
-              style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
-              className="rounded-b-2xl bg-white font-zain-extrabold p-4 w-1/3 text-3xl text-center"
-            >
-              Estado de habitaciones
-            </h4>
-          </div>
-          <div className="ml-auto"></div>
-        </header>
+    <div className="w-full flex flex-col gap-4">
+      <div className="w-full flex justify-center">
+        <div className="w-full max-w-4xl">
+          <SearchSortBar
+            query={query}
+            setQuery={setQuery}
+            onSearch={(term) => setSearch(term)}
+            onSortChange={setSortBy}
+            initialSort="All"
+          />
+        </div>
+      </div>
 
-        <div className="w-full px-8 pb-6 mt-4 flex justify-center">
-          <div className="w-full max-w-3xl">
-            <SearchSortBar
-              query={query}
-              setQuery={setQuery}
-              onSearch={(term) => setSearch(term)}
-              onSortChange={setSortBy}
-              initialSort="All"
-            />
+      <div className="flex gap-4">
+        <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="sticky top-0 bg-gray-50 border-b border-gray-200 px-6 py-4 z-10">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Today's Tasks
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              {completedCount} of {tasks.length} completed
+            </p>
+          </div>
+
+          <div className="divide-y divide-gray-100">
+            {filtered.length === 0 ? (
+              <div className="px-6 py-8 text-center text-gray-500">
+                No hay tareas disponibles
+              </div>
+            ) : (
+              filtered.map((t) => (
+                <div
+                  key={t.id}
+                  onClick={() => setSelected(t)}
+                  className={`flex items-center justify-between px-6 py-4 cursor-pointer transition-colors hover:bg-gray-50
+                    ${selected?.id === t.id ? "bg-gray-50 border-l-4 border-[#D9C696]" : ""}`}
+                >
+                  <div className="flex items-center gap-3">
+                    {iconForType[t.type]}
+                    <span className="font-medium text-gray-900">{t.room}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span className="capitalize">
+                      {t.status.replace("_", " ").toLowerCase()}
+                    </span>
+                    {t.time && <span className="font-mono text-gray-500">{t.time}</span>}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
-        <main className="flex-1 px-8 pb-8 overflow-hidden">
-          <div className="flex bg-white rounded-2xl shadow-lg h-full">
-            <ul className="flex-1 overflow-y-auto divide-y divide-gray-200">
-              <li className="sticky top-0 bg-white px-6 py-4 flex items-center justify-between z-10">
-                <div>
-                  <h2 className="text-xl font-serif text-gray-800">
-                    Today’s Tasks
-                  </h2>
-                  <p className="text-sm text-gray-600">
-                    {completedCount} of {tasks.length} completed
-                  </p>
-                </div>
-              </li>
-
-              {filtered.map((t) => (
-                <li
-                  key={t.id}
-                  onClick={() => setSelected(t)}
-                  className={`flex items-center justify-between px-6 py-4 cursor-pointer
-                    ${selected?.id === t.id ? "bg-gray-50" : ""}`}
-                >
-                  <div className="flex items-center space-x-3">
-                    {iconForType[t.type]}
-                    <span className="font-medium text-gray-800">{t.room}</span>
-                  </div>
-                  <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    <span>
-                      {t.status.replace("_", " ").charAt(0).toUpperCase() +
-                        t.status.replace("_", " ").slice(1).toLowerCase()}
-                    </span>
-                    {t.time && <span className="font-mono">{t.time}</span>}
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            <DetailPanel
-              item={selected}
-              onMarkClean={handleMarkClean}
-              onMarkInProgress={handleMarkInProgress}
-              markLoading={markLoadingId === selected?.id}
-              inProgressLoading={inProgressLoadingId === selected?.id}
-              onReportIssue={() => setIsReportOpen(true)}
-              onViewMore={handleViewMore}
-              onDelete={handleDelete}
-              isAdmin={isAdmin}
-              role={role}
-            />
-          </div>
-        </main>
+        <DetailPanel
+          item={selected}
+          onMarkClean={handleMarkClean}
+          onMarkInProgress={handleMarkInProgress}
+          markLoading={markLoadingId === selected?.id}
+          inProgressLoading={inProgressLoadingId === selected?.id}
+          onReportIssue={() => setIsReportOpen(true)}
+          onViewMore={handleViewMore}
+          onDelete={handleDelete}
+          isAdmin={isAdmin}
+          role={role}
+        />
       </div>
+
+      {isReportOpen && (
+        <ReportIssueModal
+          isOpen={isReportOpen}
+          onClose={() => setIsReportOpen(false)}
+          item={selected}
+        />
+      )}
     </div>
   );
 };
