@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { FaChevronLeft } from "react-icons/fa";
 import { toast } from "react-toastify";
-import InventoryByCategory from "./InventoryByCategory";
 import MaterialRequestForm from "../MaterialRequest/MaterialRequestForm";
 import {
   getRoomById,
@@ -15,6 +14,7 @@ import {
   getAllCategories,
   getAllInventoryItems,
   updateItemQuantity,
+  GetUserDetails,
 } from "../../service/api.services";
 
 const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role }) => {
@@ -34,6 +34,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
   const [itemQuantities, setItemQuantities] = useState({});
   const [expandedCats, setExpandedCats] = useState({});
   const [showMaterialRequest, setShowMaterialRequest] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const isAdmin = role === "ADMIN";
   const isCleaningStaff = role === "CLEANING_STAFF";
 
@@ -118,6 +119,20 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
   }, [isOpen, serviceId]);
 
   useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const userRes = await GetUserDetails();
+        setCurrentUserId(userRes.data.data.userId);
+      } catch (err) {
+        console.error("Error obteniendo userId:", err);
+      }
+    };
+    if (isOpen) {
+      fetchUserId();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen) return;
 
     const fetchInventory = async () => {
@@ -165,11 +180,20 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
       return hour >= 6 && hour < 18 ? "MORNING" : "EVENING";
     };
 
-    if (!room) return;
+    if (!room || !room.roomId) {
+      toast.error("No se pudo obtener la información de la habitación");
+      return;
+    }
+
+    if (!currentUserId) {
+      toast.error("No se pudo obtener la información del usuario");
+      return;
+    }
+
     try {
       const payload = {
         roomId: room.roomId,
-        userId: service.userId,
+        userId: currentUserId,
         status: "COMPLETED",
         cleanedAt: new Date().toISOString(),
         comments: problem || "",
@@ -185,7 +209,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
       if (onSuccess) onSuccess();
     } catch (err) {
       console.error(err);
-      toast.error("No se pudo marcar como limpia");
+      toast.error("No se pudo marcar como limpia: " + (err.response?.data?.message || err.message || "Error desconocido"));
     }
   };
 
@@ -342,30 +366,32 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                         Tipos de Servicio
                       </h3>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
-                        {serviceTypes.length > 0 ? (
-                          serviceTypes.map((type) => (
-                            <div
-                              key={type.id}
-                              className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0"
-                            >
-                              <input
-                                type="checkbox"
-                                id={`srv-type-${type.id}`}
-                                checked={!!suppliesChecked[type.id]}
-                                disabled
-                                className="w-4 h-4 text-gray-600 border-gray-300 rounded cursor-not-allowed opacity-60"
-                                readOnly
-                              />
-                              <label
-                                htmlFor={`srv-type-${type.id}`}
-                                className="flex-1 text-sm text-gray-700 cursor-not-allowed break-words"
+                        {Object.keys(suppliesChecked).length > 0 ? (
+                          serviceTypes
+                            .filter((type) => suppliesChecked[type.id])
+                            .map((type) => (
+                              <div
+                                key={type.id}
+                                className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0"
                               >
-                                {type.name}
-                              </label>
-                            </div>
-                          ))
+                                <input
+                                  type="checkbox"
+                                  id={`srv-type-${type.id}`}
+                                  checked={!!suppliesChecked[type.id]}
+                                  disabled
+                                  className="w-4 h-4 text-gray-600 border-gray-300 rounded cursor-not-allowed opacity-60"
+                                  readOnly
+                                />
+                                <label
+                                  htmlFor={`srv-type-${type.id}`}
+                                  className="flex-1 text-sm text-gray-700 cursor-not-allowed break-words"
+                                >
+                                  {type.name}
+                                </label>
+                              </div>
+                            ))
                         ) : (
-                          <p className="text-sm text-gray-500">No hay tipos de servicio</p>
+                          <p className="text-sm text-gray-500">No hay servicios solicitados</p>
                         )}
                       </div>
                     </div>
@@ -439,18 +465,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                         onCancel={() => setShowMaterialRequest(false)}
                       />
                     </div>
-                  ) : (
-                    <InventoryByCategory
-                      categories={categories}
-                      inventoryItems={inventoryItems}
-                      checkedItems={checkedItems}
-                      itemQuantities={itemQuantities}
-                      expandedCats={expandedCats}
-                      onToggleCategory={toggleCategory}
-                      onToggleItem={toggleItem}
-                      onChangeQty={changeQty}
-                    />
-                  )}
+                  ) : null}
                 </div>
 
                 {/* Action Buttons */}
