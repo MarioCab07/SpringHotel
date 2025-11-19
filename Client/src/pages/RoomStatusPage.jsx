@@ -7,6 +7,7 @@ import {
   FaTimesCircle,
 } from "react-icons/fa";
 import DetailPanel from "../components/RoomStatus/DetailPanel";
+import ServiceDetailPanel from "../components/RoomStatus/ServiceDetailPanel";
 import ReportIssueModal from "../components/RoomStatus/ReportIssueModal";
 import RoomServiceDetailPanel from "../components/RoomStatus/RoomServiceDetailPanel";
 import { useAuth } from "../context/AuthContext";
@@ -396,7 +397,6 @@ const RoomStatusPage = () => {
           item={selected}
         />
       )}
-
       {isDetailPanelOpen && (
         <RoomServiceDetailPanel
           isOpen={isDetailPanelOpen}
