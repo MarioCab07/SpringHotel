@@ -10,6 +10,7 @@ import AddCategoryModal from "../components/Modals/AddCategoryModal";
 import AddItemModal from "../components/Modals/AddItemModal";
 import EditItemModal from "../components/Modals/EditItemModal";
 import EditCategoryModal from "../components/Modals/EditCategoryModal";
+import MaterialRequestsView from "../components/MaterialRequest/MaterialRequestsView";
 import { toast } from "react-toastify";
 import { getAllInventoryItems,
   updateInventoryItemStatus,
@@ -25,6 +26,8 @@ import { getAllInventoryItems,
 } from "../service/api.services";
 
 const InventoryPage = () => {
+  const role = sessionStorage.getItem("role");
+  const isAdmin = role === "ADMIN";
   const [query, setQuery] = useState("");
   const [sortOption, setSortOption] = useState("Sort By");
   const [data, setData] = useState([]);
@@ -43,6 +46,7 @@ const InventoryPage = () => {
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [editItemData, setEditItemData] = useState(null);
   const [showEditItemModal, setShowEditItemModal] = useState(false);
+  const [showMaterialRequests, setShowMaterialRequests] = useState(false);
 
   const handleEditClick = () => {
     setIsEditMode(true);
@@ -456,40 +460,53 @@ if (sortOption === "Nombre A-Z") {
             initialSort="Sort By"
           />
         </div>
-        <div className="shrink-0">
+        <div className="shrink-0 flex gap-2">
+          {isAdmin && (
+            <button
+              onClick={() => setShowMaterialRequests(!showMaterialRequests)}
+              className="px-5 py-2 bg-[#172A45] hover:bg-[#1F3A5A] text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
+            >
+              {showMaterialRequests ? "Ocultar Solicitudes" : "Ver Solicitudes"}
+            </button>
+          )}
           <EditInventoryButton onClick={handleEditClick} />
         </div>
       </div>
 
-      <div className="flex space-x-4">
-        <div className="w-1/3 space-y-2">
-          {Object.values(categoriesMap).map((cat) => (
-            <InventoryCategoryCard
-              key={cat.id}
-              title={cat.name}
-              productCount={cat.products.length}
-              unavailableCount={
-                cat.products.filter((p) => !p.available).length
-              }
-              selected={cat.id === selectedCategoryId}
-              onClick={() => setSelectedCategoryId(cat.id)}
-            />
-          ))}
-        </div>
+      {showMaterialRequests ? (
+        <MaterialRequestsView onClose={() => setShowMaterialRequests(false)} />
+      ) : (
+        <div className="flex space-x-4">
+          <div className="w-1/3 space-y-2">
+            {Object.values(categoriesMap).map((cat) => (
+              <InventoryCategoryCard
+                key={cat.id}
+                title={cat.name}
+                productCount={cat.products.length}
+                unavailableCount={
+                  cat.products.filter((p) => !p.available).length
+                }
+                selected={cat.id === selectedCategoryId}
+                onClick={() => setSelectedCategoryId(cat.id)}
+              />
+            ))}
+          </div>
 
-        <div className="w-2/3">
-          <InventoryTable
-            category={
-              query.trim() 
-                ? `Resultados de búsqueda (${filteredData.length})` 
-                : categoriesMap[selectedCategoryId]?.name || "Sin categoría"
-            }
-            products={filteredData}
-            onToggleAvailability={toggleAvailability}
-            onUpdateQuantity={handleUpdateQuantity}
-          />
+          <div className="w-2/3">
+            <InventoryTable
+              category={
+                query.trim() 
+                  ? `Resultados de búsqueda (${filteredData.length})` 
+                  : categoriesMap[selectedCategoryId]?.name || "Sin categoría"
+              }
+              products={filteredData}
+              onToggleAvailability={isAdmin ? toggleAvailability : null}
+              onUpdateQuantity={handleUpdateQuantity}
+              allowEdit={isAdmin}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

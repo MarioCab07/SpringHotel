@@ -152,6 +152,11 @@ const ServiceDetailPanel = ({ isOpen, serviceId, onClose, onMarkClean, userId })
   const toggleItem = (itemId) => setCheckedItems((prev) => ({ ...prev, [itemId]: !prev[itemId] }));
   const changeQty = (itemId, qty) => setItemQuantities((prev) => ({ ...prev, [itemId]: qty }));
 
+  const getShift = () => {
+    const hour = new Date().getHours();
+    return hour >= 6 && hour < 18 ? "MORNING" : "EVENING";
+  };
+
   const handleMarkClean = async () => {
     if (!room || !service || !userId) {
       toast.error("Faltan datos necesarios");
@@ -164,6 +169,7 @@ const ServiceDetailPanel = ({ isOpen, serviceId, onClose, onMarkClean, userId })
         status: "COMPLETED",
         cleanedAt: new Date().toISOString(),
         comments: "",
+        shift: getShift(),
       };
       await PostRoomCleaningRecord(payload);
       setLastCleaning(payload);

@@ -244,6 +244,15 @@ const MyBookingsPage = () => {
                   </button>
                 )}
 
+                {b.status === "ACTIVE" && (
+                  <button
+                    onClick={() => navigate(`/bookings/${b.id}`)}
+                    className="bg-[#172A45] hover:bg-[#1F3A5A] text-white font-medium px-6 py-2 rounded-lg transition"
+                  >
+                    View more
+                  </button>
+                )}
+
                 {["PENDING", "CONFIRMED", "ACTIVE"].includes(b.status) && (
                   <button
                     onClick={() => {

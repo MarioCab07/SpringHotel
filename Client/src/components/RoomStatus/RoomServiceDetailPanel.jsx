@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { FaChevronLeft } from "react-icons/fa";
 import { toast } from "react-toastify";
-import InventoryByCategory from "./InventoryByCategory";
+import MaterialRequestForm from "../MaterialRequest/MaterialRequestForm";
 import {
   getRoomById,
   getActiveBookingByRoomId,
@@ -13,7 +13,8 @@ import {
   updateRoomService,
   getAllCategories,
   getAllInventoryItems,
-  updateInventoryItem,
+  updateItemQuantity,
+  GetUserDetails,
 } from "../../service/api.services";
 
 const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role }) => {
@@ -32,7 +33,10 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
   const [checkedItems, setCheckedItems] = useState({});
   const [itemQuantities, setItemQuantities] = useState({});
   const [expandedCats, setExpandedCats] = useState({});
+  const [showMaterialRequest, setShowMaterialRequest] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const isAdmin = role === "ADMIN";
+  const isCleaningStaff = role === "CLEANING_STAFF";
 
   const imagesUrl = {
     Suite: "https://www.acevivillarroelbarcelona.com/img/jpg/habitaciones/Hab-Deluxe-01.jpg",
@@ -42,10 +46,8 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
 
   const formatStatus = (s = "") => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 
-  useEffect(() => {
-    if (!isOpen || !serviceId) return;
-
-    const fetchDetails = async () => {
+  const fetchDetails = async () => {
+    if (!serviceId) return;
       setLoading(true);
       try {
         const [svcRes, typesRes] = await Promise.all([
@@ -109,10 +111,26 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
       } finally {
         setLoading(false);
       }
-    };
+  };
 
+  useEffect(() => {
+    if (!isOpen || !serviceId) return;
     fetchDetails();
   }, [isOpen, serviceId]);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const userRes = await GetUserDetails();
+        setCurrentUserId(userRes.data.data.userId);
+      } catch (err) {
+        console.error("Error obteniendo userId:", err);
+      }
+    };
+    if (isOpen) {
+      fetchUserId();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -157,14 +175,29 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
     setItemQuantities((prev) => ({ ...prev, [itemId]: qty }));
 
   const handleMarkClean = async () => {
-    if (!room) return;
+    const getShift = () => {
+      const hour = new Date().getHours();
+      return hour >= 6 && hour < 18 ? "MORNING" : "EVENING";
+    };
+
+    if (!room || !room.roomId) {
+      toast.error("No se pudo obtener la información de la habitación");
+      return;
+    }
+
+    if (!currentUserId) {
+      toast.error("No se pudo obtener la información del usuario");
+      return;
+    }
+
     try {
       const payload = {
         roomId: room.roomId,
-        userId: service.userId,
+        userId: currentUserId,
         status: "COMPLETED",
         cleanedAt: new Date().toISOString(),
         comments: problem || "",
+        shift: getShift(),
       };
       await PostRoomCleaningRecord(payload);
       setLastCleaning(payload);
@@ -176,7 +209,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
       if (onSuccess) onSuccess();
     } catch (err) {
       console.error(err);
-      toast.error("No se pudo marcar como limpia");
+      toast.error("No se pudo marcar como limpia: " + (err.response?.data?.message || err.message || "Error desconocido"));
     }
   };
 
@@ -202,14 +235,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
           const used = Number(itemQuantities[it.id]);
           if (checkedItems[it.id] && used > 0) {
             const newQty = it.quantity - used;
-            const payload = {
-              name: it.name,
-              type: it.type,
-              quantity: newQty,
-              status: it.status,
-              categoryId: it.categoryId,
-            };
-            await updateInventoryItem(it.id, payload);
+            await updateItemQuantity(it.id, newQty);
           }
         })
       );
@@ -340,30 +366,32 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                         Tipos de Servicio
                       </h3>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
-                        {serviceTypes.length > 0 ? (
-                          serviceTypes.map((type) => (
-                            <div
-                              key={type.id}
-                              className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0"
-                            >
-                              <input
-                                type="checkbox"
-                                id={`srv-type-${type.id}`}
-                                checked={!!suppliesChecked[type.id]}
-                                disabled
-                                className="w-4 h-4 text-gray-600 border-gray-300 rounded cursor-not-allowed opacity-60"
-                                readOnly
-                              />
-                              <label
-                                htmlFor={`srv-type-${type.id}`}
-                                className="flex-1 text-sm text-gray-700 cursor-not-allowed break-words"
+                        {Object.keys(suppliesChecked).length > 0 ? (
+                          serviceTypes
+                            .filter((type) => suppliesChecked[type.id])
+                            .map((type) => (
+                              <div
+                                key={type.id}
+                                className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0"
                               >
-                                {type.name}
-                              </label>
-                            </div>
-                          ))
+                                <input
+                                  type="checkbox"
+                                  id={`srv-type-${type.id}`}
+                                  checked={!!suppliesChecked[type.id]}
+                                  disabled
+                                  className="w-4 h-4 text-gray-600 border-gray-300 rounded cursor-not-allowed opacity-60"
+                                  readOnly
+                                />
+                                <label
+                                  htmlFor={`srv-type-${type.id}`}
+                                  className="flex-1 text-sm text-gray-700 cursor-not-allowed break-words"
+                                >
+                                  {type.name}
+                                </label>
+                              </div>
+                            ))
                         ) : (
-                          <p className="text-sm text-gray-500">No hay tipos de servicio</p>
+                          <p className="text-sm text-gray-500">No hay servicios solicitados</p>
                         )}
                       </div>
                     </div>
@@ -409,16 +437,35 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
 
                 {/* Inventory Section */}
                 <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-                  <InventoryByCategory
-                    categories={categories}
-                    inventoryItems={inventoryItems}
-                    checkedItems={checkedItems}
-                    itemQuantities={itemQuantities}
-                    expandedCats={expandedCats}
-                    onToggleCategory={toggleCategory}
-                    onToggleItem={toggleItem}
-                    onChangeQty={changeQty}
-                  />
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                      {showMaterialRequest && isCleaningStaff ? "Solicitar Materiales" : "Inventario"}
+                    </h3>
+                    {isCleaningStaff && (
+                      <button
+                        onClick={() => setShowMaterialRequest(!showMaterialRequest)}
+                        className={`text-xs px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
+                          showMaterialRequest
+                            ? "bg-gray-600 hover:bg-gray-700 text-white"
+                            : "bg-[#D9C696] hover:bg-[#c5b386] text-gray-900 shadow-md hover:shadow-lg"
+                        }`}
+                      >
+                        {showMaterialRequest ? "← Volver a Inventario" : "Solicitar Materiales"}
+                      </button>
+                    )}
+                  </div>
+                  
+                  {showMaterialRequest && isCleaningStaff ? (
+                    <div className="w-full">
+                      <MaterialRequestForm
+                        onSuccess={() => {
+                          setShowMaterialRequest(false);
+                          fetchDetails(); // Recargar datos
+                        }}
+                        onCancel={() => setShowMaterialRequest(false)}
+                      />
+                    </div>
+                  ) : null}
                 </div>
 
                 {/* Action Buttons */}

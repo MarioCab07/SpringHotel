@@ -12,7 +12,7 @@ const InventoryByCategory = ({
   return (
     <div className="space-y-4">
       <h2 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
-        Inventario por Categoría
+        Inventario
       </h2>
 
       {categories.length === 0 ? (

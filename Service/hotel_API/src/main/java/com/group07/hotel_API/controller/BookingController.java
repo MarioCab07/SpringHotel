@@ -48,7 +48,7 @@ public class BookingController {
         }
 
         @DeleteMapping("/{id}")
-        @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE','CLEANING_STAFF')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
         public ResponseEntity<GeneralResponse> deleteBooking(@PathVariable int id) {
             BookingResponse booking = bookingService.findById(id);
             bookingService.delete(id);

@@ -179,6 +179,11 @@ useEffect(() => {
   const changeQty = (itemId, qty) =>
     setItemQuantities(prev => ({ ...prev, [itemId]: qty }));
 
+  const getShift = () => {
+    const hour = new Date().getHours();
+    return hour >= 6 && hour < 18 ? "MORNING" : "EVENING";
+  };
+
   const handleMarkClean = async () => {
     try {
       const payload = {
@@ -186,7 +191,8 @@ useEffect(() => {
         userId:    service.userId,
         status:    "COMPLETED",
         cleanedAt: new Date().toISOString(),
-        comments:  ""
+        comments:  "",
+        shift: getShift(),
       };
       const res = await PostRoomCleaningRecord(payload);
       setLastCleaning(res.data.data);
