@@ -154,6 +154,11 @@ const RoomStatusPage = () => {
 
   const completedCount = tasks.filter((t) => t.type === "cleaned").length;
 
+  const getShift = () => {
+    const hour = new Date().getHours();
+    return hour >= 6 && hour < 18 ? "MORNING" : "EVENING";
+  };
+
   const handleMarkClean = useCallback(
     async (item) => {
       if (!userId) {
@@ -166,6 +171,7 @@ const RoomStatusPage = () => {
         status: "COMPLETED",
         cleanedAt: new Date().toISOString(),
         comments: "",
+        shift: getShift(),
       };
       try {
         setMarkLoadingId(item.id);
@@ -205,6 +211,7 @@ const RoomStatusPage = () => {
         status: "IN_PROGRESS",
         cleanedAt: new Date().toISOString(),
         comments: "",
+        shift: getShift(),
       };
 
       try {

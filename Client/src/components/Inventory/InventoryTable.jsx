@@ -85,18 +85,31 @@ const InventoryTable = ({ category, products, onToggleAvailability, onUpdateQuan
                       </span>
                     )}
 
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        id={`availability-${prod.id}`}
-                        name={`availability-${prod.id}`}
-                        checked={prod.available}
-                        onChange={() => onToggleAvailability(prod.id)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300" />
-                      <div className="absolute left-0.5 top-0.5 bg-white w-5 h-5 rounded-full shadow transform transition-transform duration-300 peer-checked:translate-x-5" />
-                    </label>
+                    {onToggleAvailability && (
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          id={`availability-${prod.id}`}
+                          name={`availability-${prod.id}`}
+                          checked={prod.available}
+                          onChange={() => onToggleAvailability(prod.id)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300" />
+                        <div className="absolute left-0.5 top-0.5 bg-white w-5 h-5 rounded-full shadow transform transition-transform duration-300 peer-checked:translate-x-5" />
+                      </label>
+                    )}
+                    {!onToggleAvailability && (
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-medium px-2 py-1 rounded ${
+                          prod.available 
+                            ? "bg-green-100 text-green-700" 
+                            : "bg-red-100 text-red-700"
+                        }`}>
+                          {prod.available ? "Disponible" : "No disponible"}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </td>
               </tr>

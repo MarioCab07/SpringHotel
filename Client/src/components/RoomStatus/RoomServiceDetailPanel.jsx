@@ -13,7 +13,7 @@ import {
   updateRoomService,
   getAllCategories,
   getAllInventoryItems,
-  updateInventoryItem,
+  updateItemQuantity,
 } from "../../service/api.services";
 
 const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role }) => {
@@ -157,6 +157,11 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
     setItemQuantities((prev) => ({ ...prev, [itemId]: qty }));
 
   const handleMarkClean = async () => {
+    const getShift = () => {
+      const hour = new Date().getHours();
+      return hour >= 6 && hour < 18 ? "MORNING" : "EVENING";
+    };
+
     if (!room) return;
     try {
       const payload = {
@@ -165,6 +170,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
         status: "COMPLETED",
         cleanedAt: new Date().toISOString(),
         comments: problem || "",
+        shift: getShift(),
       };
       await PostRoomCleaningRecord(payload);
       setLastCleaning(payload);
@@ -202,14 +208,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
           const used = Number(itemQuantities[it.id]);
           if (checkedItems[it.id] && used > 0) {
             const newQty = it.quantity - used;
-            const payload = {
-              name: it.name,
-              type: it.type,
-              quantity: newQty,
-              status: it.status,
-              categoryId: it.categoryId,
-            };
-            await updateInventoryItem(it.id, payload);
+            await updateItemQuantity(it.id, newQty);
           }
         })
       );

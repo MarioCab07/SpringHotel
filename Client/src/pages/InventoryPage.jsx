@@ -25,6 +25,8 @@ import { getAllInventoryItems,
 } from "../service/api.services";
 
 const InventoryPage = () => {
+  const role = sessionStorage.getItem("role");
+  const isAdmin = role === "ADMIN";
   const [query, setQuery] = useState("");
   const [sortOption, setSortOption] = useState("Sort By");
   const [data, setData] = useState([]);
@@ -485,8 +487,9 @@ if (sortOption === "Nombre A-Z") {
                 : categoriesMap[selectedCategoryId]?.name || "Sin categoría"
             }
             products={filteredData}
-            onToggleAvailability={toggleAvailability}
+            onToggleAvailability={isAdmin ? toggleAvailability : null}
             onUpdateQuantity={handleUpdateQuantity}
+            allowEdit={isAdmin}
           />
         </div>
       </div>
