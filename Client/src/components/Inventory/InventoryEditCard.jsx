@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import ToggleSwitch from "../Buttons/ToggleSwitch";
+import StockIndicator from "./StockIndicator";
 
 const InventoryEditCard = ({ category, products, onEdit, onItemEdit, onUpdateQuantity, isFirst, isLast }) => {
   const [enabled, setEnabled] = useState(true);
@@ -76,6 +77,7 @@ const InventoryEditCard = ({ category, products, onEdit, onItemEdit, onUpdateQua
             </div>
           ) : (
             products.map((p) => {
+              const isLowStock = p.isLowStock || (p.minimumStock > 0 && p.quantity < p.minimumStock);
               const availability =
                 p.quantity <= 5 ? "Out of Stock" :
                 p.quantity <= 25 ? "Low" : "Sufficient";
@@ -88,10 +90,19 @@ const InventoryEditCard = ({ category, products, onEdit, onItemEdit, onUpdateQua
               return (
                 <div
                   key={p.id}
-                  className="flex justify-between items-center px-6 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                  className={`flex justify-between items-center px-6 py-3 hover:bg-gray-50 cursor-pointer transition-colors ${
+                    isLowStock ? "bg-red-50/50 border-l-4 border-red-400" : ""
+                  }`}
                   onClick={() => onItemEdit?.(p)}
                 >
-                  <div className="font-medium text-gray-900">{p.name}</div>
+                  <div className="flex items-center gap-2">
+                    {isLowStock && (
+                      <span className="text-red-500 text-xs" title="Stock bajo">
+                        ⚠️
+                      </span>
+                    )}
+                    <div className="font-medium text-gray-900">{p.name}</div>
+                  </div>
                   <div className="flex items-center gap-6">
                     {editingId === p.id ? (
                       <input
@@ -110,13 +121,20 @@ const InventoryEditCard = ({ category, products, onEdit, onItemEdit, onUpdateQua
                         autoFocus
                       />
                     ) : (
-                      <span
-                        onClick={(e) => handleQuantityClick(e, p)}
-                        className="text-sm text-gray-600 cursor-pointer hover:text-[#D9C696] hover:underline transition-colors"
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleQuantityClick(e, p);
+                        }}
+                        className="cursor-pointer"
                         title="Click para editar cantidad"
                       >
-                        {p.quantity} uds
-                      </span>
+                        <StockIndicator 
+                          quantity={p.quantity ?? 0} 
+                          minimumStock={p.minimumStock ?? 0}
+                          showMinimum={p.minimumStock > 0}
+                        />
+                      </div>
                     )}
                     <span className={`text-sm font-medium ${availabilityColor}`}>{availability}</span>
                   </div>

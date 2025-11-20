@@ -1,4 +1,5 @@
 import { useState } from "react";
+import StockIndicator from "./StockIndicator";
 
 const InventoryTable = ({ category, products, onToggleAvailability, onUpdateQuantity, allowEdit = false }) => {
   const [editingId, setEditingId] = useState(null);
@@ -42,10 +43,24 @@ const InventoryTable = ({ category, products, onToggleAvailability, onUpdateQuan
       ) : (
         <table className="w-full text-left">
           <tbody>
-            {products.map((prod) => (
-              <tr key={prod.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+            {products.map((prod) => {
+              const isLowStock = prod.isLowStock || (prod.minimumStock > 0 && prod.quantity < prod.minimumStock);
+              return (
+              <tr 
+                key={prod.id} 
+                className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                  isLowStock ? "bg-red-50/50 border-red-200" : ""
+                }`}
+              >
                 <td className="px-6 py-4 w-full">
-                  <div className="font-semibold text-gray-900">{prod.name}</div>
+                  <div className="flex items-center gap-2">
+                    {isLowStock && (
+                      <span className="text-red-500 text-xs" title="Stock bajo">
+                        ⚠️
+                      </span>
+                    )}
+                    <div className="font-semibold text-gray-900">{prod.name}</div>
+                  </div>
                   {prod.description && (
                     <div className="text-sm text-gray-600 mt-1">{prod.description}</div>
                   )}
@@ -72,17 +87,17 @@ const InventoryTable = ({ category, products, onToggleAvailability, onUpdateQuan
                         autoFocus
                       />
                     ) : (
-                      <span
-                        onClick={() => handleQuantityClick(prod)}
-                        className={`text-sm font-medium text-gray-700 whitespace-nowrap ${
-                          allowEdit 
-                            ? "cursor-pointer hover:text-[#D9C696] hover:underline transition-colors" 
-                            : "cursor-default"
-                        }`}
+                      <div
+                        onClick={() => allowEdit && handleQuantityClick(prod)}
+                        className={`${allowEdit ? "cursor-pointer" : "cursor-default"}`}
                         title={allowEdit ? "Click para editar cantidad" : ""}
                       >
-                        {prod.quantity ?? 0} uds
-                      </span>
+                        <StockIndicator 
+                          quantity={prod.quantity ?? 0} 
+                          minimumStock={prod.minimumStock ?? 0}
+                          showMinimum={prod.minimumStock > 0}
+                        />
+                      </div>
                     )}
 
                     {onToggleAvailability && (
@@ -113,7 +128,8 @@ const InventoryTable = ({ category, products, onToggleAvailability, onUpdateQuan
                   </div>
                 </td>
               </tr>
-            ))}
+            );
+            })}
           </tbody>
         </table>
       )}
