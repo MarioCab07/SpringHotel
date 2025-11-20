@@ -29,6 +29,10 @@ public class InventoryItem {
     @Column(name = "item_quantity", nullable = false)
     private int quantity;
 
+    @Column(name = "minimum_stock", nullable = false)
+    @Builder.Default
+    private int minimumStock = 0;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default

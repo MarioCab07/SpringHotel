@@ -18,6 +18,9 @@ public class InventoryItemRequest {
     @Positive(message = "Quantity must be a positive number")
     private int quantity;
 
+    @Min(value = 0, message = "Minimum stock cannot be negative")
+    private Integer minimumStock;
+
     //@NotNull(message = "Status cannot be empty")
     private Status status;
 

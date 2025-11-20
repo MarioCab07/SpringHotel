@@ -23,6 +23,7 @@ public class InventoryItemMapper {
                 .name(request.getName())
                 .quantity(request.getQuantity())
                 .type(request.getType())
+                .minimumStock(request.getMinimumStock() != null ? request.getMinimumStock() : 0)
                 .category(category)
                 .status(Status.valueOf(statusStr))
                 .build();
@@ -34,9 +35,11 @@ public class InventoryItemMapper {
                 .name(item.getName())
                 .type(item.getType())
                 .quantity(item.getQuantity())
+                .minimumStock(item.getMinimumStock())
+                .isLowStock(item.getQuantity() < item.getMinimumStock())
                 .status(item.getStatus().name()) // status real
-                .categoryId(item.getCategory().getId())
-                .categoryName(item.getCategory().getName())
+                .categoryId(item.getCategory() != null ? item.getCategory().getId() : null)
+                .categoryName(item.getCategory() != null ? item.getCategory().getName() : "Sin categoría")
                 .build();
     }
 }

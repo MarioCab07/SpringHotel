@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { FaChevronLeft } from "react-icons/fa";
 import { toast } from "react-toastify";
@@ -14,6 +14,7 @@ import {
   getAllCategories,
   getAllInventoryItems,
   updateItemQuantity,
+  updateItemQuantityWithLog,
   GetUserDetails,
 } from "../../service/api.services";
 
@@ -27,14 +28,26 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const isServiceCompleted = service?.roomServiceStatus === "COMPLETED";
+  
+  // Log para debug
+  useEffect(() => {
+    if (service) {
+      console.log("RoomServiceDetailPanel: Estado del servicio:", {
+        roomServiceStatus: service.roomServiceStatus,
+        isServiceCompleted: isServiceCompleted,
+        serviceId: service.roomServiceId || serviceId
+      });
+    }
+  }, [service, isServiceCompleted, serviceId]);
   const [serviceTypes, setServiceTypes] = useState([]);
   const [categories, setCategories] = useState([]);
   const [inventoryItems, setInventoryItems] = useState([]);
   const [checkedItems, setCheckedItems] = useState({});
   const [itemQuantities, setItemQuantities] = useState({});
   const [expandedCats, setExpandedCats] = useState({});
-  const [showMaterialRequest, setShowMaterialRequest] = useState(false);
+  const [showCategories, setShowCategories] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const materialRequestFormRef = useRef(null);
   const isAdmin = role === "ADMIN";
   const isCleaningStaff = role === "CLEANING_STAFF";
 
@@ -151,6 +164,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
         const initChecked = {};
         const initQty = {};
         const initExpanded = {};
+        // Colapsar todas las categorías por defecto
         cats.forEach((c) => (initExpanded[c.id] = false));
         items.forEach((i) => {
           initChecked[i.id] = false;
@@ -159,6 +173,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
         setCheckedItems(initChecked);
         setItemQuantities(initQty);
         setExpandedCats(initExpanded);
+        console.log("RoomServiceDetailPanel: Inventario cargado - categorías:", cats.length, "items:", items.length);
       } catch (err) {
         console.error(err);
         toast.error("No se pudo cargar inventario");
@@ -214,49 +229,11 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
   };
 
   const handleSubmitInventory = async () => {
-    for (const itemIdStr in checkedItems) {
-      const itemId = Number(itemIdStr);
-      if (!checkedItems[itemId]) continue;
-      const used = Number(itemQuantities[itemId]);
-      if (used <= 0) continue;
-
-      const item = inventoryItems.find((i) => i.id === itemId);
-      if (!item) continue;
-
-      if (used > item.quantity) {
-        toast.error(`No hay suficiente "${item.name}". Solo quedan ${item.quantity}.`);
-        return;
-      }
-    }
-
-    try {
-      await Promise.all(
-        inventoryItems.map(async (it) => {
-          const used = Number(itemQuantities[it.id]);
-          if (checkedItems[it.id] && used > 0) {
-            const newQty = it.quantity - used;
-            await updateItemQuantity(it.id, newQty);
-          }
-        })
-      );
-
-      setInventoryItems((prev) =>
-        prev.map((it) => {
-          const used = Number(itemQuantities[it.id]);
-          if (checkedItems[it.id] && used > 0) {
-            return { ...it, quantity: it.quantity - used };
-          }
-          return it;
-        })
-      );
-
-      setCheckedItems({});
-      setItemQuantities({});
-
-      toast.success("Inventario ajustado correctamente");
-    } catch (err) {
-      console.error("Error ajustando inventario:", err);
-      toast.error("Ocurrió un error al ajustar el inventario");
+    // Llamar a la función submit del MaterialRequestForm
+    if (materialRequestFormRef.current && materialRequestFormRef.current.submit) {
+      materialRequestFormRef.current.submit();
+    } else {
+      toast.error("Error: No se pudo acceder al formulario de inventario");
     }
   };
 
@@ -439,33 +416,35 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                 <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                      {showMaterialRequest && isCleaningStaff ? "Solicitar Materiales" : "Inventario"}
+                      Inventario
                     </h3>
                     {isCleaningStaff && (
                       <button
-                        onClick={() => setShowMaterialRequest(!showMaterialRequest)}
+                        onClick={() => setShowCategories(!showCategories)}
                         className={`text-xs px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
-                          showMaterialRequest
+                          showCategories
                             ? "bg-gray-600 hover:bg-gray-700 text-white"
                             : "bg-[#D9C696] hover:bg-[#c5b386] text-gray-900 shadow-md hover:shadow-lg"
                         }`}
                       >
-                        {showMaterialRequest ? "← Volver a Inventario" : "Solicitar Materiales"}
+                        {showCategories ? "Ocultar Categorías" : "Mostrar Categorías"}
                       </button>
                     )}
                   </div>
                   
-                  {showMaterialRequest && isCleaningStaff ? (
-                    <div className="w-full">
-                      <MaterialRequestForm
-                        onSuccess={() => {
-                          setShowMaterialRequest(false);
-                          fetchDetails(); // Recargar datos
-                        }}
-                        onCancel={() => setShowMaterialRequest(false)}
-                      />
-                    </div>
-                  ) : null}
+                  <div className="w-full">
+                    <MaterialRequestForm
+                      ref={materialRequestFormRef}
+                      onSuccess={() => {
+                        fetchDetails(); // Recargar datos
+                      }}
+                      currentUserId={currentUserId}
+                      directConsume={true}
+                      showNotes={true}
+                      showCategories={showCategories}
+                      hideSubmitButton={true}
+                    />
+                  </div>
                 </div>
 
                 {/* Action Buttons */}
@@ -490,13 +469,13 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                   </div>
                   <div className="flex-1 flex justify-end">
                     <button
-                      onClick={handleSubmitInventory}
-                      disabled={isServiceCompleted}
-                      className={`w-full sm:w-auto py-2.5 px-6 rounded-lg text-sm font-semibold transition-all duration-200 ease-in-out ${
-                        isServiceCompleted
-                          ? "bg-gray-300 text-gray-600 cursor-not-allowed opacity-50"
-                          : "bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"
-                      }`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSubmitInventory();
+                      }}
+                      disabled={false}
+                      className="w-full sm:w-auto py-2.5 px-6 rounded-lg text-sm font-semibold transition-all duration-200 ease-in-out bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"
                     >
                       Submit Inventory
                     </button>

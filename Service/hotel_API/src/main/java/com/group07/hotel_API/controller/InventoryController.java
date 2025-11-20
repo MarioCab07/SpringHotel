@@ -15,8 +15,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.group07.hotel_API.utils.enums.Action;
+
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/inventory")
@@ -67,6 +70,31 @@ public class InventoryController {
             @RequestBody Integer quantity) {
         inventoryService.updateItemQuantity(id, quantity);
         return buildResponse("Cantidad actualizada", HttpStatus.OK, null);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF')")
+    @PatchMapping("/{id}/quantity-with-log")
+    public ResponseEntity<GeneralResponse> updateItemQuantityWithLog(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> request) {
+        Integer quantity = (Integer) request.get("quantity");
+        Integer userId = (Integer) request.get("userId");
+        Action action = Action.valueOf((String) request.get("action"));
+        
+        System.out.println("InventoryController: Recibida petición updateItemQuantityWithLog - ID: " + id + ", cantidad: " + quantity + ", userId: " + userId + ", action: " + action);
+        
+        inventoryService.updateItemQuantityWithLog(id, quantity, userId, action);
+        
+        System.out.println("InventoryController: updateItemQuantityWithLog completado exitosamente");
+        return buildResponse("Cantidad actualizada con log", HttpStatus.OK, null);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF')")
+    @GetMapping("/low-stock")
+    public ResponseEntity<GeneralResponse> getLowStockItems() {
+        return buildResponse("Low stock items retrieved successfully", 
+                HttpStatus.OK, 
+                inventoryService.getLowStockItems());
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF')")

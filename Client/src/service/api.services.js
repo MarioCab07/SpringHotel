@@ -201,6 +201,34 @@ export const updateItemQuantity = async(id, quantity) =>{
     }
 }
 
+export const getLowStockItems = async() => {
+    try {
+        return await apiClient.get("/inventory/low-stock");
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const updateItemQuantityWithLog = async(id, quantity, userId, action) => {
+    try {
+        console.log("API: Llamando updateItemQuantityWithLog - ID:", id, "cantidad:", quantity, "userId:", userId, "action:", action);
+        const response = await apiClient.patch(`/inventory/${id}/quantity-with-log`, {
+            quantity,
+            userId,
+            action
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log("API: updateItemQuantityWithLog completado exitosamente", response);
+        return response;
+    } catch (error) {
+        console.error("API: Error en updateItemQuantityWithLog", error);
+        throw error.response ? error.response.data : error;
+    }
+};
+
 export const deleteInventoryItem = async(id) => {
     try {
         return await apiClient.delete(`/inventory/${id}`);
