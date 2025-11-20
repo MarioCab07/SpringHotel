@@ -14,9 +14,11 @@ import com.group07.hotel_API.exception.user.UserNotFoundException;
 import com.group07.hotel_API.repository.BookingRepository;
 import com.group07.hotel_API.repository.RoomRepository;
 import com.group07.hotel_API.repository.UserRepository;
+import com.group07.hotel_API.service.EmailService;
 import com.group07.hotel_API.utils.enums.BookingStatus;
 import com.group07.hotel_API.utils.mappers.BookingMapper;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
@@ -24,21 +26,24 @@ import com.group07.hotel_API.dto.response.Booking.BookingResponse;
 
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 @Service
-
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final RoomRepository roomRepository;
-
+    private final EmailService  emailService;
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.ENGLISH);
     @Autowired
-    public BookingServiceImpl(BookingRepository bookingRepository, UserRepository userRepository, RoomRepository roomRepository) {
+    public BookingServiceImpl(BookingRepository bookingRepository, UserRepository userRepository, RoomRepository roomRepository, EmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.roomRepository = roomRepository;
+        this.emailService = emailService;
     }
 
     // FIND ALL BOOKINGS
@@ -77,6 +82,8 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse update(int id, BookingUpdateRequest request) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+        LocalDate pastCheckIn = booking.getCheckIn();
+        LocalDate pastCheckOut = booking.getCheckOut();
 
         if (request.getUserId() != null) {
             UserClient user = userRepository.findById(request.getUserId())
@@ -91,7 +98,10 @@ public class BookingServiceImpl implements BookingService {
         }
 
         BookingMapper.updateEntity(booking, request, BookingStatus.valueOf(request.getStatus()));
-        return BookingMapper.toDTO(bookingRepository.save(booking));
+        BookingResponse newBooking = BookingMapper.toDTO(bookingRepository.save(booking));
+        emailService.sendSimpleEmail(booking.getUser().getEmail(),"There has been an update to the booking",bookingToString(newBooking, pastCheckIn, pastCheckOut));
+
+        return newBooking;
     }
 
     // DELETE BOOKING
@@ -173,8 +183,18 @@ public class BookingServiceImpl implements BookingService {
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
+        String body =
+                "Dear " + booking.getUser().getName() + ",\n\n" +
+                        "We would like to inform you that your reservation with ID " + id + " has been cancelled.\n" +
+                        "This cancellation has been processed in accordance with our booking policies and the details originally provided at the time of reservation.\n\n" +
+                        "If you believe this cancellation was made in error or if you require assistance with making a new reservation, please do not hesitate to contact us. We will be happy to assist you.\n\n" +
+                        "Thank you for choosing our services.\n\n" +
+                        "Kind regards,\n" +
+                        "Lume Hotel & Suites";
 
         Booking saved = bookingRepository.save(booking);
+        emailService.sendSimpleEmail(booking.getUser().getEmail(),"Cancellation Confirmation – Reservation ID "+booking.getId(),body);
+
         return BookingMapper.toDTO(saved);
     }
 
@@ -184,6 +204,9 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse modify(int id, BookingModifyRequest request) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+
+        LocalDate pastCheckIn = booking.getCheckIn();
+        LocalDate pastCheckOut = booking.getCheckOut();
 
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new RuntimeException("Only pending bookings can be modified");
@@ -209,7 +232,13 @@ public class BookingServiceImpl implements BookingService {
         booking.setCheckOut(newCheckOut);
 
         Booking saved = bookingRepository.save(booking);
+        emailService.sendSimpleEmail(booking.getUser().getEmail(),"There has been an update to the booking – Reservation ID "+booking.getId(),bookingToString(BookingMapper.toDTO(saved),pastCheckIn,pastCheckOut));
         return BookingMapper.toDTO(saved);
+    }
+
+    private String bookingToString(BookingResponse actualBooking,LocalDate pastCheckIn, LocalDate pastCheckOut) {
+        return "This email is to inform you that your reservation with ID: "+ actualBooking.getId() +" has been updated.\n\n" +
+                "The check-in date has changed from "+ pastCheckIn.format(formatter) +" to " + actualBooking.getCheckIn().format(formatter) +" and the check-out date has changed from "+ pastCheckOut.format(formatter)+" to "+actualBooking.getCheckOut().format(formatter);
     }
 
 
