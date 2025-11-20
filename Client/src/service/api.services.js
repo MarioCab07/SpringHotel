@@ -748,5 +748,8 @@ export const getMaterialRequestById = async (id) => {
   }
 };
 
+export const getBookingServices = async (bookingId) => {
+  return await apiClient.get(`/bookings/booking/${bookingId}/services`);
+};
 
 
