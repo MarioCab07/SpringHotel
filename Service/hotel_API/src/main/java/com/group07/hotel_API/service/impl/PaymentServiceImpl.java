@@ -74,6 +74,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         if(reason.equals("Check-in")) invoice = invoiceService.createInvoiceForCheckIn(invoiceData);
 
+        if(reason.equals("Check-out"))  invoice = invoiceService.createInvoiceForCheckOut(invoiceData);
+
         byte[] pdf = invoicePdfService.generateInvoicePdf(invoice);
 
         emailService.sendEmail(invoice.getClientEmail(), "Invoice"+invoice.getCode(),"Thank you for your payment. Your invoice is attached in PDF format.",pdf
