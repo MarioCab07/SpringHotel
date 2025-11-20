@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Layout from "../components/Layout";
 import InventoryCategoryCard from "../components/Inventory/InventoryCategoryCard";
 import InventoryTable from "../components/Inventory/InventoryTable";
 import InventoryEditCard from "../components/Inventory/InventoryEditCard";
+import LowStockAlert from "../components/Inventory/LowStockAlert";
 import SearchSortBar from "../components/SearchSortBar";
 import EditInventoryButton from "../components/Buttons/EditInventoryButton";
 import AddNewDropdownButton from "../components/Buttons/AddNewDropdownButton";
@@ -11,6 +12,7 @@ import AddItemModal from "../components/Modals/AddItemModal";
 import EditItemModal from "../components/Modals/EditItemModal";
 import EditCategoryModal from "../components/Modals/EditCategoryModal";
 import MaterialRequestsView from "../components/MaterialRequest/MaterialRequestsView";
+import useInventoryWebSocket from "../hooks/useInventoryWebSocket";
 import { toast } from "react-toastify";
 import { getAllInventoryItems,
   updateInventoryItemStatus,
@@ -47,15 +49,16 @@ const InventoryPage = () => {
   const [editItemData, setEditItemData] = useState(null);
   const [showEditItemModal, setShowEditItemModal] = useState(false);
   const [showMaterialRequests, setShowMaterialRequests] = useState(false);
+  const [showLowStockAlert, setShowLowStockAlert] = useState(true);
 
   const handleEditClick = () => {
     setIsEditMode(true);
-    fetchEditData();
+    fetchEditDataMemo();
   };
 
   const handleBackToView = () => {
     setIsEditMode(false);
-    fetchData(); // Recargar datos de visualización
+    fetchDataMemo(); // Recargar datos de visualización
   };
 
   const handleSearch = (term) => {
@@ -99,7 +102,7 @@ const InventoryPage = () => {
       setData(updated);
       // También actualizar en modo edición si está activo
       if (isEditMode) {
-        fetchEditData();
+        fetchEditDataMemo();
       }
     } catch (error) {
       toast.dismiss(toastId);
@@ -107,7 +110,8 @@ const InventoryPage = () => {
     }
   };
 
-  const fetchData = async () => {
+  // Definir fetchData y fetchEditData antes de usarlos en callbacks
+  const fetchDataMemo = useCallback(async (preserveSelection = false) => {
     try {
       const res = await getAllInventoryItems();
       if (res.status === 200) {
@@ -116,7 +120,9 @@ const InventoryPage = () => {
             available: item.status === "ACTIVE",
           }));
         setData(items);
-        if (items.length > 0) {
+        // Solo cambiar la categoría seleccionada si no estamos preservando la selección
+        // y si no hay una categoría seleccionada actualmente
+        if (!preserveSelection && items.length > 0 && !selectedCategoryId) {
           const firstCatId = items[0].categoryId ?? 0;
           setSelectedCategoryId(firstCatId);
         }
@@ -124,9 +130,9 @@ const InventoryPage = () => {
     } catch (err) {
       console.error("Error al obtener inventario:", err);
     }
-  };
+  }, [selectedCategoryId]);
 
-  const fetchEditData = async () => {
+  const fetchEditDataMemo = useCallback(async () => {
     try {
       const [catResponse, groupedResponse] = await Promise.all([
         getAllCategories(),
@@ -151,11 +157,76 @@ const InventoryPage = () => {
       console.error("Error cargando datos:", error);
       toast.error("Error cargando datos");
     }
-  };
+  }, []);
+
+  // Callbacks para WebSocket
+  const handleInventoryUpdate = useCallback((updatedItem) => {
+    console.log("WebSocket: Actualización recibida", updatedItem);
+    
+    setData((prevData) => {
+      const itemIndex = prevData.findIndex((item) => item.id === updatedItem.id);
+      if (itemIndex >= 0) {
+        const newData = [...prevData];
+        newData[itemIndex] = {
+          ...updatedItem,
+          available: updatedItem.status === "ACTIVE",
+        };
+        console.log("WebSocket: Item actualizado en data", newData[itemIndex]);
+        return newData;
+      }
+      // Si no existe, agregarlo (nuevo item)
+      console.log("WebSocket: Nuevo item agregado", updatedItem);
+      return [...prevData, { ...updatedItem, available: updatedItem.status === "ACTIVE" }];
+    });
+
+    // También actualizar en modo edición si está activo
+    if (isEditMode) {
+      setGroupedData((prevGrouped) => {
+        const categoryName = updatedItem.categoryName || "Sin categoría";
+        const categoryItems = prevGrouped[categoryName] || [];
+        const itemIndex = categoryItems.findIndex((item) => item.id === updatedItem.id);
+        
+        if (itemIndex >= 0) {
+          const newCategoryItems = [...categoryItems];
+          newCategoryItems[itemIndex] = updatedItem;
+          console.log("WebSocket: Item actualizado en modo edición", updatedItem);
+          return { ...prevGrouped, [categoryName]: newCategoryItems };
+        }
+        return { ...prevGrouped, [categoryName]: [...categoryItems, updatedItem] };
+      });
+    }
+    
+    // Mostrar notificación de actualización
+    toast.info(`Inventario actualizado: ${updatedItem.name}`, {
+      position: "top-right",
+      autoClose: 2000,
+    });
+  }, [isEditMode]);
+
+  const handleLowStockAlert = useCallback((item) => {
+    // El toast ya se muestra en el hook
+    // Aquí podrías agregar lógica adicional si es necesario
+    console.log("Alerta de stock bajo:", item);
+  }, []);
+
+  const handleListUpdate = useCallback(() => {
+    // Recargar datos cuando se notifica actualización de lista
+    console.log("WebSocket: Actualización de lista completa recibida");
+    if (!isEditMode) {
+      console.log("WebSocket: Recargando datos de visualización (preservando selección)");
+      fetchDataMemo(true); // Preservar la categoría seleccionada
+    } else {
+      console.log("WebSocket: Recargando datos de edición");
+      fetchEditDataMemo();
+    }
+  }, [isEditMode, fetchDataMemo, fetchEditDataMemo]);
+
+  // Conectar WebSocket
+  useInventoryWebSocket(handleInventoryUpdate, handleLowStockAlert, handleListUpdate);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchDataMemo();
+  }, [fetchDataMemo]);
 
   useEffect(() => {
     if (isEditMode && Object.keys(groupedData).length > 0) {
@@ -237,8 +308,8 @@ const InventoryPage = () => {
       await createInventoryItem(newItem);
       toast.success("Producto creado correctamente");
       setShowAddItemModal(false);
-      fetchEditData();
-      fetchData();
+      fetchEditDataMemo();
+      fetchDataMemo();
     } catch (error) {
       toast.error("Error al guardar producto");
     }
@@ -258,8 +329,8 @@ const InventoryPage = () => {
       await createCategory({ name: newCategory });
       toast.success("Categoría creada correctamente");
       setShowAddCategoryModal(false);
-      fetchEditData();
-      fetchData();
+      fetchEditDataMemo();
+      fetchDataMemo();
     } catch (error) {
       toast.error("Error al guardar categoría");
     }
@@ -283,8 +354,8 @@ const InventoryPage = () => {
       await updateCategory(updatedCategory.id, { name: updatedCategory.name });
       toast.success("Categoría actualizada correctamente");
       setShowEditCategoryModal(false);
-      fetchEditData();
-      fetchData();
+      fetchEditDataMemo();
+      fetchDataMemo();
     } catch (error) {
       toast.error("Error actualizando categoría");
     }
@@ -295,8 +366,8 @@ const InventoryPage = () => {
       await updateInventoryItem(updatedItem.id, updatedItem);
       toast.success("Producto actualizado correctamente");
       setShowEditItemModal(false);
-      fetchEditData();
-      fetchData();
+      fetchEditDataMemo();
+      fetchDataMemo();
     } catch (error) {
       toast.error("Error actualizando producto");
     }
@@ -314,8 +385,8 @@ const InventoryPage = () => {
       await deleteCategory(id);
       toast.success("Categoría eliminada correctamente");
       setShowEditCategoryModal(false);
-      fetchEditData();
-      fetchData();
+      fetchEditDataMemo();
+      fetchDataMemo();
     } catch (error) {
       toast.error("Error al eliminar categoría");
     }
@@ -326,8 +397,8 @@ const InventoryPage = () => {
       await deleteInventoryItem(id);
       toast.success("Producto eliminado correctamente");
       setShowEditItemModal(false);
-      fetchEditData();
-      fetchData();
+      fetchEditDataMemo();
+      fetchDataMemo();
     } catch (error) {
       console.error("Error eliminando producto:", error);
       toast.error("Error eliminando producto");
@@ -476,36 +547,58 @@ if (sortOption === "Nombre A-Z") {
       {showMaterialRequests ? (
         <MaterialRequestsView onClose={() => setShowMaterialRequests(false)} />
       ) : (
-        <div className="flex space-x-4">
-          <div className="w-1/3 space-y-2">
-            {Object.values(categoriesMap).map((cat) => (
-              <InventoryCategoryCard
-                key={cat.id}
-                title={cat.name}
-                productCount={cat.products.length}
-                unavailableCount={
-                  cat.products.filter((p) => !p.available).length
+        <>
+          {/* Panel de alertas de stock bajo */}
+          {showLowStockAlert && (isAdmin || role === "CLEANING_STAFF") && (
+            <LowStockAlert
+              onItemClick={(item) => {
+                // Buscar la categoría del item y seleccionarla
+                const itemCategory = data.find((i) => i.id === item.id)?.categoryId;
+                if (itemCategory) {
+                  setSelectedCategoryId(itemCategory);
                 }
-                selected={cat.id === selectedCategoryId}
-                onClick={() => setSelectedCategoryId(cat.id)}
-              />
-            ))}
-          </div>
-
-          <div className="w-2/3">
-            <InventoryTable
-              category={
-                query.trim() 
-                  ? `Resultados de búsqueda (${filteredData.length})` 
-                  : categoriesMap[selectedCategoryId]?.name || "Sin categoría"
-              }
-              products={filteredData}
-              onToggleAvailability={isAdmin ? toggleAvailability : null}
-              onUpdateQuantity={handleUpdateQuantity}
-              allowEdit={isAdmin}
+              }}
+              isCollapsed={false}
             />
+          )}
+
+          <div className="flex space-x-4">
+            <div className="w-1/3 space-y-2">
+              {Object.values(categoriesMap).map((cat) => {
+                const lowStockCount = cat.products.filter(
+                  (p) => p.isLowStock || (p.minimumStock > 0 && p.quantity < p.minimumStock)
+                ).length;
+                return (
+                  <InventoryCategoryCard
+                    key={cat.id}
+                    title={cat.name}
+                    productCount={cat.products.length}
+                    unavailableCount={
+                      cat.products.filter((p) => !p.available).length
+                    }
+                    lowStockCount={lowStockCount}
+                    selected={cat.id === selectedCategoryId}
+                    onClick={() => setSelectedCategoryId(cat.id)}
+                  />
+                );
+              })}
+            </div>
+
+            <div className="w-2/3">
+              <InventoryTable
+                category={
+                  query.trim() 
+                    ? `Resultados de búsqueda (${filteredData.length})` 
+                    : categoriesMap[selectedCategoryId]?.name || "Sin categoría"
+                }
+                products={filteredData}
+                onToggleAvailability={isAdmin ? toggleAvailability : null}
+                onUpdateQuantity={handleUpdateQuantity}
+                allowEdit={isAdmin}
+              />
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
