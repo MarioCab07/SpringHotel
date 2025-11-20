@@ -2,6 +2,7 @@ package com.group07.hotel_API.service;
 
 import com.group07.hotel_API.dto.request.Inventory.InventoryItemRequest;
 import com.group07.hotel_API.dto.response.Inventory.InventoryItemResponse;
+import com.group07.hotel_API.utils.enums.Action;
 import com.group07.hotel_API.utils.enums.Status;
 
 import java.util.List;
@@ -14,6 +15,8 @@ public interface InventoryItemService {
     InventoryItemResponse getById(Long id);
     InventoryItemResponse update(Long id, InventoryItemRequest request);
     void updateItemQuantity(Long id, Integer quantity);
+    void updateItemQuantityWithLog(Long id, Integer quantity, Integer userId, Action action);
+    List<InventoryItemResponse> getLowStockItems();
     void updateStatus(Long id, Status status);
     void delete(Long id);
 
