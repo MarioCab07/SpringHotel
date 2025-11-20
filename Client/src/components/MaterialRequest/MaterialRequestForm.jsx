@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useImperativeHandle, forwardRef } from "react";
 import { toast } from "react-toastify";
 import { FaChevronDown, FaChevronUp, FaShoppingCart, FaCheckCircle } from "react-icons/fa";
 import {
   getAllInventoryItems,
   getAllCategories,
   createMaterialRequest,
+  updateItemQuantityWithLog,
 } from "../../service/api.services";
 
-const MaterialRequestForm = ({ onSuccess, onCancel }) => {
+const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, directConsume = false, showNotes = true, showCategories = false, hideSubmitButton = false }, ref) => {
   const [inventoryItems, setInventoryItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedItems, setSelectedItems] = useState({});
@@ -46,10 +47,10 @@ const MaterialRequestForm = ({ onSuccess, onCancel }) => {
       setInventoryItems(items);
       setCategories(categoriesData);
       
-      // Expandir todas las categorías por defecto
+      // Colapsar todas las categorías por defecto
       const allExpanded = {};
       categoriesData.forEach(cat => {
-        if (cat && cat.id) allExpanded[cat.id] = true;
+        if (cat && cat.id) allExpanded[cat.id] = false;
       });
       setExpandedCats(allExpanded);
     } catch (err) {
@@ -110,30 +111,50 @@ const MaterialRequestForm = ({ onSuccess, onCancel }) => {
 
     setSubmitting(true);
     try {
-      const payload = {
-        items,
-        notes: notes.trim() || null,
-      };
+      if (directConsume && currentUserId) {
+        // Modo directo: consumir inventario inmediatamente
+        await Promise.all(
+          items.map(async (item) => {
+            await updateItemQuantityWithLog(item.itemId, item.requestedQuantity, currentUserId, "USE");
+          })
+        );
+        
+        toast.success("Inventario ajustado correctamente");
+        
+        // Recargar inventario para obtener valores actualizados
+        await loadData();
+      } else {
+        // Modo normal: crear solicitud de materiales
+        const payload = {
+          items,
+          notes: notes.trim() || null,
+        };
 
-      await createMaterialRequest(payload);
-      toast.success("Solicitud de materiales enviada correctamente");
+        await createMaterialRequest(payload);
+        toast.success("Solicitud de materiales enviada correctamente");
+      }
 
       setSelectedItems({});
       setNotes("");
-      await loadData();
-
+      
       if (onSuccess) onSuccess();
     } catch (err) {
-      console.error("Error creating request:", err);
+      console.error("Error:", err);
       const message =
         err.response?.data?.message ||
         err.message ||
-        "Error al crear la solicitud";
+        (directConsume ? "Error al ajustar el inventario" : "Error al crear la solicitud");
       toast.error(message);
     } finally {
       setSubmitting(false);
     }
   };
+
+  // Exponer función para ser llamada desde fuera
+  useImperativeHandle(ref, () => ({
+    submit: handleSubmit,
+    getSelectedItems: () => selectedItems,
+  }));
 
   if (loading) {
     return (
@@ -202,70 +223,60 @@ const MaterialRequestForm = ({ onSuccess, onCancel }) => {
 
   return (
     <div className="space-y-5">
-      {/* Header con resumen */}
-      <div className="bg-gradient-to-r from-[#D9C696]/20 to-[#D9C696]/10 rounded-lg p-4 border border-[#D9C696]/30">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <FaShoppingCart className="text-[#D9C696] text-xl" />
-            <div>
-              <h4 className="font-semibold text-gray-900">Solicitar Materiales</h4>
-              <p className="text-xs text-gray-600">
-                {selectedCount > 0 
-                  ? `${selectedCount} artículo${selectedCount !== 1 ? 's' : ''} seleccionado${selectedCount !== 1 ? 's' : ''} - ${totalQuantity} unidades`
-                  : "Selecciona los artículos que necesitas"}
-              </p>
-            </div>
-          </div>
+      {/* Header con resumen - No mostrar en modo normal */}
+
+      {/* Búsqueda - Solo mostrar si showNotes es true (modo solicitud) */}
+      {showNotes && (
+        <div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar por categoría o artículo..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D9C696] focus:border-transparent text-sm"
+          />
         </div>
-      </div>
+      )}
 
-      {/* Búsqueda */}
-      <div>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Buscar por categoría o artículo..."
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D9C696] focus:border-transparent text-sm"
-        />
-      </div>
+      {/* Notas - Solo mostrar si showNotes es true */}
+      {showNotes && (
+        <div>
+          <label
+            htmlFor="notes"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Notas adicionales (opcional)
+          </label>
+          <textarea
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Agregar comentarios o instrucciones especiales..."
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D9C696] focus:border-transparent text-sm resize-none"
+            rows={2}
+          />
+        </div>
+      )}
 
-      {/* Notas */}
-      <div>
-        <label
-          htmlFor="notes"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Notas adicionales (opcional)
-        </label>
-        <textarea
-          id="notes"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Agregar comentarios o instrucciones especiales..."
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D9C696] focus:border-transparent text-sm resize-none"
-          rows={2}
-        />
-      </div>
+      {/* Lista de artículos por categoría - Solo mostrar si showCategories es true */}
+      {showCategories && (
+        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+          {filteredCategories.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>No se encontraron artículos con "{searchQuery}"</p>
+            </div>
+          ) : (
+            filteredCategories.map((catId) => {
+              const category = categoriesMap[catId];
+              const items = itemsByCategory[catId];
+              const isExpanded = expandedCats[catId] === true;
+              const categorySelectedCount = items.filter(item => selectedItems[item.id] > 0).length;
 
-      {/* Lista de artículos por categoría */}
-      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-        {filteredCategories.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <p>No se encontraron artículos con "{searchQuery}"</p>
-          </div>
-        ) : (
-          filteredCategories.map((catId) => {
-            const category = categoriesMap[catId];
-            const items = itemsByCategory[catId];
-            const isExpanded = expandedCats[catId] !== false;
-            const categorySelectedCount = items.filter(item => selectedItems[item.id] > 0).length;
-
-            return (
-              <div
-                key={catId}
-                className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
-              >
+              return (
+                <div
+                  key={catId}
+                  className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
+                >
                 <button
                   onClick={() => toggleCategory(catId)}
                   className="w-full px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 flex justify-between items-center text-left transition-colors"
@@ -347,7 +358,7 @@ const MaterialRequestForm = ({ onSuccess, onCancel }) => {
                               type="number"
                               min="0"
                               max={item.quantity}
-                              value={selectedQty}
+                              value={selectedQty || ""}
                               onChange={(e) =>
                                 handleQuantityChange(item.id, e.target.value)
                               }
@@ -360,60 +371,83 @@ const MaterialRequestForm = ({ onSuccess, onCancel }) => {
                     })}
                   </div>
                 )}
-              </div>
-            );
-          })
-        )}
-      </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
 
-      {/* Resumen y acciones */}
-      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <div className="flex justify-between items-center mb-4">
-          <div className="space-y-1">
-            <p className="text-sm text-gray-600">
-              Artículos seleccionados:{" "}
-              <span className="font-bold text-gray-900">{selectedCount}</span>
-            </p>
-            <p className="text-sm text-gray-600">
-              Total de unidades:{" "}
-              <span className="font-bold text-gray-900">{totalQuantity}</span>
-            </p>
+      {/* Resumen - Solo mostrar si hideSubmitButton es false */}
+      {!hideSubmitButton && (
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <div className="flex justify-between items-center mb-4">
+            <div className="space-y-1">
+              <p className="text-sm text-gray-600">
+                Artículos seleccionados:{" "}
+                <span className="font-bold text-gray-900">{selectedCount}</span>
+              </p>
+              <p className="text-sm text-gray-600">
+                Total de unidades:{" "}
+                <span className="font-bold text-gray-900">{totalQuantity}</span>
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex gap-3 pt-3 border-t border-gray-200">
+            {onCancel && (
+              <button
+                onClick={onCancel}
+                className="flex-1 px-4 py-2.5 text-sm text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 rounded-lg font-semibold transition-colors"
+              >
+                Cancelar
+              </button>
+            )}
+            <button
+              onClick={handleSubmit}
+              disabled={
+                submitting ||
+                selectedCount === 0
+              }
+              className={`flex-1 px-4 py-2.5 bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none`}
+            >
+              {submitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
+                  {directConsume ? "Actualizando..." : "Enviando..."}
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <FaShoppingCart />
+                  {directConsume ? "Submit Inventory" : "Enviar Solicitud"}
+                </span>
+              )}
+            </button>
           </div>
         </div>
-        
-        <div className="flex gap-3 pt-3 border-t border-gray-200">
-          {onCancel && (
-            <button
-              onClick={onCancel}
-              className="flex-1 px-4 py-2.5 text-sm text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 rounded-lg font-semibold transition-colors"
-            >
-              Cancelar
-            </button>
-          )}
-          <button
-            onClick={handleSubmit}
-            disabled={
-              submitting ||
-              selectedCount === 0
-            }
-            className={`flex-1 px-4 py-2.5 bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none`}
-          >
-            {submitting ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
-                Enviando...
-              </span>
-            ) : (
-              <span className="flex items-center justify-center gap-2">
-                <FaShoppingCart />
-                Enviar Solicitud
-              </span>
-            )}
-          </button>
+      )}
+      
+      {/* Resumen compacto cuando hideSubmitButton es true */}
+      {hideSubmitButton && (
+        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+          <div className="flex justify-between items-center">
+            <div className="space-y-1">
+              <p className="text-sm text-gray-600">
+                Artículos seleccionados:{" "}
+                <span className="font-bold text-gray-900">{selectedCount}</span>
+              </p>
+              <p className="text-sm text-gray-600">
+                Total de unidades:{" "}
+                <span className="font-bold text-gray-900">{totalQuantity}</span>
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
-};
+});
+
+MaterialRequestForm.displayName = "MaterialRequestForm";
 
 export default MaterialRequestForm;
