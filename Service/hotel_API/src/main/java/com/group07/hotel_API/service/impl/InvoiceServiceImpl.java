@@ -1,6 +1,7 @@
 package com.group07.hotel_API.service.impl;
 
 import com.group07.hotel_API.dao.InvoiceData;
+import com.group07.hotel_API.dao.RoomServiceData;
 import com.group07.hotel_API.entities.*;
 import com.group07.hotel_API.exception.Booking.BookingNotFoundException;
 import com.group07.hotel_API.exception.room.RoomNotFoundException;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,6 +29,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final InvoiceDetailRepository invoiceDetailRepository;
     private final RoomRepository  roomRepository;
+    private final RoomServiceRepository roomServiceRepository;
 
     @Transactional
     private String createInvoiceSequence() {
@@ -108,6 +111,46 @@ public class InvoiceServiceImpl implements InvoiceService {
         Invoice invoice = createInvoice(invoiceData);
 
         createBookingDetail(invoice);
+
+        return invoiceRepository.save(invoice);
+    }
+
+    @Transactional
+    public void createCheckOutDetail(Invoice invoice){
+        List<RoomServiceData> roomServices = roomServiceRepository.findServiceDataByBookingId(invoice.getBooking().getId()).stream().map(r -> new RoomServiceData(
+                        (Integer) r[0],
+                        (Integer) r[1],
+                        (String) r[2],
+                        ((Number) r[3]).floatValue()
+                ))
+                .toList();
+
+
+        if( roomServices.isEmpty() ){
+            return;
+        }
+
+        for (RoomServiceData service : roomServices) {
+            InvoiceDetail invoiceDetail = InvoiceDetail.builder()
+                    .invoice(invoice)
+                    .code(invoice.getCode())
+                    .productName(service.getName())
+                    .idProduct(service.getServiceTypeId())
+                    .subtotal(service.getPrice())
+                    .bookingDays(1)
+                    .build();
+
+            invoice.getDetails().add(invoiceDetail);
+        }
+
+
+    }
+
+    @Transactional
+    public Invoice createInvoiceForCheckOut(InvoiceData invoiceData){
+        Invoice invoice = createInvoice(invoiceData);
+
+        createCheckOutDetail(invoice);
 
         return invoiceRepository.save(invoice);
     }

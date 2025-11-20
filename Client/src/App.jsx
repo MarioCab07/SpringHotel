@@ -23,6 +23,7 @@ import PaymentPage from "./pages/PaymentPage";
 import ReservationsPage from "./pages/ReservationPage";
 import EmployeeCheckInPage from "./pages/EmployeeCheckInPage";
 import EditInventoryPage from "./components/EditInventoryPage";
+import EmployeeCheckOutPage from "./pages/EmployeeCheckOutPage";
 
 
 function App() {
@@ -44,10 +45,12 @@ function App() {
             {/* EMPLOYEE + ADMIN */}
             <Route element={<ProtectedRoutes allowedRoles={["EMPLOYEE", "ADMIN"]} />}>
               <Route path="/employee" element={<EmployeePage />} />
+              
 
               {/* ➤ RUTAS QUE FALTABAN */}
               <Route path="/employee/reservations" element={<ReservationsPage />} />
               <Route path="/employee/check-in" element={<EmployeeCheckInPage />} />
+              <Route path="/employee/check-out" element={<EmployeeCheckOutPage />} />
             </Route>
 
             {/* INVENTORY (ADMIN + CLEANING STAFF) */}

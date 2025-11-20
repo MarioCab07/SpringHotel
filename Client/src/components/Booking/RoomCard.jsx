@@ -1,16 +1,60 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FaStar, FaBath, FaParking, FaUtensils } from "react-icons/fa";
 import { MdWifi } from "react-icons/md";
+import { getRoomTypeReviewsSummary } from "../../service/api.services";
 
 const RoomCard = ({ room, setShowBookingModal, setSelectedRoom }) => {
+  const [summary, setSummary] = useState({ count: 0, average: null });
+  const [loadingSummary, setLoadingSummary] = useState(false);
+
   const handleBooking = () => {
     setSelectedRoom(room);
     setShowBookingModal(true);
   };
 
+  const roomTypeId = room?.roomType?.id ?? null;
+
+  useEffect(() => {
+    let mounted = true;
+    const loadSummary = async () => {
+      if (!roomTypeId) {
+        setSummary({ count: 0, average: null });
+        return;
+      }
+      setLoadingSummary(true);
+      try {
+        const res = await getRoomTypeReviewsSummary(roomTypeId);
+        const payload = res?.data?.data;
+        if (!mounted) return;
+        setSummary({
+          count: payload?.count ?? 0,
+          average: payload?.average ?? null,
+        });
+      } catch (err) {
+        console.error("Error cargando summary reviews:", err);
+        if (!mounted) return;
+        setSummary({ count: 0, average: null });
+      } finally {
+        if (mounted) setLoadingSummary(false);
+      }
+    };
+
+    loadSummary();
+
+    return () => {
+      mounted = false;
+    };
+  }, [roomTypeId]);
+
+  const ratingText = loadingSummary
+    ? "..."
+    : summary.average !== null
+    ? summary.average
+    : "—";
+  const countText = loadingSummary ? "..." : summary.count ?? 0;
+
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col md:flex-row overflow-hidden hover:shadow-lg transition-all duration-300">
-
       <img
         src={room.roomType?.imageUrl}
         alt={room.roomType?.name}
@@ -19,7 +63,6 @@ const RoomCard = ({ room, setShowBookingModal, setSelectedRoom }) => {
 
       <div className="flex-1 flex flex-col justify-between p-6 md:flex-row md:items-center">
         <div className="flex flex-col gap-2 flex-1">
-          
           <h2 className="text-xl font-semibold text-gray-900">
             {room.roomType?.name}
           </h2>
@@ -28,7 +71,6 @@ const RoomCard = ({ room, setShowBookingModal, setSelectedRoom }) => {
             {room.roomType?.description}
           </p>
 
-          {}
           <p className="text-gray-900 font-semibold mt-2">
             Room Number: {room.roomNumber}
           </p>
@@ -52,8 +94,8 @@ const RoomCard = ({ room, setShowBookingModal, setSelectedRoom }) => {
         <div className="flex flex-col items-end justify-between gap-3 mt-4 md:mt-0 md:ml-6">
           <div className="flex items-center gap-2">
             <FaStar className="text-[#bfa166] text-lg" />
-            <span className="text-gray-900 font-medium text-base">4.8</span>
-            <span className="text-gray-400 text-sm">24 ratings</span>
+            <span className="text-gray-900 font-medium text-base">{ratingText}</span>
+            <span className="text-gray-400 text-sm">{countText} ratings</span>
           </div>
 
           <div className="text-right">
@@ -62,7 +104,6 @@ const RoomCard = ({ room, setShowBookingModal, setSelectedRoom }) => {
               <span className="text-sm text-gray-600 ml-1">/ night</span>
             </p>
 
-            {}
             <p className="text-sm text-gray-600 mt-1">
               Status: {room.roomStatus}
             </p>

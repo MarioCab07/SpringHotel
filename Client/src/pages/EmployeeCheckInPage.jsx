@@ -8,8 +8,10 @@ import {
   validateCardPayment,
   processCheckInPayment,
 } from "../service/api.services";
+
 import { toast } from "react-toastify";
 import PaymentProcessing from "../components/Booking/PaymentProcessing";
+import PaymentProcessingCash from "../components/Booking/PaymentProcessingCash";  // 👈 AÑADIDO
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 
@@ -20,7 +22,8 @@ const EmployeeCheckInPage = () => {
   const [booking, setBooking] = useState(null);
   const [user, setUser] = useState(null);
   const [room, setRoom] = useState(null);
-  const [processing, setProcessing] = useState(false);
+
+  const [processing, setProcessing] = useState(null); // 👈 Ahora puede ser "cash" o "card"
 
   const [card, setCard] = useState({
     number: "",
@@ -75,19 +78,26 @@ const EmployeeCheckInPage = () => {
     });
   };
 
+  // ------------------------------
+  //   ⚡ PAGO EN EFECTIVO
+  // ------------------------------
   const handleCashPayment = async () => {
     try {
-      setProcessing(true);
+      setProcessing("cash"); // 👈 Aquí activamos el modal de EFECTIVO
+
       await updateBookingToActive();
       await updateRoomToOccupied();
 
       setTimeout(() => (window.location.href = "/employee"), 2500);
     } catch (err) {
-      setProcessing(false);
+      setProcessing(null);
       toast.error("Error con pago en efectivo");
     }
   };
 
+  // ------------------------------
+  //   ⚡ PAGO CON TARJETA
+  // ------------------------------
   const handleCardPayment = async () => {
     try {
       if (!card.number || !card.expiry || !card.cvv) {
@@ -104,7 +114,7 @@ const EmployeeCheckInPage = () => {
         cvv: card.cvv,
       });
 
-      setProcessing(true);
+      setProcessing("card"); // 👈 Aquí activamos el modal normal
 
       await processCheckInPayment({
         clientName: user.fullName,
@@ -122,7 +132,7 @@ const EmployeeCheckInPage = () => {
 
       setTimeout(() => (window.location.href = "/employee"), 2500);
     } catch (err) {
-      setProcessing(false);
+      setProcessing(null);
       toast.error("Error pagando con tarjeta");
     }
   };
@@ -145,22 +155,17 @@ const EmployeeCheckInPage = () => {
   const iva = remaining - subtotal;
   const total = remaining;
 
-  const toLocalDate = (date) =>
-    new Date(date).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-
   return (
     <div className="min-h-screen bg-[#eee9df] flex flex-col items-center p-10">
-      {processing && <PaymentProcessing onFinish={() => {}} />}
+
+      {/* MODALES DE PROCESAMIENTO */}
+      {processing === "cash" && <PaymentProcessingCash onFinish={() => { }} />}
+      {processing === "card" && <PaymentProcessing onFinish={() => { }} />}
 
       <h1 className="text-4xl font-bold mb-10 text-[#3a3a3a] tracking-wide">
         Employee Check-In
       </h1>
 
-      {}
       <div className="flex gap-3 mb-10 bg-white p-6 shadow-lg rounded-2xl border border-gray-200">
         <input
           className="border border-gray-300 p-3 w-80 rounded-lg focus:ring-2 focus:ring-[#d4bf92] focus:outline-none"
@@ -176,70 +181,40 @@ const EmployeeCheckInPage = () => {
         </button>
       </div>
 
-      {}
       {booking && user && room && (
         <div className="bg-white p-10 rounded-3xl shadow-2xl w-[650px] border border-[#e8e6e2]">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-serif tracking-wide">
-              LUMÉ HOTEL & SUITES
-            </h2>
 
+          {/* --- INFO --- */}
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-serif tracking-wide">LUMÉ HOTEL & SUITES</h2>
             <div className="flex justify-between items-center mt-2">
               <div className="h-[2px] bg-[#d4bf92] flex-1 mt-3"></div>
               <p className="text-sm font-medium ml-2">#{booking.id}</p>
             </div>
-
-            <h3 className="text-xl font-semibold mt-6 text-gray-800">
-              Booking Information
-            </h3>
+            <h3 className="text-xl font-semibold mt-6 text-gray-800">Booking Information</h3>
           </div>
 
-          {}
+          {/* --- DETALLES --- */}
           <div className="space-y-3 text-gray-700 text-[16px] leading-relaxed">
-            <p>
-              <strong>Name:</strong> {user.fullName}
-            </p>
-            <p>
-              <strong>Email:</strong> {user.email}
-            </p>
-            <p>
-              <strong>Phone:</strong> {user.phoneNumber || "N/A"}
-            </p>
+            <p><strong>Name:</strong> {user.fullName}</p>
+            <p><strong>Email:</strong> {user.email}</p>
+            <p><strong>Phone:</strong> {user.phoneNumber || "N/A"}</p>
+            <p className="pt-4"><strong>Type:</strong> {room.roomType.name}</p>
+            <p><strong>Room Number:</strong> <span className="font-semibold">{room.roomNumber}</span></p>
 
-            <p className="pt-4">
-              <strong>Type:</strong> {room.roomType.name}
-            </p>
-
-            <p>
-              <strong>Room Number:</strong>{" "}
-              <span className="font-semibold">{room.roomNumber}</span>
-            </p>
-
-            <div className="flex justify-between">
-              <p>
-                <strong>Price / Night:</strong> ${pricePerNight}
-              </p>
-              <p>
-                <strong>Nights:</strong> {nights}
-              </p>
+            <div className="flex justify-between pt-2">
+              <p><strong>Price / Night:</strong> ${pricePerNight}</p>
+              <p><strong>Nights:</strong> {nights}</p>
             </div>
 
             <div className="flex justify-between pt-2">
-              <p>
-                <strong>Check-in:</strong>{" "}
-                {dayjs(booking.checkIn).format("MMM DD, YYYY")}
-              </p>
-              <p>
-                <strong>Check-out:</strong>{" "}
-                {dayjs(booking.checkOut).format("MMM DD, YYYY")}
-              </p>
+              <p><strong>Check-in:</strong> {dayjs(booking.checkIn).format("MMM DD, YYYY")}</p>
+              <p><strong>Check-out:</strong> {dayjs(booking.checkOut).format("MMM DD, YYYY")}</p>
             </div>
 
-            {}
+            {/* --- PAGO --- */}
             <div className="mt-8 bg-[#f7f6f3] p-6 rounded-xl shadow-inner">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Payment Breakdown
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Payment Breakdown</h3>
 
               <div className="space-y-2 text-gray-700 text-[15px]">
                 <div className="flex justify-between">
@@ -276,8 +251,10 @@ const EmployeeCheckInPage = () => {
             </div>
           </div>
 
-          {}
+          {/* --- BOTONES DE PAGO --- */}
           <div className="flex flex-col mt-8 gap-4">
+            
+            {/* EFECTIVO */}
             <button
               onClick={handleCashPayment}
               className="w-full bg-[#d4bf92] hover:bg-[#b99f6c] transition text-white py-3 rounded-full font-semibold shadow-lg"
@@ -285,10 +262,9 @@ const EmployeeCheckInPage = () => {
               Pago en efectivo
             </button>
 
+            {/* TARJETA */}
             <div className="border p-6 rounded-xl bg-[#faf9f7] shadow-inner">
-              <p className="font-semibold mb-4 text-gray-700 text-[17px]">
-                Pago con tarjeta
-              </p>
+              <p className="font-semibold mb-4 text-gray-700 text-[17px]">Pago con tarjeta</p>
 
               <input
                 className="border p-3 w-full mb-4 rounded-lg focus:ring-2 focus:ring-[#d4bf92]"
@@ -302,7 +278,6 @@ const EmployeeCheckInPage = () => {
                   placeholder="MM/YY"
                   onChange={(e) => setCard({ ...card, expiry: e.target.value })}
                 />
-
                 <input
                   className="border p-3 w-full mb-4 rounded-lg focus:ring-2 focus:ring-[#d4bf92]"
                   placeholder="CVV"
@@ -318,6 +293,7 @@ const EmployeeCheckInPage = () => {
               </button>
             </div>
           </div>
+
         </div>
       )}
     </div>

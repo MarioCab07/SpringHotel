@@ -5,6 +5,7 @@ import { FaChevronDown, FaSearch } from "react-icons/fa";
 const routeOptions = {
   "/admin":  ["Pending", "In progress", "Completed", "Canceled"],
   "/inventory": ["Nombre A-Z", "Nombre Z-A", "Más cantidad", "Menos cantidad"],
+  "/cleaning-staff":  ["Pending", "In progress", "Completed", "Canceled"],
 };
 
 const SearchSortBar = ({

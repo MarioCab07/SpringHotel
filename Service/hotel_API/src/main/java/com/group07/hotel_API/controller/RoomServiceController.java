@@ -80,7 +80,7 @@ public class RoomServiceController {
         return buildResponse("Room service created successfully", HttpStatus.CREATED, createdRoomService);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE','CLEANING_STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE','CLEANING_STAFF', 'USER')")
     @PutMapping("/{id}")
     public ResponseEntity<GeneralResponse> update(@PathVariable Integer id, @RequestBody RoomServiceUpdateRequest request) {
         RoomServiceResponse updatedRoomService = roomServiceService.update(id, request);

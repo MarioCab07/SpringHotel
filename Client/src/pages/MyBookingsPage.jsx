@@ -6,12 +6,12 @@ import {
   cancelBooking,
   modifyBooking,
 } from "../service/api.services";
+
 import UserMenu from "../components/UserMenu";
 import ChangeDatesModal from "../components/Booking/ChangeDatesModal";
 import ConfirmCancelModal from "../components/Booking/ConfirmCancelModal";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
 
 const MyBookingsPage = () => {
   const [user, setUser] = useState(null);
@@ -23,8 +23,16 @@ const MyBookingsPage = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState(null);
 
-
   const navigate = useNavigate();
+  const formatDate = (date) => {
+    if (!date) return "N/A";
+    const [year, month, day] = date.split("T")[0].split("-");
+    return new Date(`${month}/${day}/${year}`).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   const loadBookings = async () => {
     const userRes = await GetUserDetails();
@@ -34,10 +42,8 @@ const MyBookingsPage = () => {
     const bookingRes = await getUserBookings(userId);
     const fetched = bookingRes.data.data;
 
-    const filtered = fetched.filter((b) => b.status !== "CANCELLED");
-
     const roomMap = {};
-    for (const b of filtered) {
+    for (const b of fetched) {
       if (!roomMap[b.roomId]) {
         const r = await getRoomById(b.roomId);
         roomMap[b.roomId] = r.data.data;
@@ -45,7 +51,7 @@ const MyBookingsPage = () => {
     }
 
     setRooms(roomMap);
-    setBookings(filtered);
+    setBookings(fetched);
   };
 
   useEffect(() => {
@@ -58,26 +64,13 @@ const MyBookingsPage = () => {
         setLoading(false);
       }
     };
-
     load();
   }, []);
-
-  const toLocalDateString = (date) => {
-    const d = new Date(date);
-    return d.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
 
   const getNights = (ci, co) => {
     const start = new Date(ci);
     const end = new Date(co);
-    return Math.max(
-      1,
-      Math.ceil((end - start) / (1000 * 60 * 60 * 24))
-    );
+    return Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
   };
 
   const handleCancel = async (id) => {
@@ -92,9 +85,7 @@ const MyBookingsPage = () => {
 
       setShowCancelModal(false);
       setBookingToCancel(null);
-
     } catch (err) {
-      console.log(err);
       const msg =
         err?.response?.data?.message ||
         err?.message ||
@@ -103,7 +94,6 @@ const MyBookingsPage = () => {
     }
   };
 
-
   const openChangeDates = (booking) => {
     setSelectedBooking(booking);
     setShowModal(true);
@@ -111,7 +101,7 @@ const MyBookingsPage = () => {
 
   const handleSaveDates = async (newDates) => {
     try {
-      const response = await modifyBooking(selectedBooking.id, newDates);
+      await modifyBooking(selectedBooking.id, newDates);
 
       toast.success("Reservation updated successfully!");
 
@@ -120,10 +110,7 @@ const MyBookingsPage = () => {
       setShowModal(false);
       setSelectedBooking(null);
       setLoading(false);
-
     } catch (e) {
-      console.log("ERROR MODIFY:", e);
-
       const msg =
         e?.message ||
         e?.data?.message ||
@@ -133,7 +120,6 @@ const MyBookingsPage = () => {
       toast.error(msg);
     }
   };
-
 
   if (loading)
     return (
@@ -212,10 +198,10 @@ const MyBookingsPage = () => {
 
                 <div className="flex justify-between pt-2">
                   <p>
-                    <strong>Check-in:</strong> {toLocalDateString(b.checkIn)}
+                    <strong>Check-in:</strong> {formatDate(b.checkIn)}
                   </p>
                   <p>
-                    <strong>Check-out:</strong> {toLocalDateString(b.checkOut)}
+                    <strong>Check-out:</strong> {formatDate(b.checkOut)}
                   </p>
                 </div>
               </div>
@@ -223,7 +209,7 @@ const MyBookingsPage = () => {
               <div className="border-t border-gray-300 mt-6 pt-6 flex justify-between">
                 <p className="text-xl font-bold">${total}</p>
                 <p className="text-sm text-gray-600">
-                  {toLocalDateString(b.createdAt)}
+                  {formatDate(b.createdAt)}
                 </p>
               </div>
 
@@ -234,11 +220,10 @@ const MyBookingsPage = () => {
               </p>
 
               <div className="mt-6 flex flex-col space-y-3">
-
                 {b.status === "PENDING" && (
                   <button
                     onClick={() => openChangeDates(b)}
-                    className="bg-[#D9C696] hover:bg-[#cdb883] text- font-medium px-6 py-2 rounded-lg transition"
+                    className="bg-[#D9C696] hover:bg-[#cdb883] text-black font-medium px-6 py-2 rounded-lg transition"
                   >
                     Change Dates
                   </button>
@@ -259,7 +244,6 @@ const MyBookingsPage = () => {
                       setBookingToCancel(b.id);
                       setShowCancelModal(true);
                     }}
-
                     className="bg-[#C96E5E] hover:bg-[#B86254] text-black font-medium px-6 py-2 rounded-lg transition"
                   >
                     Cancel reservation
@@ -286,7 +270,6 @@ const MyBookingsPage = () => {
           onConfirm={handleCancel}
         />
       )}
-
     </div>
   );
 };

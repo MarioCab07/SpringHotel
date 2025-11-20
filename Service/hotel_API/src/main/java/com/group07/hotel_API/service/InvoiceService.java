@@ -12,5 +12,7 @@ public interface InvoiceService {
     Invoice createInvoice(InvoiceData invoiceData);
     Invoice createInvoiceForBooking(InvoiceData invoiceData);
     public Invoice createInvoiceForCheckIn(InvoiceData invoiceData);
+    Invoice createInvoiceForCheckOut(InvoiceData invoiceData);
+
 
 }
