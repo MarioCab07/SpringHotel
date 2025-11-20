@@ -6,6 +6,7 @@ import com.group07.hotel_API.dto.request.Booking.BookingModifyRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingUpdateRequest;
 import com.group07.hotel_API.dto.response.Booking.BookingResponse;
+import com.group07.hotel_API.dto.response.Booking.BookingServiceItemResponse;
 
 import java.util.List;
 
@@ -23,4 +24,6 @@ public interface BookingService {
     BookingResponse findPendingBookingById(int id);
     BookingResponse cancel(int id);
     BookingResponse modify(int id, BookingModifyRequest booking);
+    List<BookingServiceItemResponse> getServicesForBooking(Integer bookingId);
+
 }

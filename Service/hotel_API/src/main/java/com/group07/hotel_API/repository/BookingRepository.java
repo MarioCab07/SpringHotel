@@ -2,6 +2,7 @@ package com.group07.hotel_API.repository;
 
 
 import com.group07.hotel_API.dto.response.Booking.BookingResponse;
+import com.group07.hotel_API.dto.response.Booking.BookingServiceItemResponse;
 import com.group07.hotel_API.entities.Booking;
 import com.group07.hotel_API.utils.enums.BookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -69,6 +70,18 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     List<Booking> findRoomsWithCheckOutDone(LocalDate today);
 
     Optional<Booking> findByIdAndStatus(Integer id, BookingStatus status);
+
+
+
+    @Query("""
+    SELECT new com.group07.hotel_API.dto.response.Booking.BookingServiceItemResponse(
+        t.id, t.name, t.price
+    )
+    FROM RoomService rs
+    JOIN rs.serviceTypes t
+    WHERE rs.booking.id = :bookingId
+""")
+    List<BookingServiceItemResponse> findServicesByBooking(@Param("bookingId") Integer bookingId);
 
 
 }

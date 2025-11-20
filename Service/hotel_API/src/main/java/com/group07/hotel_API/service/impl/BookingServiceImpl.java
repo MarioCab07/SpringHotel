@@ -2,7 +2,9 @@ package com.group07.hotel_API.service.impl;
 
 
 import com.group07.hotel_API.dto.request.Booking.BookingModifyRequest;
+import com.group07.hotel_API.dto.response.Booking.BookingServiceItemResponse;
 import com.group07.hotel_API.entities.UserClient;
+import com.group07.hotel_API.repository.RoomServiceRepository;
 import com.group07.hotel_API.service.BookingService;
 import com.group07.hotel_API.dto.request.Booking.BookingRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingUpdateRequest;
@@ -37,14 +39,18 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final RoomRepository roomRepository;
     private final EmailService  emailService;
+  private final RoomServiceRepository roomServiceRepository;
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.ENGLISH);
     @Autowired
-    public BookingServiceImpl(BookingRepository bookingRepository, UserRepository userRepository, RoomRepository roomRepository, EmailService emailService) {
+    public BookingServiceImpl(BookingRepository bookingRepository, UserRepository userRepository, RoomRepository roomRepository, EmailService emailService,RoomServiceRepository roomServiceRepository) {
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.roomRepository = roomRepository;
         this.emailService = emailService;
+      this.roomServiceRepository=roomServiceRepository;
     }
+
+
 
     // FIND ALL BOOKINGS
     @Override
@@ -197,6 +203,11 @@ public class BookingServiceImpl implements BookingService {
 
         return BookingMapper.toDTO(saved);
     }
+    @Override
+    public List<BookingServiceItemResponse> getServicesForBooking(Integer bookingId) {
+        return bookingRepository.findServicesByBooking(bookingId);
+    }
+
 
     //MODIFY BOOKING BY USER
     @Override

@@ -5,6 +5,7 @@ import com.group07.hotel_API.dto.request.Booking.BookingModifyRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingUpdateRequest;
 import com.group07.hotel_API.dto.response.Booking.BookingResponse;
+import com.group07.hotel_API.dto.response.Booking.BookingServiceItemResponse;
 import com.group07.hotel_API.dto.response.GeneralResponse;
 import com.group07.hotel_API.entities.UserClient;
 import com.group07.hotel_API.service.BookingService;
@@ -19,6 +20,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -121,6 +123,12 @@ public class BookingController {
     ) {
         BookingResponse response = bookingService.modify(id, request);
         return buildResponse("Booking modified successfully", HttpStatus.OK, response);
+    }
+    @GetMapping("/booking/{id}/services")
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','USER','CLEANING_STAFF')")
+    public ResponseEntity<?> getServices(@PathVariable Integer id) {
+        List<BookingServiceItemResponse> list = bookingService.getServicesForBooking(id);
+        return ResponseEntity.ok(list);  // Devuelve [] si no hay servicios
     }
 
 
