@@ -189,9 +189,13 @@ export const updateInventoryItem = async(id, data) => {
     }
 };
 
-export const updateItemQuantity = async(id, data) =>{
+export const updateItemQuantity = async(id, quantity) =>{
     try {
-        return await apiClient.patch(`/inventory/${id}/quantity`, data);
+        return await apiClient.patch(`/inventory/${id}/quantity`, quantity, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
         throw error.response ? error.response.data : error
     }
@@ -690,5 +694,59 @@ export const getBookingById = async (id) => {
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
+
+    
 };
+
+
+export const cancelBooking = async (id) => {
+    try {
+        return await apiClient.put(`/bookings/${id}/cancel`);
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const modifyBooking = async (id, data) => {
+  try {
+    return await apiClient.put(`/bookings/${id}/modify`, data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+// Material Request Services
+export const createMaterialRequest = async (data) => {
+  try {
+    return await apiClient.post("/inventory/requests", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getMyMaterialRequests = async () => {
+  try {
+    return await apiClient.get("/inventory/requests/me");
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getAllMaterialRequests = async () => {
+  try {
+    return await apiClient.get("/inventory/requests");
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getMaterialRequestById = async (id) => {
+  try {
+    return await apiClient.get(`/inventory/requests/${id}`);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+
 

@@ -55,7 +55,7 @@ public class Invoice {
     private PaymentMethod paymentMethod;
 
     // 🔹 Relación con Booking
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_booking", nullable = false)
     private Booking booking;
 

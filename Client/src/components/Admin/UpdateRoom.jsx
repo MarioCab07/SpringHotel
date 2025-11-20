@@ -1,29 +1,40 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { FaChevronLeft } from "react-icons/fa";
 import { updateRoom, getAllRoomTypes } from "../../service/api.services";
 import { toast } from "react-toastify";
-import StandardInput from "../StandardInput";
-import BasicSelect from "../Select";
+import Select from "react-select";
 
-const UpdateRoom = ({ room, onClose, onSuccess }) => {
+const UpdateRoom = ({ isOpen, room, onClose, onSuccess }) => {
   const [changeRoom, setChangeRoom] = useState({
-    roomId: room.roomId,
-    roomNumber: room.roomNumber,
-    roomType: room.roomType,
-    roomStatus: room.roomStatus,
+    roomId: room?.roomId || "",
+    roomNumber: room?.roomNumber || "",
+    roomType: room?.roomType?.roomTypeId || room?.roomType || null,
+    roomStatus: room?.roomStatus || "",
   });
   const [roomTypes, setRoomTypes] = useState([]);
   const [roomTypeOptions, setRoomTypeOptions] = useState([]);
-  const [selectedRoomType, setSelectedRoomType] = useState(() => {
-    const type = roomTypes.find((t) => t.roomTypeId === room.roomType);
-    return type ? type.roomTypeName : "";
-  });
+  const [selectedRoomType, setSelectedRoomType] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const roomStatusOptions = [
-    "AVAILABLE",
-    "OCCUPIED",
-    "RESERVED",
-    "MAINTENANCE",
+    { value: "AVAILABLE", label: "Disponible" },
+    { value: "OCCUPIED", label: "Ocupada" },
+    { value: "RESERVED", label: "Reservada" },
+    { value: "MAINTENANCE", label: "Mantenimiento" },
   ];
+
+  useEffect(() => {
+    if (room) {
+      setChangeRoom({
+        roomId: room.roomId,
+        roomNumber: room.roomNumber,
+        roomType: room.roomType?.roomTypeId || room.roomType,
+        roomStatus: room.roomStatus,
+      });
+    }
+  }, [room]);
 
   useEffect(() => {
     const fetchTypes = async () => {
@@ -32,99 +43,189 @@ const UpdateRoom = ({ room, onClose, onSuccess }) => {
         if (res.status === 200) {
           const types = res.data.data;
           setRoomTypes(types);
-          const names = types.map((t) => t.roomTypeName);
-          setRoomTypeOptions(names);
-          if (names.length) setSelectedRoomType(names[0]);
+          const options = types.map((t) => ({
+            value: t.roomTypeId,
+            label: t.roomTypeName,
+          }));
+          setRoomTypeOptions(options);
+          
+          // Establecer el tipo seleccionado
+          if (room) {
+            const currentType = options.find(
+              (opt) => opt.value === (room.roomType?.roomTypeId || room.roomType)
+            );
+            if (currentType) {
+              setSelectedRoomType(currentType);
+            }
+          }
         }
       } catch (err) {
         toast.error("Error al cargar tipos de habitación: " + err.message);
       }
     };
-    fetchTypes();
-  }, []);
+    if (isOpen) {
+      fetchTypes();
+    }
+  }, [isOpen, room]);
 
   useEffect(() => {
-    const typeObj = roomTypes.find((t) => t.roomTypeName === selectedRoomType);
-
-    if (typeObj) {
-      setChangeRoom((prev) => ({
-        ...prev,
-        roomType: typeObj.roomTypeId,
-      }));
+    if (room && room.roomStatus) {
+      const currentStatus = roomStatusOptions.find(
+        (opt) => opt.value === room.roomStatus
+      );
+      if (currentStatus) {
+        setSelectedStatus(currentStatus);
+      }
     }
-  }, [selectedRoomType, roomTypes]);
+  }, [room]);
+
+  const handleRoomTypeChange = (option) => {
+    setSelectedRoomType(option);
+    setChangeRoom((prev) => ({
+      ...prev,
+      roomType: option?.value || null,
+    }));
+  };
+
+  const handleStatusChange = (option) => {
+    setSelectedStatus(option);
+    setChangeRoom((prev) => ({
+      ...prev,
+      roomStatus: option?.value || "",
+    }));
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setChangeRoom((prev) => ({ ...prev, [name]: value }));
+    // Solo permitir números para roomNumber
+    if (name === "roomNumber") {
+      const numericValue = value.replace(/\D/g, "");
+      setChangeRoom((prev) => ({ ...prev, [name]: numericValue }));
+    } else {
+      setChangeRoom((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const loadingToast = toast.loading("Actualizando habitación...");
+
+    if (!changeRoom.roomNumber.trim() || !changeRoom.roomType || !changeRoom.roomStatus) {
+      toast.error("Por favor completa todos los campos requeridos");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const res = await updateRoom(changeRoom);
-      toast.dismiss(loadingToast);
+      const res = await updateRoom(changeRoom.roomId, changeRoom);
       if (res.status === 200) {
-        toast.success("Habitacion actualizada exitosamente");
-        setTimeout(() => {
-          onSuccess();
-        }, 2000);
+        toast.success("Habitación actualizada exitosamente");
+        onSuccess();
       }
     } catch (error) {
-      toast.dismiss(loadingToast);
-      toast.error("Error al actualizar la habitación: " + error.message);
+      toast.error("Error al actualizar la habitación: " + (error.message || "Error desconocido"));
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <>
-      <article className="w-full max-w-2xl mx-auto p-6 bg-[#0C0950] rounded-lg shadow-md top-1/5 left-1/3 absolute z-50 overflow-visible">
-        <h2 className="text-2xl font-bold mb-4 text-[#D6ECF7] text-center">
-          Actualizar Habitacion
-        </h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-          <StandardInput
-            type="number"
-            label={"Número de Habitación"}
-            name={"roomNumber"}
-            value={changeRoom.roomNumber}
-            onChange={handleChange}
-          />
+  if (!isOpen || !room) return null;
 
-          <BasicSelect
-            label={"Tipo de Habitación"}
-            options={roomTypeOptions}
-            value={selectedRoomType}
-            setValue={setSelectedRoomType}
-          />
+  const customSelectStyles = {
+    control: (base, state) => ({
+      ...base,
+      backgroundColor: "#f3f4f6",
+      borderColor: state.isFocused ? "#D9C696" : "#d1d5db",
+      borderRadius: "12px",
+      boxShadow: state.isFocused ? "0 0 0 2px rgba(217, 198, 150, 0.25)" : "none",
+      "&:hover": { borderColor: "#D9C696" },
+      minHeight: "48px",
+    }),
+    menu: (base) => ({ ...base, backgroundColor: "#ffffff", zIndex: 9999 }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isFocused ? "#f5f0e8" : "#ffffff",
+      color: "#000000",
+      cursor: "pointer",
+    }),
+    singleValue: (base) => ({
+      ...base,
+      color: "#000000",
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: "#6b7280",
+    }),
+  };
 
-          <BasicSelect
-            label={"Estado de Habitación"}
-            options={roomStatusOptions}
-            value={changeRoom.roomStatus}
-            setValue={(value) =>
-              setChangeRoom((prev) => ({ ...prev, roomStatus: value }))
-            }
-          />
-          <div className="flex justify-between ">
-            <button
-              type="button"
-              onClick={onClose}
-              className="bg-gray-400 rounded-2xl hover:bg-gray-600 transition-all ease-in-out duration-500 text-white font-bold py-2 px-4 cursor-pointer"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="bg-pink-400 hover:bg-pink-600 transition-all ease-in-out duration-500 text-white font-bold py-2 px-4 cursor-pointer rounded-2xl"
-            >
-              Confirmar
-            </button>
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      
+      <div className="relative ml-auto w-1/2 h-full bg-white shadow-xl flex flex-col">
+        <header className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded transition">
+            <FaChevronLeft size={18} className="text-gray-700" />
+          </button>
+          <h2 className="font-serif text-lg text-gray-900">Editar Habitación</h2>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="px-5 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400 disabled:hover:shadow-none disabled:hover:transform-none text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
+          >
+            {loading ? "Guardando..." : "Guardar"}
+          </button>
+        </header>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 flex-1 overflow-y-auto">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Número de Habitación
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              name="roomNumber"
+              value={changeRoom.roomNumber}
+              onChange={handleChange}
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-transparent transition"
+              placeholder="Ej: 101"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">Solo se permiten números</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tipo de Habitación
+            </label>
+            <Select
+              options={roomTypeOptions}
+              value={selectedRoomType}
+              onChange={handleRoomTypeChange}
+              placeholder="Selecciona un tipo de habitación"
+              styles={customSelectStyles}
+              isClearable={false}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Estado de Habitación
+            </label>
+            <Select
+              options={roomStatusOptions}
+              value={selectedStatus}
+              onChange={handleStatusChange}
+              placeholder="Selecciona un estado"
+              styles={customSelectStyles}
+              isClearable={false}
+            />
           </div>
         </form>
-      </article>
-    </>
+      </div>
+    </div>,
+    document.body
   );
 };
 

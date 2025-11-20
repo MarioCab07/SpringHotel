@@ -1,18 +1,21 @@
 import React, { useState } from "react";
-import { 
+import {
   getBookingById,
   GetUser,
   getRoomById,
   updateBooking,
   updateRoom,
   validateCardPayment,
-  processCheckInPayment
+  processCheckInPayment,
 } from "../service/api.services";
 import { toast } from "react-toastify";
 import PaymentProcessing from "../components/Booking/PaymentProcessing";
+import dayjs from "dayjs";
+import advancedFormat from "dayjs/plugin/advancedFormat";
+
+dayjs.extend(advancedFormat);
 
 const EmployeeCheckInPage = () => {
-
   const [bookingId, setBookingId] = useState("");
   const [booking, setBooking] = useState(null);
   const [user, setUser] = useState(null);
@@ -22,7 +25,7 @@ const EmployeeCheckInPage = () => {
   const [card, setCard] = useState({
     number: "",
     expiry: "",
-    cvv: ""
+    cvv: "",
   });
 
   const normalizeDate = (dateStr) => {
@@ -48,7 +51,6 @@ const EmployeeCheckInPage = () => {
       setBooking(b);
       setUser(resUser.data.data);
       setRoom(resRoom.data.data);
-
     } catch (err) {
       toast.error("Error buscando reserva");
     }
@@ -79,8 +81,7 @@ const EmployeeCheckInPage = () => {
       await updateBookingToActive();
       await updateRoomToOccupied();
 
-      setTimeout(() => window.location.href = "/employee", 2500);
-
+      setTimeout(() => (window.location.href = "/employee"), 2500);
     } catch (err) {
       setProcessing(false);
       toast.error("Error con pago en efectivo");
@@ -119,8 +120,7 @@ const EmployeeCheckInPage = () => {
       await updateBookingToActive();
       await updateRoomToOccupied();
 
-      setTimeout(() => window.location.href = "/employee", 2500);
-
+      setTimeout(() => (window.location.href = "/employee"), 2500);
     } catch (err) {
       setProcessing(false);
       toast.error("Error pagando con tarjeta");
@@ -154,7 +154,6 @@ const EmployeeCheckInPage = () => {
 
   return (
     <div className="min-h-screen bg-[#eee9df] flex flex-col items-center p-10">
-
       {processing && <PaymentProcessing onFinish={() => {}} />}
 
       <h1 className="text-4xl font-bold mb-10 text-[#3a3a3a] tracking-wide">
@@ -180,9 +179,10 @@ const EmployeeCheckInPage = () => {
       {}
       {booking && user && room && (
         <div className="bg-white p-10 rounded-3xl shadow-2xl w-[650px] border border-[#e8e6e2]">
-
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-serif tracking-wide">LUMÉ HOTEL & SUITES</h2>
+            <h2 className="text-2xl font-serif tracking-wide">
+              LUMÉ HOTEL & SUITES
+            </h2>
 
             <div className="flex justify-between items-center mt-2">
               <div className="h-[2px] bg-[#d4bf92] flex-1 mt-3"></div>
@@ -196,12 +196,19 @@ const EmployeeCheckInPage = () => {
 
           {}
           <div className="space-y-3 text-gray-700 text-[16px] leading-relaxed">
+            <p>
+              <strong>Name:</strong> {user.fullName}
+            </p>
+            <p>
+              <strong>Email:</strong> {user.email}
+            </p>
+            <p>
+              <strong>Phone:</strong> {user.phoneNumber || "N/A"}
+            </p>
 
-            <p><strong>Name:</strong> {user.fullName}</p>
-            <p><strong>Email:</strong> {user.email}</p>
-            <p><strong>Phone:</strong> {user.phoneNumber || "N/A"}</p>
-
-            <p className="pt-4"><strong>Type:</strong> {room.roomType.name}</p>
+            <p className="pt-4">
+              <strong>Type:</strong> {room.roomType.name}
+            </p>
 
             <p>
               <strong>Room Number:</strong>{" "}
@@ -209,24 +216,32 @@ const EmployeeCheckInPage = () => {
             </p>
 
             <div className="flex justify-between">
-              <p><strong>Price / Night:</strong> ${pricePerNight}</p>
-              <p><strong>Nights:</strong> {nights}</p>
+              <p>
+                <strong>Price / Night:</strong> ${pricePerNight}
+              </p>
+              <p>
+                <strong>Nights:</strong> {nights}
+              </p>
             </div>
 
             <div className="flex justify-between pt-2">
-              <p><strong>Check-in:</strong> {toLocalDate(booking.checkIn)}</p>
-              <p><strong>Check-out:</strong> {toLocalDate(booking.checkOut)}</p>
+              <p>
+                <strong>Check-in:</strong>{" "}
+                {dayjs(booking.checkIn).format("MMM DD, YYYY")}
+              </p>
+              <p>
+                <strong>Check-out:</strong>{" "}
+                {dayjs(booking.checkOut).format("MMM DD, YYYY")}
+              </p>
             </div>
 
             {}
             <div className="mt-8 bg-[#f7f6f3] p-6 rounded-xl shadow-inner">
-
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
                 Payment Breakdown
               </h3>
 
               <div className="space-y-2 text-gray-700 text-[15px]">
-
                 <div className="flex justify-between">
                   <span>Total reservation:</span>
                   <span>${totalReservationPrice.toFixed(2)}</span>
@@ -263,7 +278,6 @@ const EmployeeCheckInPage = () => {
 
           {}
           <div className="flex flex-col mt-8 gap-4">
-
             <button
               onClick={handleCashPayment}
               className="w-full bg-[#d4bf92] hover:bg-[#b99f6c] transition text-white py-3 rounded-full font-semibold shadow-lg"
@@ -304,7 +318,6 @@ const EmployeeCheckInPage = () => {
               </button>
             </div>
           </div>
-
         </div>
       )}
     </div>

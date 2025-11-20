@@ -47,48 +47,50 @@ const EditInventoryPage = () => {
   };
 
   const fetchData = async () => {
-  try {
-    const [catResponse, groupedResponse] = await Promise.all([
-      getAllCategories(),
-      getGroupedInventoryItems(),
-    ]);
+    try {
+      const [catResponse, groupedResponse] = await Promise.all([
+        getAllCategories(),
+        getGroupedInventoryItems(),
+      ]);
 
-    if (catResponse.status === 200 && groupedResponse.status === 200) {
-      const allCategories = catResponse.data;
-      const grouped = groupedResponse.data.data;
+      if (catResponse.status === 200 && groupedResponse.status === 200) {
+        const allCategories = catResponse.data;
+        const grouped = groupedResponse.data.data || groupedResponse.data || {};
 
-      setCategories(allCategories);
+        setCategories(allCategories);
 
-      const merged = {};
-      allCategories.forEach((cat) => {
-        merged[cat.name] = grouped[cat.name] || [];
-      });
+        const merged = {};
+        allCategories.forEach((cat) => {
+          merged[cat.name] = grouped[cat.name] || [];
+        });
 
-      setGroupedData(merged);
-      setItems(Object.values(grouped).flat());
+        setGroupedData(merged);
+        setItems(Object.values(grouped).flat());
+      }
+    } catch (error) {
+      console.error("Error cargando datos:", error);
+      toast.error("Error cargando datos");
     }
-  } catch (error) {
-    toast.error("Error cargando datos");
-  }
-};
+  };
 
   useEffect(() => {
-  if (Object.keys(groupedData).length > 0) {
-    const filtered = Object.entries(groupedData)
-      .filter(([category]) =>
-        category.toLowerCase().includes(query.toLowerCase())
-      )
-      .sort((a, b) => a[0].localeCompare(b[0]));
+    if (Object.keys(groupedData).length > 0) {
+      const filtered = Object.entries(groupedData)
+        .filter(([category]) =>
+          category.toLowerCase().includes(query.toLowerCase())
+        )
+        .sort((a, b) => a[0].localeCompare(b[0]));
 
-    setFilteredCategories(filtered);
-  }
-}, [query, groupedData]);
+      setFilteredCategories(filtered);
+    } else {
+      setFilteredCategories([]);
+    }
+  }, [query, groupedData]);
 
   // Cargar datos desde API
- useEffect(() => {
-
-  fetchData();
-}, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
 
 
@@ -123,13 +125,13 @@ const EditInventoryPage = () => {
     toast.error("Error al guardar categoría");
   }
 };
-const handleEditSection = (categoryName) => {
-  const category = categories.find((cat) => cat.name === categoryName);
-  if (category) {
-    setEditCategoryData(category);               // Guardas la categoría seleccionada
-    setShowEditCategoryModal(true);              // Abres el modal
-  }
-};
+  const handleEditSection = (categoryName) => {
+    const category = categories.find((cat) => cat.name === categoryName);
+    if (category) {
+      setEditCategoryData(category);
+      setShowEditCategoryModal(true);
+    }
+  };
 
   const handleEditItem = (item) => {
   setEditItemData(item);
@@ -137,47 +139,50 @@ const handleEditSection = (categoryName) => {
 };
 
   const handleUpdateCategory = async (updatedCategory) => {
-  try {
-    await updateCategory(updatedCategory.id, { name: updatedCategory.name });
-    toast.success("Categoría actualizada correctamente");
-    fetchData();
-  } catch (error) {
-    toast.error("Error actualizando categoría");
-  }
-};
+    try {
+      await updateCategory(updatedCategory.id, { name: updatedCategory.name });
+      toast.success("Categoría actualizada correctamente");
+      setShowEditCategoryModal(false);
+      fetchData();
+    } catch (error) {
+      toast.error("Error actualizando categoría");
+    }
+  };
 
-const handleUpdateItem = async (updatedItem) => {
-  try {
-    await updateInventoryItem(updatedItem.id, updatedItem);
-    toast.success("Producto actualizado correctamente");
-    fetchData();
-  } catch (error) {
-    toast.error("Error actualizando producto");
-  }
-};
+  const handleUpdateItem = async (updatedItem) => {
+    try {
+      await updateInventoryItem(updatedItem.id, updatedItem);
+      toast.success("Producto actualizado correctamente");
+      setShowEditItemModal(false);
+      fetchData();
+    } catch (error) {
+      toast.error("Error actualizando producto");
+    }
+  };
 
-const handleDeleteCategory = async (id) => {
-  const count = countProductsInCategory(id);
+  const handleDeleteCategory = async (id) => {
+    const count = countProductsInCategory(id);
 
-  if (count > 0) {
-    toast.warning("No se puede borrar categoría con productos dentro");
-    return;
-  }
+    if (count > 0) {
+      toast.warning("No se puede borrar categoría con productos dentro");
+      return;
+    }
 
-  try {
-    await deleteCategory(id);
-    toast.success("Categoría eliminada correctamente");
-    setShowEditCategoryModal(false);
-    fetchData();
-  } catch (error) {
-    toast.error("Error al eliminar categoría");
-  }
-};
+    try {
+      await deleteCategory(id);
+      toast.success("Categoría eliminada correctamente");
+      setShowEditCategoryModal(false);
+      fetchData();
+    } catch (error) {
+      toast.error("Error al eliminar categoría");
+    }
+  };
 
   const handleDeleteItem = async (id) => {
     try {
       await deleteInventoryItem(id);
       toast.success("Producto eliminado correctamente");
+      setShowEditItemModal(false);
       fetchData();
     } catch (error) {
       console.error("Error eliminando producto:", error);
@@ -210,6 +215,14 @@ const handleDeleteCategory = async (id) => {
           </div>
         </div>
 
+        {filteredCategories.length === 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+            <p className="text-gray-500 text-lg">
+              {query ? "No se encontraron categorías con ese nombre" : "No hay categorías disponibles"}
+            </p>
+          </div>
+        )}
+
         {showAddCategoryModal && (
           <AddCategoryModal
             isOpen={showAddCategoryModal}
@@ -228,40 +241,48 @@ const handleDeleteCategory = async (id) => {
         )}
 
         {showEditItemModal && (
-            <EditItemModal
-              isOpen={showEditItemModal}
-              onClose={() => setShowEditItemModal(false)}
-              item={editItemData}
-              categories={categories}
-              onUpdate={handleUpdateItem}
-              onDelete={handleDeleteItem}
-            />
-          )}
+          <EditItemModal
+            isOpen={showEditItemModal}
+            onClose={() => {
+              setShowEditItemModal(false);
+              setEditItemData(null);
+            }}
+            item={editItemData}
+            categories={categories}
+            onUpdate={handleUpdateItem}
+            onDelete={handleDeleteItem}
+          />
+        )}
 
-          {showEditCategoryModal && (
-            <EditCategoryModal
-              isOpen={showEditCategoryModal}
-              onClose={() => setShowEditCategoryModal(false)}
-              category={editCategoryData}
-              onUpdate={handleUpdateCategory}
-              onDelete={handleDeleteCategory}
-              productCount={countProductsInCategory(editCategoryData?.id)} // ✅ NUEVO
-            />
-          )}
+        {showEditCategoryModal && (
+          <EditCategoryModal
+            isOpen={showEditCategoryModal}
+            onClose={() => {
+              setShowEditCategoryModal(false);
+              setEditCategoryData(null);
+            }}
+            category={editCategoryData}
+            onUpdate={handleUpdateCategory}
+            onDelete={handleDeleteCategory}
+            productCount={countProductsInCategory(editCategoryData?.id)}
+          />
+        )}
 
-        <div>
-          {filteredCategories.map(([category, products], idx) => (
-            <InventoryEditCard
-              key={category}
-              category={category}
-              products={products}
-              onEdit={() => handleEditSection(category)}
-              onItemEdit={handleEditItem}
-              isFirst={idx === 0}
-              isLast={idx === filteredCategories.length - 1}
-            />
-          ))}
-        </div>
+        {filteredCategories.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            {filteredCategories.map(([category, products], idx) => (
+              <InventoryEditCard
+                key={category}
+                category={category}
+                products={products}
+                onEdit={() => handleEditSection(category)}
+                onItemEdit={handleEditItem}
+                isFirst={idx === 0}
+                isLast={idx === filteredCategories.length - 1}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </Layout>
   );

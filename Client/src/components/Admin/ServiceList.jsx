@@ -3,19 +3,15 @@ import { getAllServicesTypes } from "../../service/api.services";
 import { useAuth } from "../../context/AuthContext";
 import { Loading } from "../Loading";
 import { toast } from "react-toastify";
-import { BsPencilSquare } from "react-icons/bs";
-import { AiFillDelete } from "react-icons/ai";
 import RegisterServiceType from "./RegisterServiceType";
-import UpdateServiceType from "./UpdateServiceType";
-import DeleteServiceType from "./DeleteServiceType";
+import ServiceDetailPanel from "./ServiceDetailPanel";
 
 const ServiceList = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
-  const [showUpdate, setShowUpdate] = useState(false);
+  const [showDetailPanel, setShowDetailPanel] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
 
   const role = sessionStorage.getItem("role");
   const isAdmin = role === "ADMIN";
@@ -38,17 +34,16 @@ const ServiceList = () => {
     fetchServices();
   }, []);
 
-  const openUpdateModal = (service) => {
+  const openDetailPanel = (service) => {
     setSelectedService(service);
-    setShowUpdate(true);
+    setShowDetailPanel(true);
   };
-  const closeUpdateModal = () => {
-    setShowUpdate(false);
+  const closeDetailPanel = () => {
+    setShowDetailPanel(false);
     setSelectedService(null);
   };
-
-  const handleUpdateSuccess = () => {
-    setShowUpdate(false);
+  const handleDetailSuccess = () => {
+    setShowDetailPanel(false);
     setSelectedService(null);
     fetchServices();
   };
@@ -62,139 +57,85 @@ const ServiceList = () => {
     setShowCreate(false);
     fetchServices();
   };
-  const openDeleteModal = (service) => {
-    setSelectedService(service);
-    setShowDelete(true);
-  };
-  const closeDeleteModal = () => {
-    setShowDelete(false);
-    setSelectedService(null);
-  };
-  const handleDeleteSuccess = () => {
-    setShowDelete(false);
-    setSelectedService(null);
-    fetchServices();
-  };
 
   return (
     <>
-      <article className="w-full h-full flex flex-col gap-4 items-center justify-between relative">
-        <h4
-          style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
-          className="rounded-b-2xl bg-white font-zain-extrabold p-4 w-1/3 text-3xl text-center"
-        >
-          Listado de Servicios
-        </h4>
-
+      <div className="w-full flex flex-col gap-4">
         {isAdmin && (
-          <div className="w-full flex justify-end px-4">
+          <div className="w-full flex justify-end">
             <button
               onClick={openCreateModal}
-              className="bg-pink-400 hover:bg-pink-600 text-white py-2 px-4 rounded-lg shadow-md"
+              className="px-5 py-2 bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
             >
               Crear Servicio
             </button>
           </div>
         )}
-
-        <div className="w-full h-full flex-1  flex flex-col py-5 items-center justify-center overflow-scroll">
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           {loading && <Loading fullscreen={false} />}
           {!loading && services.length === 0 && (
-            <>
-              <h2 className="text-center text-2xl font-bold">
-                No hay habitaciones registradas
+            <div className="text-center py-8">
+              <h2 className="text-lg font-semibold text-gray-600">
+                No hay servicios registrados
               </h2>
-            </>
+            </div>
           )}
 
           {!loading && services.length > 0 && (
-            <>
-              <div
-                style={{
-                  boxShadow: "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px",
-                }}
-                className="w-1/2 max-w-8xl h-full mx-auto p-4 bg-white rounded-3xl"
-              >
-                <div
-                  className={
-                    `grid gap-2 mb-4 text-center font-bold ` +
-                    (isAdmin ? "grid-cols-4" : "grid-cols-3")
-                  }
-                >
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    ID
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Servicio
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Precio
-                  </h5>
-                </div>
-
-                <hr />
-                {services.map((service) => {
-                  return (
-                    <div
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      ID
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Service
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Price
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {services.map((service) => (
+                    <tr
                       key={service.id}
-                      className={
-                        `grid gap-4 items-center py-4 mb-4 rounded-lg shadow ` +
-                        (isAdmin ? "grid-cols-4" : "grid-cols-3")
-                      }
+                      onClick={() => isAdmin && openDetailPanel(service)}
+                      className={`border-b border-gray-100 transition-colors ${
+                        isAdmin ? "cursor-pointer hover:bg-gray-50" : ""
+                      }`}
                     >
-                      <h5 className="col-span-1 flex items-center justify-center">
-                        {service.id}
-                      </h5>
-                      <h5 className="col-span-1 flex items-center justify-center">
+                      <td className="py-2 px-3 text-sm text-gray-600">{service.id}</td>
+                      <td className="py-2 px-3 text-sm text-gray-900 font-medium">
                         {service.name}
-                      </h5>
-                      <h5 className="col-span-1 flex items-center justify-center">
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-600">
                         ${service.price}
-                      </h5>
-                      {isAdmin && (
-                        <div className="flex justify-center space-x-4">
-                          <button
-                            onClick={() => openUpdate(svc)}
-                            className="text-blue-500 hover:text-blue-700"
-                          >
-                            <BsPencilSquare size={20} />
-                          </button>
-                          <button
-                            onClick={() => openDelete(svc)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <AiFillDelete size={20} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
+      </div>
         {isAdmin && showCreate && (
           <RegisterServiceType
+            isOpen={showCreate}
             onClose={closeCreateModal}
             onSuccess={handleCreateSuccess}
           />
         )}
-        {isAdmin && showUpdate && (
-          <UpdateServiceType
+        {isAdmin && showDetailPanel && (
+          <ServiceDetailPanel
+            isOpen={showDetailPanel}
             service={selectedService}
-            onClose={closeUpdateModal}
-            onSuccess={handleUpdateSuccess}
+            onClose={closeDetailPanel}
+            onSuccess={handleDetailSuccess}
           />
         )}
-        {isAdmin && showDelete && (
-          <DeleteServiceType
-            service={selectedService}
-            onClose={closeDeleteModal}
-            onSuccess={handleDeleteSuccess}
-          />
-        )}
-      </article>
     </>
   );
 };
