@@ -201,14 +201,17 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         
         // Notificar actualización vía WebSocket
         InventoryItemResponse response = InventoryItemMapper.toResponse(savedItem);
+        System.out.println("WebSocket: Enviando notificación de actualización para item ID: " + savedItem.getId() + ", cantidad: " + savedItem.getQuantity());
         webSocketController.notifyInventoryUpdate(response);
         
         // Si el stock está bajo, notificar también
         if (savedItem.getQuantity() < savedItem.getMinimumStock()) {
+            System.out.println("WebSocket: Enviando notificación de stock bajo para item ID: " + savedItem.getId());
             webSocketController.notifyLowStock(response);
         }
         
         // Notificar actualización general de la lista
+        System.out.println("WebSocket: Enviando notificación de actualización de lista");
         webSocketController.notifyInventoryListUpdate();
     }
 

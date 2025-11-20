@@ -81,7 +81,11 @@ public class InventoryController {
         Integer userId = (Integer) request.get("userId");
         Action action = Action.valueOf((String) request.get("action"));
         
+        System.out.println("InventoryController: Recibida petición updateItemQuantityWithLog - ID: " + id + ", cantidad: " + quantity + ", userId: " + userId + ", action: " + action);
+        
         inventoryService.updateItemQuantityWithLog(id, quantity, userId, action);
+        
+        System.out.println("InventoryController: updateItemQuantityWithLog completado exitosamente");
         return buildResponse("Cantidad actualizada con log", HttpStatus.OK, null);
     }
 
