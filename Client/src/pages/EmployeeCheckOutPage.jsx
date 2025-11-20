@@ -10,8 +10,6 @@ import {
 } from "../service/api.services";
 
 import { toast } from "react-toastify";
-import PaymentProcessing from "../components/Booking/PaymentProcessing";
-import PaymentProcessingCash from "../components/Booking/PaymentProcessingCash"; // 👈 AÑADIDO
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 
@@ -23,8 +21,6 @@ const EmployeeCheckOutPage = () => {
   const [user, setUser] = useState(null);
   const [room, setRoom] = useState(null);
   const [services, setServices] = useState([]);
-  const [processing, setProcessing] = useState(null); // 👈 ahora puede ser "cash" o "card"
-
   const [card, setCard] = useState({ number: "", expiry: "", cvv: "" });
 
   const normalizeDate = (dateStr) => dateStr?.split("T")[0];
@@ -89,18 +85,22 @@ const EmployeeCheckOutPage = () => {
     });
   };
 
+  const handleEmptyServicesCheckout = async () => {
+    try {
+      await updateBookingToCancelled();
+      await updateRoomToAvailable();
+      navigate("/employee");
+    } catch (err) {
+      toast.error("Error realizando el check-out");
+    }
+  };
 
   const handleCashPayment = async () => {
     try {
-      setProcessing("cash"); 
-
       await updateBookingToCancelled();
       await updateRoomToAvailable();
-
-         setTimeout(() => (window.location.href = "/employee"), 2500);
+      navigate("/employee");
     } catch (err) {
-      console.log(err);
-      setProcessing(null);
       toast.error("Error con pago en efectivo");
     }
   };
@@ -120,25 +120,17 @@ const EmployeeCheckOutPage = () => {
         cvv: card.cvv
       });
 
-      setProcessing("card"); // 👈 aquí ponemos card
-
       await updateBookingToCancelled();
       await updateRoomToAvailable();
 
-      setTimeout(() => (window.location.href = "/employee"), 2500);
+      navigate("/employee");
     } catch (err) {
-      console.log(err);
-      setProcessing(null);
       toast.error("Error pagando con tarjeta");
     }
   };
 
   return (
     <div className="min-h-screen bg-[#eee9df] flex flex-col items-center p-10">
-
-      {/* MODAL SEGÚN TIPO DE PAGO */}
-      {processing === "cash" && <PaymentProcessingCash onFinish={() => { }} />}
-      {processing === "card" && <PaymentProcessing onFinish={() => { }} />}
 
       <h1 className="text-4xl font-bold mb-10">Employee Check-Out</h1>
 
@@ -183,91 +175,101 @@ const EmployeeCheckOutPage = () => {
           <h3 className="text-xl font-semibold mt-6">Servicios Consumidos</h3>
 
           {services.length === 0 ? (
-            <p className="italic text-gray-600 mt-2">
-              No hay servicios registrados.
-            </p>
-          ) : (
-            <table className="w-full mt-3">
-              <thead>
-                <tr className="border-b">
-                  <th className="py-2">Servicio</th>
-                  <th className="py-2 text-right">Precio</th>
-                </tr>
-              </thead>
-              <tbody>
-                {services.map((s, i) => (
-                  <tr key={i} className="border-b">
-                    <td className="py-2">{s.name}</td>
-                    <td className="py-2 text-right">
-                      ${s.price.toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-
-          <div className="mt-8 p-6 bg-[#f7f6f3] rounded-xl">
-            <div className="flex justify-between">
-              <span>Subtotal:</span>
-              <span>${subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>IVA (13%):</span>
-              <span>${iva.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between font-bold text-lg mt-2">
-              <span>Total:</span>
-              <span>${total.toFixed(2)}</span>
-            </div>
-          </div>
-
-          {/* MÉTODOS DE PAGO */}
-          <div className="mt-6 flex flex-col gap-4">
-
-            {/* EFECTIVO */}
-            <button
-              onClick={handleCashPayment}
-              className="w-full bg-[#d4bf92] hover:bg-[#b99f6c] transition text-white py-3 rounded-full font-semibold shadow-lg"
-            >
-              Pago en Efectivo
-            </button>
-
-            {/* TARJETA */}
-            <div className="border p-6 rounded-xl bg-[#faf9f7] shadow-inner">
-              <p className="font-semibold mb-4 text-gray-700 text-[17px]">
-                Pago con Tarjeta
+            <div className="mt-4 flex flex-col items-center">
+              <p className="italic text-gray-600 mb-4">
+                No hay servicios registrados para esta reserva.
               </p>
 
-              <input
-                className="border p-3 w-full mb-4 rounded-lg focus:ring-2 focus:ring-[#d4bf92]"
-                placeholder="Número de Tarjeta"
-                onChange={(e) => setCard({ ...card, number: e.target.value })}
-              />
-
-              <div className="flex gap-4">
-                <input
-                  className="border p-3 w-full mb-4 rounded-lg focus:ring-2 focus:ring-[#d4bf92]"
-                  placeholder="MM/YY"
-                  onChange={(e) => setCard({ ...card, expiry: e.target.value })}
-                />
-
-                <input
-                  className="border p-3 w-full mb-4 rounded-lg focus:ring-2 focus:ring-[#d4bf92]"
-                  placeholder="CVV"
-                  onChange={(e) => setCard({ ...card, cvv: e.target.value })}
-                />
-              </div>
-
               <button
-                onClick={handleCardPayment}
-                className="w-full bg-[#d4bf92] hover:bg-[#b99f6c] transition text-white py-3 rounded-full font-semibold shadow-lg"
+                onClick={handleEmptyServicesCheckout}
+                className="bg-[#d4bf92] hover:bg-[#b99f6c] transition text-white 
+                           py-3 px-10 rounded-full font-semibold shadow-lg"
               >
-                Pagar con Tarjeta
+                Realizar Check-Out
               </button>
             </div>
+          ) : (
+            <>
+              <table className="w-full mt-3">
+                <thead>
+                  <tr className="border-b">
+                    <th className="py-2">Servicio</th>
+                    <th className="py-2 text-right">Precio</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {services.map((s, i) => (
+                    <tr key={i} className="border-b">
+                      <td className="py-2">{s.name}</td>
+                      <td className="py-2 text-right">${s.price.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
 
-          </div>
+              <div className="mt-8 p-6 bg-[#f7f6f3] rounded-xl">
+                <div className="flex justify-between">
+                  <span>Subtotal:</span>
+                  <span>${subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>IVA (13%):</span>
+                  <span>${iva.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-lg mt-2">
+                  <span>Total:</span>
+                  <span>${total.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-col gap-4">
+
+                {}
+                <button
+                  onClick={handleCashPayment}
+                  className="w-full bg-[#d4bf92] hover:bg-[#b99f6c] transition text-white py-3 rounded-full font-semibold shadow-lg"
+                >
+                  Pago en Efectivo
+                </button>
+
+                {}
+                <div className="border p-6 rounded-xl bg-[#faf9f7] shadow-inner">
+                  <p className="font-semibold mb-4 text-gray-700 text-[17px]">
+                    Pago con Tarjeta
+                  </p>
+
+                  <input
+                    className="border p-3 w-full mb-4 rounded-lg focus:ring-2 focus:ring-[#d4bf92]"
+                    placeholder="Número de Tarjeta"
+                    onChange={(e) => setCard({ ...card, number: e.target.value })}
+                  />
+
+                  <div className="flex gap-4">
+                    <input
+                      className="border p-3 w-full mb-4 rounded-lg focus:ring-2 focus:ring-[#d4bf92]"
+                      placeholder="MM/YY"
+                      onChange={(e) => setCard({ ...card, expiry: e.target.value })}
+                    />
+
+                    <input
+                      className="border p-3 w-full mb-4 rounded-lg focus:ring-2 focus:ring-[#d4bf92]"
+                      placeholder="CVV"
+                      onChange={(e) => setCard({ ...card, cvv: e.target.value })}
+                    />
+                  </div>
+
+                  <button
+                    onClick={handleCardPayment}
+                    className="w-full bg-[#d4bf92] hover:bg-[#b99f6c] transition text-white py-3 rounded-full font-semibold shadow-lg"
+                  >
+                    Pagar con Tarjeta
+                  </button>
+                </div>
+
+              </div>
+            </>
+          )}
+
         </div>
       )}
     </div>
