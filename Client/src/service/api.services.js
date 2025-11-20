@@ -802,3 +802,11 @@ export const deleteRoomTypeReview = async (roomTypeId, reviewId) => {
     throw error.response ? error.response.data : error;
   }
 };
+
+export const getRoomTypeReviewsSummary = async (roomTypeId) => {
+  try {
+    return await apiClient.get(`/room_type/${roomTypeId}/reviews/summary`);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};

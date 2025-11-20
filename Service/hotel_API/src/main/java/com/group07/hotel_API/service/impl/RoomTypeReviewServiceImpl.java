@@ -1,6 +1,7 @@
 package com.group07.hotel_API.service.impl;
 
 import com.group07.hotel_API.dto.request.review.RoomTypeReviewRequest;
+import com.group07.hotel_API.dto.response.review.ReviewSummary;
 import com.group07.hotel_API.dto.response.review.RoomTypeReviewResponse;
 import com.group07.hotel_API.entities.RoomType;
 import com.group07.hotel_API.entities.UserClient;
@@ -37,6 +38,22 @@ public class RoomTypeReviewServiceImpl implements RoomTypeReviewService {
                 .stream()
                 .map(this::toDto)
                 .toList();
+    }
+
+    @Override
+    public ReviewSummary getSummaryByRoomType(Integer roomTypeId) {
+        // validar existencia del tipo
+        roomTypeRepo.findById(roomTypeId)
+                .orElseThrow(() -> new RoomTypeNotFoundException("Room type not found: " + roomTypeId));
+
+        long count = reviewRepo.countByRoomTypeId(roomTypeId);
+        Double avg = reviewRepo.averageRatingByRoomTypeId(roomTypeId);
+        // redondea a 1 decimal si no es null
+        Double rounded = null;
+        if (avg != null) {
+            rounded = Math.round(avg * 10.0) / 10.0;
+        }
+        return new ReviewSummary(count, rounded);
     }
 
     @Override
