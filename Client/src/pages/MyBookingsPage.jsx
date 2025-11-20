@@ -42,10 +42,8 @@ const MyBookingsPage = () => {
     const bookingRes = await getUserBookings(userId);
     const fetched = bookingRes.data.data;
 
-    const filtered = fetched.filter((b) => b.status !== "CANCELLED");
-
     const roomMap = {};
-    for (const b of filtered) {
+    for (const b of fetched) {
       if (!roomMap[b.roomId]) {
         const r = await getRoomById(b.roomId);
         roomMap[b.roomId] = r.data.data;
@@ -53,7 +51,7 @@ const MyBookingsPage = () => {
     }
 
     setRooms(roomMap);
-    setBookings(filtered);
+    setBookings(fetched);
   };
 
   useEffect(() => {
@@ -72,10 +70,7 @@ const MyBookingsPage = () => {
   const getNights = (ci, co) => {
     const start = new Date(ci);
     const end = new Date(co);
-    return Math.max(
-      1,
-      Math.ceil((end - start) / (1000 * 60 * 60 * 24))
-    );
+    return Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
   };
 
   const handleCancel = async (id) => {
@@ -90,7 +85,6 @@ const MyBookingsPage = () => {
 
       setShowCancelModal(false);
       setBookingToCancel(null);
-
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -116,7 +110,6 @@ const MyBookingsPage = () => {
       setShowModal(false);
       setSelectedBooking(null);
       setLoading(false);
-
     } catch (e) {
       const msg =
         e?.message ||
@@ -227,7 +220,6 @@ const MyBookingsPage = () => {
               </p>
 
               <div className="mt-6 flex flex-col space-y-3">
-
                 {b.status === "PENDING" && (
                   <button
                     onClick={() => openChangeDates(b)}
@@ -278,7 +270,6 @@ const MyBookingsPage = () => {
           onConfirm={handleCancel}
         />
       )}
-
     </div>
   );
 };

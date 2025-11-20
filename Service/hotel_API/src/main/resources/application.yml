@@ -45,7 +45,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/SpringHotelBD
     username: postgres
-    password: admin
+    password: superuser
     driver-class-name: org.postgresql.Driver
 
   jpa:

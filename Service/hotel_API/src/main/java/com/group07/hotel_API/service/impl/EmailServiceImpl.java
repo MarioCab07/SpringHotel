@@ -1,6 +1,7 @@
 package com.group07.hotel_API.service.impl;
 
 
+import com.group07.hotel_API.configuration.EnterpriseProperties;
 import com.group07.hotel_API.service.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -16,6 +17,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
     private final JavaMailSender mailSender;
+    private final EnterpriseProperties  enterpriseProperties;
 
     @Async("mailExecutor")
     @Override
@@ -28,7 +30,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(text);
-            helper.setFrom("lumehotelsuites@gmail.com");
+            helper.setFrom(enterpriseProperties.getEmail());
 
             helper.addAttachment(fileName,new ByteArrayResource(pdfBytes));
 
@@ -36,6 +38,25 @@ public class EmailServiceImpl implements EmailService {
         }catch(MessagingException e){
             throw new RuntimeException("Error sending PDF email: " + e.getMessage());
         }
+    }
+
+    @Async("mailExecutor")
+    @Override
+    public void sendSimpleEmail(String to, String subject, String text){
+        try{
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(text);
+            message.setFrom(enterpriseProperties.getEmail());
+
+            mailSender.send(message);
+        }catch(Exception e){
+            throw new RuntimeException("Error sending PDF email: " + e.getMessage());
+        }
+
+
+
     }
 
 }

@@ -1,5 +1,5 @@
-import { FaChevronRight } from "react-icons/fa";
-const InventoryCategoryCard = ({ title, productCount, unavailableCount, selected, onClick }) => {
+import { FaChevronRight, FaExclamationTriangle } from "react-icons/fa";
+const InventoryCategoryCard = ({ title, productCount, unavailableCount, lowStockCount = 0, selected, onClick }) => {
   return (
     <div
       onClick={onClick}
@@ -15,6 +15,14 @@ const InventoryCategoryCard = ({ title, productCount, unavailableCount, selected
       </div>
 
       <div className="flex items-center gap-2">
+        {lowStockCount > 0 && (
+          <span 
+            className="w-8 h-8 text-xs font-semibold text-center bg-red-100 text-red-700 rounded-full flex items-center justify-center border-2 border-red-300"
+            title={`${lowStockCount} artículo${lowStockCount !== 1 ? 's' : ''} con stock bajo`}
+          >
+            <FaExclamationTriangle className="text-red-600" size={12} />
+          </span>
+        )}
         {unavailableCount > 0 && (
           <span className="w-8 h-8 text-xs font-semibold text-center bg-red-100 text-red-700 rounded-full flex items-center justify-center">
             {unavailableCount}
