@@ -3,6 +3,9 @@ package com.group07.hotel_API.service.impl;
 import com.group07.hotel_API.dto.request.review.RoomTypeReviewRequest;
 import com.group07.hotel_API.dto.response.review.RoomTypeReviewResponse;
 import com.group07.hotel_API.entities.RoomType;
+import com.group07.hotel_API.entities.UserClient;
+import com.group07.hotel_API.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.group07.hotel_API.entities.RoomTypeReview;
 import com.group07.hotel_API.exception.room_type.RoomTypeNotFoundException;
 import com.group07.hotel_API.exception.review.ReviewNotAllowedException;
@@ -23,10 +26,10 @@ public class RoomTypeReviewServiceImpl implements RoomTypeReviewService {
 
     private final RoomTypeReviewRepository reviewRepo;
     private final RoomTypeRepository roomTypeRepo;
+    private final UserRepository userRepository;
 
     @Override
     public List<RoomTypeReviewResponse> listByRoomType(Integer roomTypeId) {
-        // valida existencia del tipo de habitación (si no existe -> 404 via excepción)
         roomTypeRepo.findById(roomTypeId)
                 .orElseThrow(() -> new RoomTypeNotFoundException("Room type not found: " + roomTypeId));
 
@@ -42,12 +45,11 @@ public class RoomTypeReviewServiceImpl implements RoomTypeReviewService {
         RoomType rt = roomTypeRepo.findById(roomTypeId)
                 .orElseThrow(() -> new RoomTypeNotFoundException("Room type not found: " + roomTypeId));
 
-        // VALIDACIONES: evitar doble reseña por usuario (1 reseña por user por room_type)
+
         if (reviewRepo.existsByRoomType_IdAndUserId(roomTypeId, userId)) {
             throw new ReviewNotAllowedException("User already reviewed this room type");
         }
 
-        // construir entidad y guardar
         RoomTypeReview rev = RoomTypeReview.builder()
                 .roomType(rt)
                 .userId(userId)
@@ -74,12 +76,24 @@ public class RoomTypeReviewServiceImpl implements RoomTypeReviewService {
         reviewRepo.delete(r);
     }
 
-    // -------------------------
-    // Helper: mapea entidad -> DTO
     private RoomTypeReviewResponse toDto(RoomTypeReview e) {
+        // Busca el usuario por id y obtiene su username (si existe)
+        String username = "Usuario";
+        try {
+            if (e.getUserId() != null) {
+                UserClient user = userRepository.findById(e.getUserId()).orElse(null);
+                if (user != null && user.getUsername() != null && !user.getUsername().isBlank()) {
+                    username = user.getUsername();
+                }
+            }
+        } catch (Exception ex) {
+
+        }
+
         return RoomTypeReviewResponse.builder()
                 .id(e.getId())
                 .userId(e.getUserId())
+                .userName(username)
                 .rating(e.getRating() != null ? e.getRating().intValue() : null)
                 .comment(e.getComment())
                 .createdAt(e.getCreatedAt())

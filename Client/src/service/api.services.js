@@ -749,4 +749,28 @@ export const getMaterialRequestById = async (id) => {
 };
 
 
+export const getRoomTypeReviews = async (roomTypeId) => {
+  try {
+    return await apiClient.get(`/room_type/${roomTypeId}/reviews`);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
 
+export const createRoomTypeReview = async (roomTypeId, body) => {
+  try {
+    return await apiClient.post(`/room_type/${roomTypeId}/reviews`, body, {
+      headers: { "Content-Type": "application/json" }
+    });
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const deleteRoomTypeReview = async (roomTypeId, reviewId) => {
+  try {
+    return await apiClient.delete(`/room_type/${roomTypeId}/reviews/${reviewId}`);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
