@@ -2,6 +2,7 @@ import BookNowButton from "../components/Buttons/BookNowButtom";
 import UserMenu from "../components/UserMenu";
 import RoomBookingCard from "../components/Booking/RoomBookingCard";
 import logo from "../assets/Logo.png";
+import ReviewList from "../components/Reviews/ReviewList";
 
 const RoomBookingDetail = () => {
   return (
