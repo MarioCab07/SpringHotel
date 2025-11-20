@@ -10,6 +10,8 @@ public class InventoryItemResponse {
     private String name;
     private String type;
     private int quantity;
+    private int minimumStock;
+    private boolean isLowStock;
     private String status;
     private Long categoryId;
     private String categoryName;
