@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import MUIDataTable from "mui-datatables";
-import UserMenu from "../components/UserMenu";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 import {
   getAllBookings,
   getRoomById,
-  GetUser
+  GetUser,
 } from "../service/api.services";
 
 const ReservationsPage = () => {
@@ -96,8 +95,8 @@ const ReservationsPage = () => {
 
   const options = {
     selectableRows: "none",
-    elevation: 3,
-    rowsPerPage: 5,
+    elevation: 0,
+    rowsPerPage: 5, // FIX ERROR
     rowsPerPageOptions: [5, 10, 20],
     search: true,
     filter: true,
@@ -106,50 +105,48 @@ const ReservationsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#D6ECF7] py-10">
-      
+    <div className="min-h-screen bg-white px-4 md:px-6 lg:px-8 py-6">
+
       {}
-      <div className="max-w-6xl mx-auto flex justify-between items-center mb-6 px-4">
-        <h1 className="text-3xl font-bold">Active Reservations</h1>
-
-        <div className="flex gap-3">
-
-          {}
-          <button
-            onClick={() => navigate("/employee/check-in")}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-full"
-          >
-            Check-In
-          </button>
-
-          {}
-          <button
-            onClick={() => navigate("/employee/check-out")}
-            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full"
-          >
-            Check-Out
-          </button>
-        </div>
+      <div className="mb-6">
+        <p className="text-gray-500 text-sm">
+          View all active reservations in real time
+        </p>
       </div>
 
       {}
-      <div className="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-xl">
+      <div className="flex justify-end gap-3 mb-4">
+
+        {}
+        <button
+          onClick={() => navigate("/employee/check-in")}
+          className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-white px-7 py-2.5 rounded-full shadow-md transition font-light"
+        >
+          Check-In
+        </button>
+
+        {}
+        <button
+          onClick={() => navigate("/employee/check-out")}
+          className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-white px-7 py-2.5 rounded-full shadow-md transition font-light"
+        >
+          Check-Out
+        </button>
+
+      </div>
+
+      {}
+      <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
         <MUIDataTable
-          title={"Reservations"}
+          title={
+            <span className="text-xl font-semibold text-gray-700">
+              Active Reservations
+            </span>
+          }
           data={rows}
           columns={columns}
           options={options}
         />
-      </div>
-
-      {}
-      <div className="flex justify-center mt-10">
-        <button
-          className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] px-8 py-3 rounded-full"
-          onClick={() => (window.location.href = "/admin")}
-        >
-          Back to Menu
-        </button>
       </div>
     </div>
   );
