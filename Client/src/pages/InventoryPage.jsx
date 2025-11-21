@@ -165,6 +165,9 @@ const InventoryPage = () => {
     }
   }, []);
 
+  // Ref para el debounce del toast
+  const toastTimeoutRef = useRef(null);
+  
   // Callbacks para WebSocket - sin dependencias para mantener referencia estable
   const handleInventoryUpdate = useCallback((updatedItem) => {
     // Normalizar el ID para comparación (puede venir como número o string)
@@ -211,11 +214,20 @@ const InventoryPage = () => {
       });
     }
     
-    // Mostrar notificación de actualización
-    toast.info(`Inventario actualizado: ${updatedItem.name}`, {
-      position: "top-right",
-      autoClose: 2000,
-    });
+    // Debounce del toast: agrupa múltiples actualizaciones y muestra un solo toast
+    // Si ya hay un timeout pendiente, lo cancelamos
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    
+    // Crear un nuevo timeout que mostrará el toast después de 300ms de inactividad
+    toastTimeoutRef.current = setTimeout(() => {
+      toast.info("Inventario actualizado", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+      toastTimeoutRef.current = null;
+    }, 300);
   }, []); // Sin dependencias - usar refs para valores que cambian
 
   const handleLowStockAlert = useCallback((item) => {
@@ -238,6 +250,16 @@ const InventoryPage = () => {
 
   // Conectar WebSocket
   useInventoryWebSocket(handleInventoryUpdate, handleLowStockAlert, handleListUpdate);
+
+  // Cleanup del timeout del toast al desmontar el componente
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+        toastTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     fetchDataMemo();
