@@ -26,5 +26,11 @@ public interface BookingService {
     BookingResponse modify(int id, BookingModifyRequest booking);
     List<BookingServiceItemResponse> getServicesForBooking(Integer bookingId);
     List<com.group07.hotel_API.dto.response.Booking.BookingHistoryResponse> getBookingHistory(Integer userId);
+    
+    // Admin methods
+    List<com.group07.hotel_API.dto.response.Booking.BookingHistoryResponse> getAllBookingHistory();
+    com.group07.hotel_API.dto.response.Booking.BookingHistoryResponse updateBookingHistory(Integer bookingId, com.group07.hotel_API.dto.request.Booking.BookingHistoryUpdateRequest request);
+    void deleteBookingHistoryRecord(Integer bookingId);
+    com.group07.hotel_API.dto.response.Ticket.TicketResponse recalculateInvoice(Integer bookingId);
 
 }

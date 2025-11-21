@@ -75,7 +75,35 @@ public class BookingController {
         var bookings = bookingService.getUserBookings(id);
         return buildResponse("Bookings loaded successfully", HttpStatus.OK, bookings);
     }
-        
+
+        @GetMapping("/history/{userId}")
+        @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'EMPLOYEE')")
+        public ResponseEntity<GeneralResponse> getBookingHistory(
+                @PathVariable int userId,
+                HttpServletRequest request) {
+            // Validar que usuarios solo puedan ver su propio historial
+            if (request != null) {
+                String token = getTokenFromRequest(request);
+                if (token != null) {
+                    try {
+                        var authenticatedUser = authService.getUserDetails(token);
+                        // Si es USER, solo puede ver su propio historial
+                        if (authenticatedUser.getRole().equals("USER") && !authenticatedUser.getUserId().equals(userId)) {
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                    .body(GeneralResponse.builder()
+                                            .message("Access denied. You can only view your own booking history.")
+                                            .status(HttpStatus.FORBIDDEN.value())
+                                            .data(null)
+                                            .build());
+                        }
+                    } catch (Exception e) {
+                        // Si hay error obteniendo el usuario, continuar (puede ser ADMIN/EMPLOYEE)
+                    }
+                }
+            }
+            var history = bookingService.getBookingHistory(userId);
+            return buildResponse("Booking history retrieved successfully", HttpStatus.OK, history);
+        }
         @GetMapping("/active")
         @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE','CLEANING_STAFF', 'USER')")
         public ResponseEntity<GeneralResponse> getActiveBookings() {
@@ -102,35 +130,6 @@ public class BookingController {
     public ResponseEntity<GeneralResponse> checkOut(@PathVariable int userId) {
         BookingResponse response = bookingService.checkOut(userId);
         return buildResponse("Check-out successfully", HttpStatus.OK, response);
-    }
-
-    @GetMapping("/history/{userId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'EMPLOYEE')")
-    public ResponseEntity<GeneralResponse> getBookingHistory(
-            @PathVariable("userId") int userId,
-            HttpServletRequest request) {
-        // Validar que usuarios solo puedan ver su propio historial
-        if (request != null) {
-            String token = getTokenFromRequest(request);
-            if (token != null) {
-                try {
-                    var authenticatedUser = authService.getUserDetails(token);
-                    // Si es USER, solo puede ver su propio historial
-                    if (authenticatedUser.getRole().equals("USER") && !authenticatedUser.getUserId().equals(userId)) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(GeneralResponse.builder()
-                                        .message("Access denied. You can only view your own booking history.")
-                                        .status(HttpStatus.FORBIDDEN.value())
-                                        .data(null)
-                                        .build());
-                    }
-                } catch (Exception e) {
-                    // Si hay error obteniendo el usuario, continuar (puede ser ADMIN/EMPLOYEE)
-                }
-            }
-        }
-        var history = bookingService.getBookingHistory(userId);
-        return buildResponse("Booking history retrieved successfully", HttpStatus.OK, history);
     }
 
     @GetMapping()
@@ -172,6 +171,37 @@ public class BookingController {
     public ResponseEntity<?> getServices(@PathVariable Integer id) {
         List<BookingServiceItemResponse> list = bookingService.getServicesForBooking(id);
         return ResponseEntity.ok(list);  // Devuelve [] si no hay servicios
+    }
+
+    // ADMIN ENDPOINTS FOR BOOKING HISTORY MANAGEMENT
+    @GetMapping("/admin/history")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse> getAllBookingHistory() {
+        var history = bookingService.getAllBookingHistory();
+        return buildResponse("All booking history retrieved successfully", HttpStatus.OK, history);
+    }
+
+    @PutMapping("/admin/history/{bookingId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse> updateBookingHistory(
+            @PathVariable Integer bookingId,
+            @Valid @RequestBody com.group07.hotel_API.dto.request.Booking.BookingHistoryUpdateRequest request) {
+        var updated = bookingService.updateBookingHistory(bookingId, request);
+        return buildResponse("Booking history updated successfully", HttpStatus.OK, updated);
+    }
+
+    @DeleteMapping("/admin/history/{bookingId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse> deleteBookingHistoryRecord(@PathVariable Integer bookingId) {
+        bookingService.deleteBookingHistoryRecord(bookingId);
+        return buildResponse("Booking history record deleted successfully", HttpStatus.OK, null);
+    }
+
+    @PostMapping("/admin/history/{bookingId}/recalculate-invoice")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse> recalculateInvoice(@PathVariable Integer bookingId) {
+        var ticket = bookingService.recalculateInvoice(bookingId);
+        return buildResponse("Invoice recalculated successfully", HttpStatus.OK, ticket);
     }
 
 

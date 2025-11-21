@@ -34,7 +34,16 @@ const UserMenu = () => {
           My Bookings
         </button>
 
-            <button
+        <button
+          onClick={() => navigate("/booking-history")}
+          className={`transition-colors duration-200 ${
+            isActive("/booking-history") ? "text-[#bfa166]" : "text-[#1a1a1a] hover:text-[#bfa166]"
+          }`}
+        >
+          History
+        </button>
+
+        <button
           onClick={() => navigate("/profile")}
           className={`transition-colors duration-200 ${
             isActive("/profile") ? "text-[#bfa166]" : "text-[#1a1a1a] hover:text-[#bfa166]"

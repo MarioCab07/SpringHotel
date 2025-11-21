@@ -13,6 +13,7 @@ import RoomDetailServicePage from "./components/RoomStatus/RoomDetailStatus";
 import ProtectedRoutes from "./components/ProtectedRoutes";
 import LandingPage from "./pages/LandingPage";
 import MyBookingsPage from "./pages/MyBookingsPage";
+import BookingHistoryPage from "./pages/BookingHistoryPage";
 import ProfilePage from "./pages/ProfilePage";
 import EditProfilePage from "./pages/EditProfilePage";
 import EmployeePage from "./pages/EmployeePage";
@@ -24,6 +25,7 @@ import ReservationsPage from "./pages/ReservationPage";
 import EmployeeCheckInPage from "./pages/EmployeeCheckInPage";
 import EditInventoryPage from "./components/EditInventoryPage";
 import EmployeeCheckOutPage from "./pages/EmployeeCheckOutPage";
+import AdminBookingHistoryPage from "./pages/AdminBookingHistoryPage";
 
 
 function App() {
@@ -40,6 +42,7 @@ function App() {
             {/* ADMIN ONLY */}
             <Route element={<ProtectedRoutes allowedRoles={["ADMIN"]} />}>
               <Route path="/admin" element={<AdminPage />} />
+              <Route path="/admin/booking-history" element={<AdminBookingHistoryPage />} />
             </Route>
 
             {/* EMPLOYEE + ADMIN */}
@@ -69,6 +72,7 @@ function App() {
             <Route element={<ProtectedRoutes allowedRoles={["USER", "EMPLOYEE"]} />}>
               <Route path="/rooms" element={<RoomPage />} />
               <Route path="/my-bookings" element={<MyBookingsPage />} />
+              <Route path="/booking-history" element={<BookingHistoryPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/edit-profile" element={<EditProfilePage />} />
               <Route path="/bookings/:id" element={<UserService />} />

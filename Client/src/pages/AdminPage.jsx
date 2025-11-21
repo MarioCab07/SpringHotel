@@ -7,6 +7,7 @@ import BookingList from "../components/Admin/BookingList";
 import ServiceList from "../components/Admin/ServiceList";
 import RoomStatusPage from "./RoomStatusPage";
 import InventoryPage from "./InventoryPage";
+import AdminBookingHistoryPage from "./AdminBookingHistoryPage";
 import AdminHeader from "../components/Admin/AdminHeader";
 import AdminBanner from "../components/Admin/AdminBanner";
 
@@ -23,8 +24,13 @@ const AdminPage = () => {
       Services: "Services Management",
       Inventory: "Inventory Management",
       "Room Status": "Room Status",
+      "Booking History": "Booking History Management",
     };
     return titles[option] || option;
+  };
+
+  const handleOptionChange = (newOption) => {
+    setOption(newOption);
   };
 
 
@@ -38,7 +44,7 @@ const AdminPage = () => {
         />
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="w-full lg:w-auto">
-            <SideBar option={option} setOption={setOption} />
+            <SideBar option={option} setOption={handleOptionChange} />
           </div>
           <section className="flex-1 w-full">
             {option === "Customers" && <ClientsList />}
@@ -48,6 +54,7 @@ const AdminPage = () => {
             {option === "Services" && <ServiceList />}
             {option === "Room Status" && <RoomStatusPage />}
             {option === "Inventory" && <InventoryPage />}
+            {option === "Booking History" && <AdminBookingHistoryPage />}
           </section>
         </div>
       </div>
