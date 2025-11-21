@@ -22,19 +22,14 @@ const InvoiceComponent = ({ booking, user, room, info, onClose }) => {
   };
 
   return (
-    <article className="min-h-screen bg-white py-12">
-      {}
-      <header className="flex justify-between items-center px-12 py-6 border-b">
-        <h1 className="text-2xl font-serif tracking-wide">LUMÉ HOTEL & SUITES</h1>
+    <article className="min-h-screen bg-white py-2.5">
+      <header>
         <UserMenu />
       </header>
 
-      <h2 className="text-2xl font-semibold px-16 mt-8">Reservations</h2>
-
-      {}
       <div className="max-w-xl mx-auto mt-10 bg-white shadow-lg rounded-2xl p-10 border">
 
-        {}
+        {/* HEADER */}
         <div className="text-center">
           <h2 className="text-xl font-serif tracking-wide">
             LUMÉ HOTEL & SUITES
@@ -46,51 +41,38 @@ const InvoiceComponent = ({ booking, user, room, info, onClose }) => {
           </div>
         </div>
 
-        {}
         <h3 className="text-center text-lg mt-6 font-semibold">Booking</h3>
 
+        {/* CONTENT */}
         <div className="mt-8 space-y-4 text-[15px]">
-          <p>
-            <strong>Name:</strong> {user.fullName}
-          </p>
-          <p>
-            <strong>Email:</strong> {user.email}
-          </p>
-          <p>
-            <strong>Phone Number:</strong> {user.phoneNumber}
-          </p>
+          
+          <p><strong>Name:</strong> {user.fullName}</p>
+          <p><strong>Email:</strong> {user.email}</p>
+          <p><strong>Phone Number:</strong> {user.phoneNumber}</p>
 
-          {}
-          <p className="pt-4">
-            <strong>Type:</strong> {room.roomType.name}
-          </p>
+          {/* 🔥 TWO-COLUMN SECTION (igual que la otra card) */}
+          <div className="grid grid-cols-2 gap-4 pt-4">
+            {/* LEFT */}
+            <div className="space-y-1">
+              <p><strong>Type:</strong> {room.roomType.name}</p>
+              <p><strong>Room Number:</strong> {room.roomNumber}</p>
+            </div>
 
-          {}
-          <p className="mt-1">
-            <strong>Room Number:</strong>{" "}
-            <span className="font-semibold">{room.roomNumber}</span>
-          </p>
-
-          <div className="flex justify-between">
-            <p>
-              <strong>Price / Night:</strong> ${room.roomType.price}
-            </p>
-            <p>
-              <strong>Nights:</strong> {nights}
-            </p>
+            {/* RIGHT */}
+            <div className="space-y-1 text-right">
+              <p><strong>Price / Night:</strong> ${room.roomType.price}</p>
+              <p><strong>Nights:</strong> {nights}</p>
+            </div>
           </div>
 
+          {/* CHECK-IN / CHECK-OUT */}
           <div className="flex justify-between pt-2">
-            <p>
-              <strong>Check-in:</strong> {toLocalDateString(info.startDate)}
-            </p>
-            <p>
-              <strong>Check-out:</strong> {toLocalDateString(info.endDate)}
-            </p>
+            <p><strong>Check-in:</strong> {toLocalDateString(info.startDate)}</p>
+            <p><strong>Check-out:</strong> {toLocalDateString(info.endDate)}</p>
           </div>
         </div>
 
-        {}
+        {/* TOTAL */}
         <div className="mt-8">
           <div className="h-[2px] bg-[#d4bf92] w-full"></div>
 
@@ -104,13 +86,11 @@ const InvoiceComponent = ({ booking, user, room, info, onClose }) => {
           </div>
         </div>
 
-        {}
         <div className="text-center mt-6 text-[14px] leading-6 text-gray-700">
           <p>Thank you for choosing Lumé Hotel & Suites.</p>
           <p>We look forward to your stay.</p>
         </div>
 
-        {}
         <div className="flex justify-center mt-8">
           <button
             onClick={onClose}

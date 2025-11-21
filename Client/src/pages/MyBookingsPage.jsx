@@ -10,6 +10,7 @@ import {
 import UserMenu from "../components/UserMenu";
 import ChangeDatesModal from "../components/Booking/ChangeDatesModal";
 import ConfirmCancelModal from "../components/Booking/ConfirmCancelModal";
+import StatusFilter from "../components/Booking/StatusFilter";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -22,8 +23,10 @@ const MyBookingsPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   const navigate = useNavigate();
+
   const formatDate = (date) => {
     if (!date) return "N/A";
     const [year, month, day] = date.split("T")[0].split("-");
@@ -76,20 +79,14 @@ const MyBookingsPage = () => {
   const handleCancel = async (id) => {
     try {
       await cancelBooking(id);
-
       toast.success("Reservation cancelled successfully!");
-
       setLoading(true);
       await loadBookings();
       setLoading(false);
-
       setShowCancelModal(false);
       setBookingToCancel(null);
     } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Could not cancel reservation";
+      const msg = err?.response?.data?.message || err?.message || "Could not cancel reservation";
       toast.error(msg);
     }
   };
@@ -102,21 +99,14 @@ const MyBookingsPage = () => {
   const handleSaveDates = async (newDates) => {
     try {
       await modifyBooking(selectedBooking.id, newDates);
-
       toast.success("Reservation updated successfully!");
-
       setLoading(true);
       await loadBookings();
       setShowModal(false);
       setSelectedBooking(null);
       setLoading(false);
     } catch (e) {
-      const msg =
-        e?.message ||
-        e?.data?.message ||
-        e?.response?.data?.message ||
-        "Could not modify reservation";
-
+      const msg = e?.message || e?.data?.message || e?.response?.data?.message || "Could not modify reservation";
       toast.error(msg);
     }
   };
@@ -128,21 +118,27 @@ const MyBookingsPage = () => {
       </div>
     );
 
+  const filteredBookings = bookings.filter(
+    (b) => statusFilter === "ALL" || b.status === statusFilter
+  );
+
   return (
     <div className="min-h-screen bg-white pb-20">
       <header className="py-3">
         <UserMenu />
       </header>
 
-      <div
-        className="flex justify-center"
-        style={{ fontFamily: '"Playfair Display", serif' }}
-      >
-        <h2 className="text-3xl my-8 px-12">Reservations</h2>
+      {/* Header con filtro */}
+      <div className="flex justify-center items-center gap-6 mt-8">
+        <h2 className="text-3xl" style={{ fontFamily: '"Playfair Display", serif' }}>
+          Reservations
+        </h2>
+        <StatusFilter value={statusFilter} onChange={setStatusFilter} />
       </div>
 
+      {/* Bookings Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 px-12 mt-10">
-        {bookings.map((b) => {
+        {filteredBookings.map((b) => {
           const room = rooms[b.roomId];
           if (!room) return null;
 
@@ -155,62 +151,43 @@ const MyBookingsPage = () => {
               className="bg-white shadow-lg rounded-xl border border-gray-200 p-10 flex flex-col justify-between min-w-[600px] mx-auto"
             >
               <div>
-                <h2 className="font-serif text-xl text-center">
-                  LUMÉ HOTEL & SUITES
-                </h2>
-
+                <h2 className="font-serif text-xl text-center">LUMÉ HOTEL & SUITES</h2>
                 <div className="border-t border-[#d4a86a] mt-3 mb-6 w-3/4 mx-auto"></div>
-
                 <p className="text-right text-sm text-gray-600 font-medium">
                   #{String(b.id).padStart(3, "0")}
                 </p>
-
-                <h3 className="text-xl text-center font-semibold mt-2">
-                  Booking
-                </h3>
+                <h3 className="text-xl text-center font-semibold mt-2">Booking</h3>
               </div>
 
               <div className="mt-8 space-y-4 text-gray-700 text-[15px]">
-                <p>
-                  <strong>Name:</strong> {user.fullName}
-                </p>
-                <p>
-                  <strong>Email:</strong> {user.email}
-                </p>
-                <p>
-                  <strong>Phone Number:</strong> {user.phoneNumber}
-                </p>
-                <p className="pt-4">
-                  <strong>Type:</strong> {room.roomType.name}
-                </p>
-                <p>
-                  <strong>Status:</strong> {b.status}
-                </p>
+                <p><strong>Name:</strong> {user.fullName}</p>
+                <p><strong>Email:</strong> {user.email}</p>
+                <p><strong>Phone Number:</strong> {user.phoneNumber}</p>
+
+                <div className="grid grid-cols-2 gap-4 pt-4">
+                  <div className="space-y-1">
+                    <p><strong>Type:</strong> {room.roomType.name}</p>
+                    <p><strong>Room Number:</strong> {room.roomNumber}</p>
+                  </div>
+                  <div className="space-y-1 text-right">
+                    <p><strong>Status:</strong> {b.status}</p>
+                    <p><strong>Price / Night:</strong> ${room.roomType.price}</p>
+                  </div>
+                </div>
 
                 <div className="flex justify-between">
-                  <p>
-                    <strong>Price / Night:</strong> ${room.roomType.price}
-                  </p>
-                  <p>
-                    <strong>Nights:</strong> {nights}
-                  </p>
+                  <p><strong>Nights:</strong> {nights}</p>
                 </div>
 
                 <div className="flex justify-between pt-2">
-                  <p>
-                    <strong>Check-in:</strong> {formatDate(b.checkIn)}
-                  </p>
-                  <p>
-                    <strong>Check-out:</strong> {formatDate(b.checkOut)}
-                  </p>
+                  <p><strong>Check-in:</strong> {formatDate(b.checkIn)}</p>
+                  <p><strong>Check-out:</strong> {formatDate(b.checkOut)}</p>
                 </div>
               </div>
 
               <div className="border-t border-gray-300 mt-6 pt-6 flex justify-between">
                 <p className="text-xl font-bold">${total}</p>
-                <p className="text-sm text-gray-600">
-                  {formatDate(b.createdAt)}
-                </p>
+                <p className="text-sm text-gray-600">{formatDate(b.createdAt)}</p>
               </div>
 
               <p className="text-center text-gray-700 mt-6 text-sm leading-relaxed">
@@ -254,6 +231,12 @@ const MyBookingsPage = () => {
           );
         })}
       </div>
+
+      {filteredBookings.length === 0 && (
+        <div className="text-center text-gray-500 mt-16">
+          <p className="text-lg">No reservations found for this filter.</p>
+        </div>
+      )}
 
       {showModal && selectedBooking && (
         <ChangeDatesModal
