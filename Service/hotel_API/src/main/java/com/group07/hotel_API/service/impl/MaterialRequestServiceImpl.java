@@ -1,6 +1,8 @@
 package com.group07.hotel_API.service.impl;
 
+import com.group07.hotel_API.controller.InventoryWebSocketController;
 import com.group07.hotel_API.dto.request.MaterialRequest.MaterialRequestRequest;
+import com.group07.hotel_API.dto.response.Inventory.InventoryItemResponse;
 import com.group07.hotel_API.dto.response.MaterialRequest.MaterialRequestResponse;
 import com.group07.hotel_API.entities.InventoryItem;
 import com.group07.hotel_API.entities.InventoryLog;
@@ -17,6 +19,7 @@ import com.group07.hotel_API.repository.UserRepository;
 import com.group07.hotel_API.service.MaterialRequestService;
 import com.group07.hotel_API.utils.enums.Action;
 import com.group07.hotel_API.utils.enums.RequestStatus;
+import com.group07.hotel_API.utils.mappers.InventoryItemMapper;
 import com.group07.hotel_API.utils.mappers.MaterialRequestMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,6 +39,7 @@ public class MaterialRequestServiceImpl implements MaterialRequestService {
     private final InventoryItemRepository inventoryItemRepository;
     private final UserRepository userRepository;
     private final InventoryLogRepository inventoryLogRepository;
+    private final InventoryWebSocketController webSocketController;
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
@@ -98,7 +102,7 @@ public class MaterialRequestServiceImpl implements MaterialRequestService {
             // Reducir stock
             int newQuantity = item.getQuantity() - quantityToDeduct;
             item.setQuantity(Math.max(newQuantity, 0));
-            inventoryItemRepository.save(item);
+            InventoryItem savedItem = inventoryItemRepository.save(item);
 
             // Crear log de inventario para auditoría
             InventoryLog log = InventoryLog.builder()
@@ -109,14 +113,28 @@ public class MaterialRequestServiceImpl implements MaterialRequestService {
                     .timestamp(LocalDateTime.now().format(TIMESTAMP_FORMATTER))
                     .build();
             inventoryLogRepository.save(log);
+
+            // Notificar actualización vía WebSocket
+            InventoryItemResponse response = InventoryItemMapper.toResponse(savedItem);
+            webSocketController.notifyInventoryUpdate(response);
+
+            // Si el stock está bajo, notificar también
+            if (savedItem.getQuantity() < savedItem.getMinimumStock()) {
+                webSocketController.notifyLowStock(response);
+            }
         }
+
+        // Notificar actualización general de la lista
+        webSocketController.notifyInventoryListUpdate();
 
         return MaterialRequestMapper.toResponse(savedRequest);
     }
 
     @Override
     public List<MaterialRequestResponse> getAllRequests() {
-        return materialRequestRepository.findAll().stream()
+        // Usar el método del repositorio que ya ordena por fecha descendente
+        List<MaterialRequest> allRequests = materialRequestRepository.findAllByOrderByRequestDateDesc();
+        return allRequests.stream()
                 .map(MaterialRequestMapper::toResponse)
                 .collect(Collectors.toList());
     }
@@ -174,7 +192,7 @@ public class MaterialRequestServiceImpl implements MaterialRequestService {
 
             int newQuantity = item.getQuantity() - quantityToDeduct;
             item.setQuantity(Math.max(newQuantity, 0));
-            inventoryItemRepository.save(item);
+            InventoryItem savedItem = inventoryItemRepository.save(item);
 
             InventoryLog log = InventoryLog.builder()
                     .item(item)
@@ -184,7 +202,22 @@ public class MaterialRequestServiceImpl implements MaterialRequestService {
                     .timestamp(LocalDateTime.now().format(TIMESTAMP_FORMATTER))
                     .build();
             inventoryLogRepository.save(log);
+
+            // Notificar actualización vía WebSocket
+            InventoryItemResponse response = InventoryItemMapper.toResponse(savedItem);
+            System.out.println("MaterialRequestServiceImpl: Enviando notificación WebSocket para item ID: " + savedItem.getId() + ", cantidad: " + savedItem.getQuantity());
+            webSocketController.notifyInventoryUpdate(response);
+
+            // Si el stock está bajo, notificar también
+            if (savedItem.getQuantity() < savedItem.getMinimumStock()) {
+                System.out.println("MaterialRequestServiceImpl: Enviando notificación de stock bajo para item ID: " + savedItem.getId());
+                webSocketController.notifyLowStock(response);
+            }
         }
+
+        // Notificar actualización general de la lista
+        System.out.println("MaterialRequestServiceImpl: Enviando notificación de actualización de lista");
+        webSocketController.notifyInventoryListUpdate();
 
         return MaterialRequestMapper.toResponse(savedRequest);
     }

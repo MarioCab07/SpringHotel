@@ -11,6 +11,7 @@ import java.util.List;
 public interface MaterialRequestRepository extends JpaRepository<MaterialRequest, Long> {
     List<MaterialRequest> findByRequestedBy(UserClient user);
     List<MaterialRequest> findByRequestedByOrderByRequestDateDesc(UserClient user);
+    List<MaterialRequest> findAllByOrderByRequestDateDesc();
 }
 
 

@@ -1,18 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import MUIDataTable from "mui-datatables";
 import UserMenu from "../components/UserMenu";
+import SearchSortBar from "../components/SearchSortBar";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 import {
   getAllBookings,
   getRoomById,
-  GetUser
+  GetUser,
 } from "../service/api.services";
 
 const ReservationsPage = () => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
+  const [sortOption, setSortOption] = useState("Sort By");
 
   const navigate = useNavigate();
 
@@ -69,6 +72,51 @@ const ReservationsPage = () => {
     });
   };
 
+  // Filtrar y ordenar datos
+  const filteredAndSortedRows = useMemo(() => {
+    let filtered = rows;
+
+    // Aplicar búsqueda
+    if (query.trim()) {
+      const searchLower = query.toLowerCase();
+      filtered = filtered.filter((row) =>
+        row.client?.toLowerCase().includes(searchLower) ||
+        row.roomNumber?.toString().toLowerCase().includes(searchLower) ||
+        row.roomType?.toLowerCase().includes(searchLower) ||
+        row.id?.toString().includes(searchLower)
+      );
+    }
+
+    // Aplicar ordenamiento
+    if (sortOption === "Nombre A-Z") {
+      filtered = [...filtered].sort((a, b) =>
+        (a.client || "").localeCompare(b.client || "")
+      );
+    } else if (sortOption === "Nombre Z-A") {
+      filtered = [...filtered].sort((a, b) =>
+        (b.client || "").localeCompare(a.client || "")
+      );
+    } else if (sortOption === "Room # A-Z") {
+      filtered = [...filtered].sort((a, b) =>
+        (a.roomNumber || "").toString().localeCompare((b.roomNumber || "").toString())
+      );
+    } else if (sortOption === "Room # Z-A") {
+      filtered = [...filtered].sort((a, b) =>
+        (b.roomNumber || "").toString().localeCompare((a.roomNumber || "").toString())
+      );
+    }
+
+    return filtered;
+  }, [rows, query, sortOption]);
+
+  const handleSearch = (term) => {
+    setQuery(term);
+  };
+
+  const handleSortChange = (option) => {
+    setSortOption(option);
+  };
+
   const columns = [
     { name: "id", label: "Reservation ID" },
     { name: "roomNumber", label: "Room #" },
@@ -96,60 +144,67 @@ const ReservationsPage = () => {
 
   const options = {
     selectableRows: "none",
-    elevation: 3,
-    rowsPerPage: 5,
+    elevation: 0,
+    rowsPerPage: 5, // FIX ERROR
     rowsPerPageOptions: [5, 10, 20],
-    search: true,
-    filter: true,
+    search: false,
+    filter: false,
     print: false,
     download: true,
   };
 
   return (
     <div className="min-h-screen bg-[#D6ECF7] py-10">
-      
-      {}
-      <div className="max-w-6xl mx-auto flex justify-between items-center mb-6 px-4">
-        <h1 className="text-3xl font-bold">Active Reservations</h1>
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 w-full mb-6">
+          <h1 className="text-3xl font-bold">Active Reservations</h1>
+          
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate("/employee/check-in")}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-full"
+            >
+              Check-In
+            </button>
+            <button
+              onClick={() => navigate("/employee/check-out")}
+              className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full"
+            >
+              Check-Out
+            </button>
+          </div>
+        </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-4 w-full mb-6">
+          <div className="flex flex-wrap items-center gap-3 flex-1">
+            <SearchSortBar
+              query={query}
+              setQuery={setQuery}
+              onSearch={handleSearch}
+              onSortChange={handleSortChange}
+              initialSort="Sort By"
+              options={["Nombre A-Z", "Nombre Z-A", "Room # A-Z", "Room # Z-A"]}
+            />
+          </div>
+        </div>
 
-          {}
+        <div className="bg-white p-6 rounded-xl shadow-xl">
+          <MUIDataTable
+            title={"Reservations"}
+            data={filteredAndSortedRows}
+            columns={columns}
+            options={options}
+          />
+        </div>
+
+        <div className="flex justify-center mt-10">
           <button
-            onClick={() => navigate("/employee/check-in")}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-full"
+            className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] px-8 py-3 rounded-full"
+            onClick={() => (window.location.href = "/admin")}
           >
-            Check-In
-          </button>
-
-          {}
-          <button
-            onClick={() => navigate("/employee/check-out")}
-            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full"
-          >
-            Check-Out
+            Back to Menu
           </button>
         </div>
-      </div>
-
-      {}
-      <div className="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-xl">
-        <MUIDataTable
-          title={"Reservations"}
-          data={rows}
-          columns={columns}
-          options={options}
-        />
-      </div>
-
-      {}
-      <div className="flex justify-center mt-10">
-        <button
-          className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] px-8 py-3 rounded-full"
-          onClick={() => (window.location.href = "/admin")}
-        >
-          Back to Menu
-        </button>
       </div>
     </div>
   );

@@ -73,6 +73,8 @@ public class PaymentServiceImpl implements PaymentService {
 
 
         if(reason.equals("Check-in")) invoice = invoiceService.createInvoiceForCheckIn(invoiceData);
+        System.out.println(invoice.getClientEmail());
+        System.out.println(invoice.getCode());
 
         if(reason.equals("Check-out"))  invoice = invoiceService.createInvoiceForCheckOut(invoiceData);
 

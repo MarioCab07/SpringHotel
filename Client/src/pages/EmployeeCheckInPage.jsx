@@ -11,7 +11,8 @@ import {
 
 import { toast } from "react-toastify";
 import PaymentProcessing from "../components/Booking/PaymentProcessing";
-import PaymentProcessingCash from "../components/Booking/PaymentProcessingCash";  // 👈 AÑADIDO
+import PaymentProcessingCash from "../components/Booking/PaymentProcessingCash";
+import AdminBanner from "../components/Admin/AdminBanner"; 
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 
@@ -22,8 +23,7 @@ const EmployeeCheckInPage = () => {
   const [booking, setBooking] = useState(null);
   const [user, setUser] = useState(null);
   const [room, setRoom] = useState(null);
-
-  const [processing, setProcessing] = useState(null); // 👈 Ahora puede ser "cash" o "card"
+  const [processing, setProcessing] = useState(null);
 
   const [card, setCard] = useState({
     number: "",
@@ -42,11 +42,8 @@ const EmployeeCheckInPage = () => {
       const b = resBooking.data.data;
 
       if (!b) return toast.error("Reserva no encontrada");
-
-      if (b.status !== "PENDING") {
-        toast.error("Solo puedes buscar reservas con estado PENDING");
-        return;
-      }
+      if (b.status !== "PENDING")
+        return toast.error("Solo puedes buscar reservas con estado PENDING");
 
       const resUser = await GetUser(b.userId);
       const resRoom = await getRoomById(b.roomId);
@@ -54,7 +51,7 @@ const EmployeeCheckInPage = () => {
       setBooking(b);
       setUser(resUser.data.data);
       setRoom(resRoom.data.data);
-    } catch (err) {
+    } catch {
       toast.error("Error buscando reserva");
     }
   };
@@ -78,31 +75,22 @@ const EmployeeCheckInPage = () => {
     });
   };
 
-  // ------------------------------
-  //   ⚡ PAGO EN EFECTIVO
-  // ------------------------------
   const handleCashPayment = async () => {
     try {
-      setProcessing("cash"); // 👈 Aquí activamos el modal de EFECTIVO
-
+      setProcessing("cash");
       await updateBookingToActive();
       await updateRoomToOccupied();
-
       setTimeout(() => (window.location.href = "/employee"), 2500);
-    } catch (err) {
+    } catch {
       setProcessing(null);
       toast.error("Error con pago en efectivo");
     }
   };
 
-  // ------------------------------
-  //   ⚡ PAGO CON TARJETA
-  // ------------------------------
   const handleCardPayment = async () => {
     try {
-      if (!card.number || !card.expiry || !card.cvv) {
-        return toast.error("Debe llenar todos los datos de la tarjeta");
-      }
+      if (!card.number || !card.expiry || !card.cvv)
+        return toast.error("Debe llenar todos los datos");
 
       const [month, yearShort] = card.expiry.split("/");
       const year = "20" + yearShort;
@@ -114,7 +102,7 @@ const EmployeeCheckInPage = () => {
         cvv: card.cvv,
       });
 
-      setProcessing("card"); // 👈 Aquí activamos el modal normal
+      setProcessing("card");
 
       await processCheckInPayment({
         clientName: user.fullName,
@@ -131,7 +119,7 @@ const EmployeeCheckInPage = () => {
       await updateRoomToOccupied();
 
       setTimeout(() => (window.location.href = "/employee"), 2500);
-    } catch (err) {
+    } catch {
       setProcessing(null);
       toast.error("Error pagando con tarjeta");
     }
@@ -156,51 +144,66 @@ const EmployeeCheckInPage = () => {
   const total = remaining;
 
   return (
-    <div className="min-h-screen bg-[#eee9df] flex flex-col items-center p-10">
+    <div className="min-h-screen bg-white px-4 md:px-6 lg:px-8 py-6">
 
-      {/* MODALES DE PROCESAMIENTO */}
-      {processing === "cash" && <PaymentProcessingCash onFinish={() => { }} />}
-      {processing === "card" && <PaymentProcessing onFinish={() => { }} />}
+      {}
+      {processing === "cash" && <PaymentProcessingCash />}
+      {processing === "card" && <PaymentProcessing />}
 
-      <h1 className="text-4xl font-bold mb-10 text-[#3a3a3a] tracking-wide">
-        Employee Check-In
-      </h1>
+      {}
+      <AdminBanner title="Employee Check-In" showButton={false} />
 
-      <div className="flex gap-3 mb-10 bg-white p-6 shadow-lg rounded-2xl border border-gray-200">
-        <input
-          className="border border-gray-300 p-3 w-80 rounded-lg focus:ring-2 focus:ring-[#d4bf92] focus:outline-none"
-          placeholder="Ingrese Booking ID"
-          value={bookingId}
-          onChange={(e) => setBookingId(e.target.value)}
-        />
+      {}
+      <div className="flex justify-end mt-4 mb-6">
         <button
-          className="bg-[#d4bf92] hover:bg-[#c4af82] transition text-white px-8 py-3 rounded-lg font-semibold shadow-md"
-          onClick={handleSearch}
+          onClick={() => (window.location.href = "/employee")}
+          className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-white px-7 py-2.5 rounded-full shadow-md transition font-light"
         >
-          Buscar
+          Back to Menu
         </button>
       </div>
 
-      {booking && user && room && (
-        <div className="bg-white p-10 rounded-3xl shadow-2xl w-[650px] border border-[#e8e6e2]">
+      {/* BUSCADOR */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 w-full max-w-xl mx-auto mb-8">
+        <div className="flex gap-3 justify-center">
+          <input
+            className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-[#d4bf92]"
+            placeholder="Ingrese Booking ID"
+            value={bookingId}
+            onChange={(e) => setBookingId(e.target.value)}
+          />
+          <button
+            className="bg-[#d4bf92] hover:bg-[#c4af82] transition text-white px-6 py-3 rounded-full font-semibold shadow-md"
+            onClick={handleSearch}
+          >
+            Buscar
+          </button>
+        </div>
+      </div>
 
-          {/* --- INFO --- */}
+      {}
+      {booking && user && room && (
+        <div className="bg-white rounded-2xl shadow-xl p-10 border border-gray-200 max-w-2xl mx-auto">
+
+          {/* HEADER */}
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-serif tracking-wide">LUMÉ HOTEL & SUITES</h2>
-            <div className="flex justify-between items-center mt-2">
-              <div className="h-[2px] bg-[#d4bf92] flex-1 mt-3"></div>
-              <p className="text-sm font-medium ml-2">#{booking.id}</p>
-            </div>
-            <h3 className="text-xl font-semibold mt-6 text-gray-800">Booking Information</h3>
+            <h2 className="text-2xl font-serif tracking-wide text-gray-800">
+              LUMÉ HOTEL & SUITES
+            </h2>
+            <div className="h-[2px] bg-[#d4bf92] w-full mt-3"></div>
+            <p className="text-sm mt-2 font-medium text-gray-600">
+              Booking #{booking.id}
+            </p>
           </div>
 
-          {/* --- DETALLES --- */}
-          <div className="space-y-3 text-gray-700 text-[16px] leading-relaxed">
+          {/* INFORMACIÓN */}
+          <div className="space-y-3 text-gray-700 leading-relaxed">
             <p><strong>Name:</strong> {user.fullName}</p>
             <p><strong>Email:</strong> {user.email}</p>
             <p><strong>Phone:</strong> {user.phoneNumber || "N/A"}</p>
-            <p className="pt-4"><strong>Type:</strong> {room.roomType.name}</p>
-            <p><strong>Room Number:</strong> <span className="font-semibold">{room.roomNumber}</span></p>
+
+            <p className="pt-4"><strong>Room:</strong> {room.roomType.name}</p>
+            <p><strong>Room Number:</strong> {room.roomNumber}</p>
 
             <div className="flex justify-between pt-2">
               <p><strong>Price / Night:</strong> ${pricePerNight}</p>
@@ -212,11 +215,13 @@ const EmployeeCheckInPage = () => {
               <p><strong>Check-out:</strong> {dayjs(booking.checkOut).format("MMM DD, YYYY")}</p>
             </div>
 
-            {/* --- PAGO --- */}
-            <div className="mt-8 bg-[#f7f6f3] p-6 rounded-xl shadow-inner">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Payment Breakdown</h3>
+            {/* PAYMENT */}
+            <div className="mt-8 bg-gray-50 p-6 rounded-xl shadow-inner border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Payment Breakdown
+              </h3>
 
-              <div className="space-y-2 text-gray-700 text-[15px]">
+              <div className="space-y-2 text-[15px]">
                 <div className="flex justify-between">
                   <span>Total reservation:</span>
                   <span>${totalReservationPrice.toFixed(2)}</span>
@@ -227,7 +232,7 @@ const EmployeeCheckInPage = () => {
                   <span>- $10.00</span>
                 </div>
 
-                <div className="h-[1px] bg-gray-300 my-3"></div>
+                <div className="border-t my-3"></div>
 
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
@@ -243,18 +248,12 @@ const EmployeeCheckInPage = () => {
                   <span>Total to pay:</span>
                   <span>${total.toFixed(2)}</span>
                 </div>
-
-                <p className="text-sm text-gray-600 mt-3 italic">
-                  *A $10.00 deposit from the booking has been applied.*
-                </p>
               </div>
             </div>
           </div>
 
-          {/* --- BOTONES DE PAGO --- */}
+          {/* BOTONES DE PAGO */}
           <div className="flex flex-col mt-8 gap-4">
-            
-            {/* EFECTIVO */}
             <button
               onClick={handleCashPayment}
               className="w-full bg-[#d4bf92] hover:bg-[#b99f6c] transition text-white py-3 rounded-full font-semibold shadow-lg"
@@ -262,26 +261,33 @@ const EmployeeCheckInPage = () => {
               Pago en efectivo
             </button>
 
-            {/* TARJETA */}
-            <div className="border p-6 rounded-xl bg-[#faf9f7] shadow-inner">
-              <p className="font-semibold mb-4 text-gray-700 text-[17px]">Pago con tarjeta</p>
+            <div className="border p-6 rounded-xl bg-white shadow-inner">
+              <p className="font-semibold mb-4 text-gray-700 text-[17px]">
+                Pago con tarjeta
+              </p>
 
               <input
                 className="border p-3 w-full mb-4 rounded-lg focus:ring-2 focus:ring-[#d4bf92]"
                 placeholder="Número de tarjeta"
-                onChange={(e) => setCard({ ...card, number: e.target.value })}
+                onChange={(e) =>
+                  setCard({ ...card, number: e.target.value })
+                }
               />
 
               <div className="flex gap-4">
                 <input
                   className="border p-3 w-full mb-4 rounded-lg focus:ring-2 focus:ring-[#d4bf92]"
                   placeholder="MM/YY"
-                  onChange={(e) => setCard({ ...card, expiry: e.target.value })}
+                  onChange={(e) =>
+                    setCard({ ...card, expiry: e.target.value })
+                  }
                 />
                 <input
                   className="border p-3 w-full mb-4 rounded-lg focus:ring-2 focus:ring-[#d4bf92]"
                   placeholder="CVV"
-                  onChange={(e) => setCard({ ...card, cvv: e.target.value })}
+                  onChange={(e) =>
+                    setCard({ ...card, cvv: e.target.value })
+                  }
                 />
               </div>
 
