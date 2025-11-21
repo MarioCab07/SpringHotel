@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import {
   getAllBookings,
   getRoomById,
-  GetUser
+  GetUser,
 } from "../service/api.services";
 
 const ReservationsPage = () => {
@@ -144,8 +144,8 @@ const ReservationsPage = () => {
 
   const options = {
     selectableRows: "none",
-    elevation: 3,
-    rowsPerPage: 5,
+    elevation: 0,
+    rowsPerPage: 5, // FIX ERROR
     rowsPerPageOptions: [5, 10, 20],
     search: false,
     filter: false,
