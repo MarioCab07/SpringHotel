@@ -38,21 +38,21 @@ const SearchSortBar = ({
   return (
   <div className="flex flex-wrap items-center gap-2 w-full">
     {/* Search input + button */}
-    <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-3 py-2 w-auto shadow-sm focus-within:ring-2 focus-within:ring-[#D9C696] focus-within:border-[#D9C696] transition">
+    <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-3 h-10 shadow-sm focus-within:ring-2 focus-within:ring-[#D9C696] focus-within:border-[#D9C696] transition">
       <input
         type="text"
         placeholder="Search..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && onSearch(query)}
-        className="bg-transparent placeholder-gray-500 text-gray-900 text-sm py-0.5 px-2 focus:outline-none border-0 transition flex-grow min-w-[200px]"
+        className="bg-transparent placeholder-gray-500 text-gray-900 text-sm px-2 focus:outline-none border-0 transition flex-grow min-w-[200px] h-full"
       />
       <button
         onClick={() => onSearch(query)}
-        className="bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 p-2 rounded-md transition-all duration-200 flex items-center justify-center"
+        className="bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 p-2 rounded-md transition-all duration-200 flex items-center justify-center h-7 w-7 shrink-0"
         title="Buscar"
       >
-        <FaSearch size={16} />
+        <FaSearch size={14} />
       </button>
     </div>
 
@@ -61,7 +61,7 @@ const SearchSortBar = ({
       <div className="relative z-20">
         <button
           onClick={() => setOpen(!open)}
-          className="bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-all duration-200"
+          className="bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 text-sm font-semibold px-4 h-10 rounded-lg flex items-center gap-1.5 transition-all duration-200"
         >
           {selected} <FaChevronDown size={12} />
         </button>
@@ -84,7 +84,7 @@ const SearchSortBar = ({
     {/* Reset */}
     <button
       onClick={handleReset}
-      className="bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200"
+      className="bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 text-sm font-semibold px-4 h-10 rounded-lg transition-all duration-200"
     >
       Reset
     </button>
