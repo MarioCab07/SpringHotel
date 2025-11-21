@@ -333,7 +333,7 @@ const RoomStatusPage = () => {
 
   return (
     <div className="w-full h-[calc(100vh-284px)] flex flex-col gap-4 overflow-hidden">
-      <div className="w-full flex justify-center">
+      <div className="w-full flex justify-center px-4">
         <div className="w-full max-w-4xl">
           <SearchSortBar
             query={query}
