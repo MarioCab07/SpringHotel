@@ -40,6 +40,8 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
   const materialRequestFormRef = useRef(null);
   const isAdmin = role === "ADMIN";
   const isCleaningStaff = role === "CLEANING_STAFF";
+  const isEmployee = role === "EMPLOYEE";
+  const canShowCategoriesButton = isCleaningStaff || isEmployee || isAdmin;
 
   const imagesUrl = {
     Suite: "https://www.acevivillarroelbarcelona.com/img/jpg/habitaciones/Hab-Deluxe-01.jpg",
@@ -404,7 +406,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                     <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                       Inventario
                     </h3>
-                    {isCleaningStaff && (
+                    {canShowCategoriesButton && (
                       <button
                         onClick={() => setShowCategories(!showCategories)}
                         className={`text-xs px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${

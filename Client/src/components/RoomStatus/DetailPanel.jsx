@@ -24,7 +24,7 @@ const DetailPanel = ({
 
   const isCleaned = item.status === "COMPLETED";
   const isInProgress = item.status === "IN_PROGRESS";
-  const canShowButtons = role === "CLEANING_STAFF" || role === "ADMIN";
+  const canShowButtons = role === "CLEANING_STAFF" || role === "ADMIN" || role === "EMPLOYEE";
 
   return (
     <div className="w-80 h-full flex-shrink-0 bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">

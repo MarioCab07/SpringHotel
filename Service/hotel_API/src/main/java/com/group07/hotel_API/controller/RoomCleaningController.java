@@ -27,7 +27,7 @@ public class RoomCleaningController {
 
     private final RoomCleaningService roomCleaningService;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF', 'EMPLOYEE')")
     @GetMapping
     public ResponseEntity<GeneralResponse> getAll() {
         List<RoomCleaningResponse> cleanings = roomCleaningService.findAll();
@@ -46,7 +46,7 @@ public class RoomCleaningController {
         return buildResponse("Room cleaning record found.", HttpStatus.OK, cleaning);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','CLEANING_STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN','CLEANING_STAFF', 'EMPLOYEE')")
     @GetMapping("/room/{roomId}")
     public ResponseEntity<GeneralResponse> getByRoomId(@PathVariable Integer roomId) {
         List<RoomCleaningResponse> list = roomCleaningService.findByRoomId(roomId);
@@ -66,14 +66,14 @@ public class RoomCleaningController {
         return buildResponse("Room cleaning summaries found.", HttpStatus.OK, summary);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF', 'EMPLOYEE')")
     @PostMapping
     public ResponseEntity<GeneralResponse> create(@RequestBody RoomCleaningRequest request) {
         RoomCleaningResponse created = roomCleaningService.create(request);
         return buildResponse("Room cleaning record created.", HttpStatus.CREATED, created);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF', 'EMPLOYEE')")
     @PutMapping("/{id}")
     public ResponseEntity<GeneralResponse> update(@PathVariable Integer id, @RequestBody RoomCleaningUpdateRequest request) {
         RoomCleaningResponse updated = roomCleaningService.update(id, request);
