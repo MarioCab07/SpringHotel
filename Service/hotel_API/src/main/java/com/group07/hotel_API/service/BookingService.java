@@ -25,5 +25,6 @@ public interface BookingService {
     BookingResponse cancel(int id);
     BookingResponse modify(int id, BookingModifyRequest booking);
     List<BookingServiceItemResponse> getServicesForBooking(Integer bookingId);
+    List<com.group07.hotel_API.dto.response.Booking.BookingHistoryResponse> getBookingHistory(Integer userId);
 
 }
