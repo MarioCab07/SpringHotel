@@ -98,8 +98,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse update(int id, BookingUpdateRequest request) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
-        LocalDate pastCheckIn = booking.getCheckIn();
-        LocalDate pastCheckOut = booking.getCheckOut();
+
 
         if (request.getUserId() != null) {
             UserClient user = userRepository.findById(request.getUserId())
@@ -114,10 +113,9 @@ public class BookingServiceImpl implements BookingService {
         }
 
         BookingMapper.updateEntity(booking, request, BookingStatus.valueOf(request.getStatus()));
-        BookingResponse newBooking = BookingMapper.toDTO(bookingRepository.save(booking));
-        emailService.sendSimpleEmail(booking.getUser().getEmail(),"There has been an update to the booking",bookingToString(newBooking, pastCheckIn, pastCheckOut));
 
-        return newBooking;
+
+        return BookingMapper.toDTO(bookingRepository.save(booking));
     }
 
     // DELETE BOOKING
