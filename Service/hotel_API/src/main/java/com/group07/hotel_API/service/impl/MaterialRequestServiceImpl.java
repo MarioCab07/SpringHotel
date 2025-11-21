@@ -116,7 +116,10 @@ public class MaterialRequestServiceImpl implements MaterialRequestService {
 
     @Override
     public List<MaterialRequestResponse> getAllRequests() {
-        return materialRequestRepository.findAll().stream()
+        // Usar el método del repositorio que ya ordena por fecha descendente
+        List<MaterialRequest> allRequests = materialRequestRepository.findAllByOrderByRequestDateDesc();
+        System.out.println("MaterialRequestServiceImpl: Total de solicitudes encontradas: " + allRequests.size());
+        return allRequests.stream()
                 .map(MaterialRequestMapper::toResponse)
                 .collect(Collectors.toList());
     }
