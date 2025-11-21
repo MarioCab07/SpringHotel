@@ -315,6 +315,14 @@ export const getUserBookings = async (id) => {
     }
 };
 
+export const getBookingHistory = async (userId) => {
+    try {
+        return await apiClient.get(`/bookings/history/${userId}`);
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
 export const getActiveBookings = async () => {
     try {
         return await apiClient.get("/bookings/active");
