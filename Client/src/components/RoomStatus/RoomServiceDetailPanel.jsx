@@ -29,16 +29,6 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
   const [loading, setLoading] = useState(false);
   const isServiceCompleted = service?.roomServiceStatus === "COMPLETED";
   
-  // Log para debug
-  useEffect(() => {
-    if (service) {
-      console.log("RoomServiceDetailPanel: Estado del servicio:", {
-        roomServiceStatus: service.roomServiceStatus,
-        isServiceCompleted: isServiceCompleted,
-        serviceId: service.roomServiceId || serviceId
-      });
-    }
-  }, [service, isServiceCompleted, serviceId]);
   const [serviceTypes, setServiceTypes] = useState([]);
   const [categories, setCategories] = useState([]);
   const [inventoryItems, setInventoryItems] = useState([]);
@@ -109,11 +99,8 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
               const allRes = await getAllBookings();
               activeBooking = allRes.data.data?.find((b) => b.roomId === roomId) ?? null;
             } catch (bookingErr) {
-              console.log("No se encontró reserva para esta habitación");
+              // No se encontró reserva para esta habitación
             }
-          } else {
-            // Si es otro tipo de error, lo registramos pero no detenemos la carga
-            console.warn("Error al obtener reserva activa:", err);
           }
         }
         setBooking(activeBooking);
@@ -173,7 +160,6 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
         setCheckedItems(initChecked);
         setItemQuantities(initQty);
         setExpandedCats(initExpanded);
-        console.log("RoomServiceDetailPanel: Inventario cargado - categorías:", cats.length, "items:", items.length);
       } catch (err) {
         console.error(err);
         toast.error("No se pudo cargar inventario");

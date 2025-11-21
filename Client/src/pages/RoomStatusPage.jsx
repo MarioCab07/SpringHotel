@@ -333,78 +333,78 @@ const RoomStatusPage = () => {
 
   return (
     <div className="w-full h-[calc(100vh-284px)] flex flex-col gap-4 overflow-hidden">
-      <div className="w-full flex justify-center px-4">
-        <div className="w-full max-w-4xl">
-          <SearchSortBar
-            query={query}
-            setQuery={setQuery}
-            onSearch={(term) => setSearch(term)}
-            onSortChange={setSortBy}
-            initialSort="All"
-          />
-        </div>
-      </div>
       <div className="flex gap-4 flex-1 min-h-0">
-        <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col min-h-0">
-          <div className="bg-gray-50 border-b border-gray-200 px-5 py-2">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Today&apos;s Tasks
-              </h2>
-              <ShiftIndicator />
-            </div>
-            <p className="text-sm text-gray-600">
-              {completedCount} of {tasks.length} completed
-            </p>
+        <div className="flex-1 flex flex-col min-h-0">
+          <div className="mb-4 px-0">
+            <SearchSortBar
+              query={query}
+              setQuery={setQuery}
+              onSearch={(term) => setSearch(term)}
+              onSortChange={setSortBy}
+              initialSort="All"
+            />
           </div>
-
-          <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
-            {filtered.length === 0 ? (
-              <div className="px-6 py-8 text-center text-gray-500">
-                No hay tareas disponibles
+          <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col min-h-0">
+            <div className="bg-gray-50 border-b border-gray-200 px-5 py-2">
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Today&apos;s Tasks
+                </h2>
+                <ShiftIndicator />
               </div>
-            ) : (
-              filtered.map((t) => (
-                <div
-                  key={t.id}
-                  onClick={() => setSelected(t)}
-                  className={`flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-gray-50 ${
-                    selected?.id === t.id
-                      ? "bg-gray-50 border-l-4 border-[#D9C696]"
-                      : ""
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    {iconForType[t.type]}
-                    <span className="font-medium text-gray-900">
-                      {t.room}
-                    </span>
-                  </div>
+              <p className="text-sm text-gray-600">
+                {completedCount} of {tasks.length} completed
+              </p>
+            </div>
 
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span className="capitalize">
-                      {t.status.replace("_", " ").toLowerCase()}
-                    </span>
-
-                    {t.time && (
-                      <span className="font-mono text-gray-500">
-                        {t.time}
-                      </span>
-                    )}
-
-                    <span
-                      className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                        t.shift === "MORNING"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-gray-300 text-gray-800"
-                      }`}
-                    >
-                      {t.shift === "MORNING" ? "Morning" : "Evening"}
-                    </span>
-                  </div>
+            <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
+              {filtered.length === 0 ? (
+                <div className="px-6 py-8 text-center text-gray-500">
+                  No hay tareas disponibles
                 </div>
-              ))
-            )}
+              ) : (
+                filtered.map((t) => (
+                  <div
+                    key={t.id}
+                    onClick={() => setSelected(t)}
+                    className={`flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-gray-50 ${
+                      selected?.id === t.id
+                        ? "bg-gray-50 border-l-4 border-[#D9C696]"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {iconForType[t.type]}
+                      <span className="font-medium text-gray-900">
+                        {t.room}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <span className="capitalize">
+                        {t.status.replace("_", " ").toLowerCase()}
+                      </span>
+
+                      {t.time && (
+                        <span className="font-mono text-gray-500">
+                          {t.time}
+                        </span>
+                      )}
+
+                      <span
+                        className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                          t.shift === "MORNING"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-gray-300 text-gray-800"
+                        }`}
+                      >
+                        {t.shift === "MORNING" ? "Morning" : "Evening"}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 

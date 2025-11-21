@@ -110,8 +110,6 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
 
     setSubmitting(true);
     try {
-      // Siempre crear la solicitud de materiales (esto también consume el inventario y crea logs)
-      // El backend crea el registro en material_requests, consume el inventario y crea logs
       const payload = {
         items,
         notes: notes.trim() || null,
@@ -131,9 +129,10 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
       // Recargar inventario para obtener valores actualizados
       await loadData();
       
-      if (onSuccess) onSuccess();
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err) {
-      console.error("Error:", err);
       const message =
         err.response?.data?.message ||
         err.message ||

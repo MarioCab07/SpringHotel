@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Layout from "../components/Layout";
 import InventoryCategoryCard from "../components/Inventory/InventoryCategoryCard";
 import InventoryTable from "../components/Inventory/InventoryTable";
@@ -35,6 +35,7 @@ const InventoryPage = () => {
   const [data, setData] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const isEditModeRef = useRef(false);
   
   // Estados para modo edición
   const [editQuery, setEditQuery] = useState("");
@@ -50,6 +51,11 @@ const InventoryPage = () => {
   const [showEditItemModal, setShowEditItemModal] = useState(false);
   const [showMaterialRequests, setShowMaterialRequests] = useState(false);
   const [showLowStockAlert, setShowLowStockAlert] = useState(true);
+
+  // Mantener referencia actualizada de isEditMode
+  useEffect(() => {
+    isEditModeRef.current = isEditMode;
+  }, [isEditMode]);
 
   const handleEditClick = () => {
     setIsEditMode(true);
@@ -159,40 +165,49 @@ const InventoryPage = () => {
     }
   }, []);
 
-  // Callbacks para WebSocket
+  // Callbacks para WebSocket - sin dependencias para mantener referencia estable
   const handleInventoryUpdate = useCallback((updatedItem) => {
-    console.log("WebSocket: Actualización recibida", updatedItem);
+    // Normalizar el ID para comparación (puede venir como número o string)
+    const updatedItemId = Number(updatedItem.id);
     
+    // Actualizar estado de visualización
     setData((prevData) => {
-      const itemIndex = prevData.findIndex((item) => item.id === updatedItem.id);
+      const itemIndex = prevData.findIndex((item) => Number(item.id) === updatedItemId);
       if (itemIndex >= 0) {
+        // Item existe, actualizarlo
         const newData = [...prevData];
         newData[itemIndex] = {
           ...updatedItem,
+          id: updatedItemId,
           available: updatedItem.status === "ACTIVE",
         };
-        console.log("WebSocket: Item actualizado en data", newData[itemIndex]);
         return newData;
+      } else {
+        // Item no existe, agregarlo (nuevo item)
+        return [...prevData, { 
+          ...updatedItem, 
+          id: updatedItemId,
+          available: updatedItem.status === "ACTIVE" 
+        }];
       }
-      // Si no existe, agregarlo (nuevo item)
-      console.log("WebSocket: Nuevo item agregado", updatedItem);
-      return [...prevData, { ...updatedItem, available: updatedItem.status === "ACTIVE" }];
     });
 
     // También actualizar en modo edición si está activo
-    if (isEditMode) {
+    if (isEditModeRef.current) {
       setGroupedData((prevGrouped) => {
         const categoryName = updatedItem.categoryName || "Sin categoría";
         const categoryItems = prevGrouped[categoryName] || [];
-        const itemIndex = categoryItems.findIndex((item) => item.id === updatedItem.id);
+        const itemIndex = categoryItems.findIndex((item) => Number(item.id) === updatedItemId);
         
         if (itemIndex >= 0) {
           const newCategoryItems = [...categoryItems];
-          newCategoryItems[itemIndex] = updatedItem;
-          console.log("WebSocket: Item actualizado en modo edición", updatedItem);
+          newCategoryItems[itemIndex] = {
+            ...updatedItem,
+            id: updatedItemId,
+          };
           return { ...prevGrouped, [categoryName]: newCategoryItems };
         }
-        return { ...prevGrouped, [categoryName]: [...categoryItems, updatedItem] };
+        return { ...prevGrouped, [categoryName]: [...categoryItems, { ...updatedItem, id: updatedItemId }] };
       });
     }
     
@@ -201,7 +216,7 @@ const InventoryPage = () => {
       position: "top-right",
       autoClose: 2000,
     });
-  }, [isEditMode]);
+  }, []); // Sin dependencias - usar refs para valores que cambian
 
   const handleLowStockAlert = useCallback((item) => {
     // El toast ya se muestra en el hook
