@@ -31,6 +31,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Service
 public class BookingServiceImpl implements BookingService {
@@ -39,15 +40,19 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final RoomRepository roomRepository;
     private final EmailService  emailService;
-  private final RoomServiceRepository roomServiceRepository;
+    private final RoomServiceRepository roomServiceRepository;
+    private final com.group07.hotel_API.service.TicketService ticketService;
+    private final com.group07.hotel_API.repository.TicketRepository ticketRepository;
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.ENGLISH);
     @Autowired
-    public BookingServiceImpl(BookingRepository bookingRepository, UserRepository userRepository, RoomRepository roomRepository, EmailService emailService,RoomServiceRepository roomServiceRepository) {
+    public BookingServiceImpl(BookingRepository bookingRepository, UserRepository userRepository, RoomRepository roomRepository, EmailService emailService, RoomServiceRepository roomServiceRepository, com.group07.hotel_API.service.TicketService ticketService, com.group07.hotel_API.repository.TicketRepository ticketRepository) {
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.roomRepository = roomRepository;
         this.emailService = emailService;
-      this.roomServiceRepository=roomServiceRepository;
+        this.roomServiceRepository = roomServiceRepository;
+        this.ticketService = ticketService;
+        this.ticketRepository = ticketRepository;
     }
 
 
@@ -252,7 +257,52 @@ public class BookingServiceImpl implements BookingService {
                 "The check-in date has changed from "+ pastCheckIn.format(formatter) +" to " + actualBooking.getCheckIn().format(formatter) +" and the check-out date has changed from "+ pastCheckOut.format(formatter)+" to "+actualBooking.getCheckOut().format(formatter);
     }
 
-
-
+    // GET BOOKING HISTORY WITH SERVICES AND TICKETS
+    @Override
+    public List<com.group07.hotel_API.dto.response.Booking.BookingHistoryResponse> getBookingHistory(Integer userId) {
+        // Obtener todas las reservas del usuario
+        List<Booking> bookings = bookingRepository.findAllByUserId(userId);
+        
+        return bookings.stream().map(booking -> {
+            // Obtener servicios adicionales de la reserva
+            List<BookingServiceItemResponse> services = bookingRepository.findServicesByBooking(booking.getId());
+            
+            // Obtener ticket/factura asociada (puede ser null)
+            com.group07.hotel_API.dto.response.Ticket.TicketResponse ticket = null;
+            try {
+                var ticketOptional = ticketRepository.findByBookingId(booking.getId());
+                if (ticketOptional.isPresent()) {
+                    ticket = com.group07.hotel_API.utils.mappers.TicketMapper.toDTO(ticketOptional.get());
+                }
+            } catch (Exception e) {
+                // Si no hay ticket, continuar sin él
+            }
+            
+            // Calcular total pagado
+            Double totalPaid = null;
+            if (ticket != null && ticket.getTotal() != null) {
+                totalPaid = ticket.getTotal().doubleValue();
+            }
+            
+            // Construir respuesta
+            BookingResponse bookingResponse = BookingMapper.toDTO(booking);
+            return com.group07.hotel_API.dto.response.Booking.BookingHistoryResponse.builder()
+                    .id(bookingResponse.getId())
+                    .checkIn(bookingResponse.getCheckIn())
+                    .checkOut(bookingResponse.getCheckOut())
+                    .status(bookingResponse.getStatus())
+                    .userId(bookingResponse.getUserId())
+                    .userName(bookingResponse.getUserName())
+                    .userEmail(bookingResponse.getUserEmail())
+                    .roomId(bookingResponse.getRoomId())
+                    .roomNumber(bookingResponse.getRoomNumber())
+                    .roomType(bookingResponse.getRoomType())
+                    .roomStatus(bookingResponse.getRoomStatus())
+                    .services(services)
+                    .ticket(ticket)
+                    .totalPaid(totalPaid)
+                    .build();
+        }).collect(java.util.stream.Collectors.toList());
+    }
 
 }

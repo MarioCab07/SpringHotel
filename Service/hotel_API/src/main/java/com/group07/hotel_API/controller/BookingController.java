@@ -8,7 +8,9 @@ import com.group07.hotel_API.dto.response.Booking.BookingResponse;
 import com.group07.hotel_API.dto.response.Booking.BookingServiceItemResponse;
 import com.group07.hotel_API.dto.response.GeneralResponse;
 import com.group07.hotel_API.entities.UserClient;
+import com.group07.hotel_API.service.AuthService;
 import com.group07.hotel_API.service.BookingService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,9 +31,20 @@ public class BookingController {
 
 
         private final BookingService bookingService;
+        private final AuthService authService;
 
         @Autowired
-        public BookingController(BookingService bookingService) { this.bookingService = bookingService;
+        public BookingController(BookingService bookingService, AuthService authService) {
+            this.bookingService = bookingService;
+            this.authService = authService;
+        }
+
+        private String getTokenFromRequest(HttpServletRequest request) {
+            String bearerToken = request.getHeader("Authorization");
+            if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+                return bearerToken.substring(7);
+            }
+            return null;
         }
 
 
@@ -62,6 +75,7 @@ public class BookingController {
         var bookings = bookingService.getUserBookings(id);
         return buildResponse("Bookings loaded successfully", HttpStatus.OK, bookings);
     }
+        
         @GetMapping("/active")
         @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE','CLEANING_STAFF', 'USER')")
         public ResponseEntity<GeneralResponse> getActiveBookings() {
@@ -88,6 +102,35 @@ public class BookingController {
     public ResponseEntity<GeneralResponse> checkOut(@PathVariable int userId) {
         BookingResponse response = bookingService.checkOut(userId);
         return buildResponse("Check-out successfully", HttpStatus.OK, response);
+    }
+
+    @GetMapping("/history/{userId}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'EMPLOYEE')")
+    public ResponseEntity<GeneralResponse> getBookingHistory(
+            @PathVariable("userId") int userId,
+            HttpServletRequest request) {
+        // Validar que usuarios solo puedan ver su propio historial
+        if (request != null) {
+            String token = getTokenFromRequest(request);
+            if (token != null) {
+                try {
+                    var authenticatedUser = authService.getUserDetails(token);
+                    // Si es USER, solo puede ver su propio historial
+                    if (authenticatedUser.getRole().equals("USER") && !authenticatedUser.getUserId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body(GeneralResponse.builder()
+                                        .message("Access denied. You can only view your own booking history.")
+                                        .status(HttpStatus.FORBIDDEN.value())
+                                        .data(null)
+                                        .build());
+                    }
+                } catch (Exception e) {
+                    // Si hay error obteniendo el usuario, continuar (puede ser ADMIN/EMPLOYEE)
+                }
+            }
+        }
+        var history = bookingService.getBookingHistory(userId);
+        return buildResponse("Booking history retrieved successfully", HttpStatus.OK, history);
     }
 
     @GetMapping()
