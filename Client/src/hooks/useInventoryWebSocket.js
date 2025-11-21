@@ -10,85 +10,27 @@ const useInventoryWebSocket = (onInventoryUpdate, onLowStockAlert, onListUpdate)
   const reconnectTimeoutRef = useRef(null);
   const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 5;
+  
+  // Usar refs para mantener referencias estables a los callbacks
+  const callbacksRef = useRef({
+    onInventoryUpdate,
+    onLowStockAlert,
+    onListUpdate,
+  });
 
-  const connect = useCallback(() => {
-    if (clientRef.current?.connected) {
-      return;
-    }
-
-    const socket = new SockJS(`${WS_BASE_URL}/ws/inventory`);
-    const client = new Client({
-      webSocketFactory: () => socket,
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-      onConnect: () => {
-        console.log("WebSocket conectado");
-        reconnectAttemptsRef.current = 0;
-
-        // Suscribirse a actualizaciones de inventario
-        client.subscribe("/topic/inventory/update", (message) => {
-          try {
-            console.log("WebSocket: Mensaje RAW recibido:", message.body);
-            const updatedItem = JSON.parse(message.body);
-            console.log("WebSocket: Mensaje parseado en /topic/inventory/update", updatedItem);
-            if (onInventoryUpdate) {
-              console.log("WebSocket: Llamando callback onInventoryUpdate");
-              onInventoryUpdate(updatedItem);
-            } else {
-              console.warn("WebSocket: onInventoryUpdate callback no está definido");
-            }
-          } catch (error) {
-            console.error("Error procesando actualización de inventario:", error);
-            console.error("Mensaje que causó el error:", message.body);
-          }
-        });
-
-        // Suscribirse a alertas de stock bajo
-        client.subscribe("/topic/inventory/low-stock", (message) => {
-          try {
-            const lowStockItem = JSON.parse(message.body);
-            if (onLowStockAlert) {
-              onLowStockAlert(lowStockItem);
-            }
-            // Mostrar notificación
-            toast.warning(`⚠️ Stock bajo: ${lowStockItem.name} (${lowStockItem.quantity} unidades)`, {
-              position: "top-right",
-              autoClose: 5000,
-            });
-          } catch (error) {
-            console.error("Error procesando alerta de stock bajo:", error);
-          }
-        });
-
-        // Suscribirse a actualizaciones de lista completa
-        client.subscribe("/topic/inventory/list-update", (message) => {
-          console.log("WebSocket: Mensaje recibido en /topic/inventory/list-update");
-          if (onListUpdate) {
-            onListUpdate();
-          } else {
-            console.warn("WebSocket: onListUpdate callback no está definido");
-          }
-        });
-      },
-      onStompError: (frame) => {
-        console.error("Error STOMP:", frame);
-      },
-      onWebSocketError: (error) => {
-        console.error("Error WebSocket:", error);
-        attemptReconnect();
-      },
-      onDisconnect: () => {
-        console.log("WebSocket desconectado");
-        attemptReconnect();
-      },
-    });
-
-    client.activate();
-    clientRef.current = client;
+  // Actualizar las referencias cuando cambien los callbacks
+  useEffect(() => {
+    callbacksRef.current = {
+      onInventoryUpdate,
+      onLowStockAlert,
+      onListUpdate,
+    };
   }, [onInventoryUpdate, onLowStockAlert, onListUpdate]);
 
-  const attemptReconnect = useCallback(() => {
+  const connectRef = useRef(null);
+  
+  // Función de reconexión
+  const attemptReconnectRef = useRef(() => {
     if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
       console.error("Máximo de intentos de reconexión alcanzado");
       toast.error("Error de conexión con el servidor. Por favor, recarga la página.");
@@ -104,10 +46,95 @@ const useInventoryWebSocket = (onInventoryUpdate, onLowStockAlert, onListUpdate)
     
     reconnectTimeoutRef.current = setTimeout(() => {
       console.log(`Intentando reconectar... (${reconnectAttemptsRef.current}/${maxReconnectAttempts})`);
-      if (!clientRef.current?.connected) {
-        connect();
+      if (!clientRef.current?.connected && connectRef.current) {
+        connectRef.current();
       }
     }, delay);
+  });
+
+  const connect = useCallback(() => {
+    if (clientRef.current?.connected) {
+      return;
+    }
+
+    // Limpiar intentos de reconexión previos
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+
+    const socket = new SockJS(`${WS_BASE_URL}/ws/inventory`);
+    const client = new Client({
+      webSocketFactory: () => socket,
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
+      onConnect: (frame) => {
+        console.log("WebSocket: Conectado exitosamente");
+        reconnectAttemptsRef.current = 0;
+
+        // Suscribirse a actualizaciones de inventario
+        client.subscribe("/topic/inventory/update", (message) => {
+          try {
+            const updatedItem = JSON.parse(message.body);
+            console.log("WebSocket: Actualización recibida -", updatedItem.name, `(${updatedItem.quantity} unidades)`);
+            const callback = callbacksRef.current.onInventoryUpdate;
+            if (callback) {
+              callback(updatedItem);
+            }
+          } catch (error) {
+            console.error("WebSocket: Error procesando actualización:", error);
+          }
+        });
+
+        // Suscribirse a alertas de stock bajo
+        client.subscribe("/topic/inventory/low-stock", (message) => {
+          try {
+            const lowStockItem = JSON.parse(message.body);
+            console.log("WebSocket: Alerta de stock bajo -", lowStockItem.name, `(${lowStockItem.quantity} unidades)`);
+            const callback = callbacksRef.current.onLowStockAlert;
+            if (callback) {
+              callback(lowStockItem);
+            }
+            // Mostrar notificación
+            toast.warning(`⚠️ Stock bajo: ${lowStockItem.name} (${lowStockItem.quantity} unidades)`, {
+              position: "top-right",
+              autoClose: 5000,
+            });
+          } catch (error) {
+            console.error("WebSocket: Error procesando alerta de stock bajo:", error);
+          }
+        });
+
+        // Suscribirse a actualizaciones de lista completa
+        client.subscribe("/topic/inventory/list-update", (message) => {
+          console.log("WebSocket: Actualización de lista recibida");
+          const callback = callbacksRef.current.onListUpdate;
+          if (callback) {
+            callback();
+          }
+        });
+      },
+      onStompError: (frame) => {
+        console.error("WebSocket: Error STOMP:", frame);
+      },
+      onWebSocketError: (error) => {
+        console.error("WebSocket: Error de conexión:", error);
+        attemptReconnectRef.current();
+      },
+      onDisconnect: () => {
+        console.log("WebSocket: Desconectado");
+        attemptReconnectRef.current();
+      },
+    });
+
+    client.activate();
+    clientRef.current = client;
+  }, []);
+
+  // Guardar referencia a connect para attemptReconnect
+  useEffect(() => {
+    connectRef.current = connect;
   }, [connect]);
 
   const disconnect = useCallback(() => {
@@ -115,8 +142,13 @@ const useInventoryWebSocket = (onInventoryUpdate, onLowStockAlert, onListUpdate)
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
+    reconnectAttemptsRef.current = 0;
     if (clientRef.current) {
-      clientRef.current.deactivate();
+      try {
+        clientRef.current.deactivate();
+      } catch (error) {
+        console.error("Error al desconectar WebSocket:", error);
+      }
       clientRef.current = null;
     }
   }, []);
@@ -126,7 +158,8 @@ const useInventoryWebSocket = (onInventoryUpdate, onLowStockAlert, onListUpdate)
     return () => {
       disconnect();
     };
-  }, [connect, disconnect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo conectar una vez al montar el componente
 
   return { disconnect, reconnect: connect };
 };

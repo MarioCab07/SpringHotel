@@ -5,7 +5,6 @@ import {
   getAllInventoryItems,
   getAllCategories,
   createMaterialRequest,
-  updateItemQuantityWithLog,
 } from "../../service/api.services";
 
 const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, directConsume = false, showNotes = true, showCategories = false, hideSubmitButton = false }, ref) => {
@@ -111,39 +110,33 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
 
     setSubmitting(true);
     try {
-      if (directConsume && currentUserId) {
-        // Modo directo: consumir inventario inmediatamente
-        await Promise.all(
-          items.map(async (item) => {
-            await updateItemQuantityWithLog(item.itemId, item.requestedQuantity, currentUserId, "USE");
-          })
-        );
-        
-        toast.success("Inventario ajustado correctamente");
-        
-        // Recargar inventario para obtener valores actualizados
-        await loadData();
-      } else {
-        // Modo normal: crear solicitud de materiales
-        const payload = {
-          items,
-          notes: notes.trim() || null,
-        };
+      const payload = {
+        items,
+        notes: notes.trim() || null,
+      };
 
-        await createMaterialRequest(payload);
-        toast.success("Solicitud de materiales enviada correctamente");
-      }
+      await createMaterialRequest(payload);
+      
+      toast.success(
+        directConsume 
+          ? "Inventario consumido correctamente" 
+          : "Solicitud de materiales enviada correctamente"
+      );
 
       setSelectedItems({});
       setNotes("");
       
-      if (onSuccess) onSuccess();
+      // Recargar inventario para obtener valores actualizados
+      await loadData();
+      
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err) {
-      console.error("Error:", err);
       const message =
         err.response?.data?.message ||
         err.message ||
-        (directConsume ? "Error al ajustar el inventario" : "Error al crear la solicitud");
+        (directConsume ? "Error al consumir el inventario" : "Error al crear la solicitud");
       toast.error(message);
     } finally {
       setSubmitting(false);

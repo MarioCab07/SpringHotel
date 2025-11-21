@@ -403,27 +403,29 @@ const handleSubmitInventory = async () => {
                     )}
                   </div>
 
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h2 className="font-semibold text-gray-900 mb-3">Service Types</h2>
-                <ul className="grid grid-cols-2 gap-3">
-                  {serviceTypes.map(type => (
-                    <li key={type.id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={`srv-type-${type.id}`}
-                        checked={!!suppliesChecked[type.id]}
-                        disabled
-                        className="w-4 h-4 text-[#D9C696] border-gray-300 rounded cursor-not-allowed opacity-60 mr-2"
-                      />
-                      <label 
-                        htmlFor={`srv-type-${type.id}`}
-                        className="text-sm text-gray-700 cursor-not-allowed"
-                      >
-                        {type.name}
-                      </label>
-                    </li>
-                  ))}
-                </ul>
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex flex-col">
+                <h2 className="font-semibold text-gray-900 mb-3">TIPOS DE SERVICIO</h2>
+                <div className="flex-1 overflow-y-auto max-h-64">
+                  <ul className="space-y-2">
+                    {serviceTypes.map(type => (
+                      <li key={type.id} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id={`srv-type-${type.id}`}
+                          checked={!!suppliesChecked[type.id]}
+                          disabled
+                          className="w-4 h-4 text-[#D9C696] border-gray-300 rounded cursor-not-allowed opacity-60 mr-2 shrink-0"
+                        />
+                        <label 
+                          htmlFor={`srv-type-${type.id}`}
+                          className="text-sm text-gray-700 cursor-not-allowed flex-1"
+                        >
+                          {type.name}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
                 </div>
               </div>
