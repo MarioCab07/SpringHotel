@@ -323,6 +323,39 @@ export const getBookingHistory = async (userId) => {
     }
 };
 
+// Admin booking history endpoints
+export const getAllBookingHistory = async () => {
+    try {
+        return await apiClient.get("/bookings/admin/history");
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const updateBookingHistory = async (bookingId, data) => {
+    try {
+        return await apiClient.put(`/bookings/admin/history/${bookingId}`, data);
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const deleteBookingHistoryRecord = async (bookingId) => {
+    try {
+        return await apiClient.delete(`/bookings/admin/history/${bookingId}`);
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const recalculateInvoice = async (bookingId) => {
+    try {
+        return await apiClient.post(`/bookings/admin/history/${bookingId}/recalculate-invoice`);
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
 export const getActiveBookings = async () => {
     try {
         return await apiClient.get("/bookings/active");

@@ -173,6 +173,37 @@ public class BookingController {
         return ResponseEntity.ok(list);  // Devuelve [] si no hay servicios
     }
 
+    // ADMIN ENDPOINTS FOR BOOKING HISTORY MANAGEMENT
+    @GetMapping("/admin/history")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse> getAllBookingHistory() {
+        var history = bookingService.getAllBookingHistory();
+        return buildResponse("All booking history retrieved successfully", HttpStatus.OK, history);
+    }
+
+    @PutMapping("/admin/history/{bookingId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse> updateBookingHistory(
+            @PathVariable Integer bookingId,
+            @Valid @RequestBody com.group07.hotel_API.dto.request.Booking.BookingHistoryUpdateRequest request) {
+        var updated = bookingService.updateBookingHistory(bookingId, request);
+        return buildResponse("Booking history updated successfully", HttpStatus.OK, updated);
+    }
+
+    @DeleteMapping("/admin/history/{bookingId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse> deleteBookingHistoryRecord(@PathVariable Integer bookingId) {
+        bookingService.deleteBookingHistoryRecord(bookingId);
+        return buildResponse("Booking history record deleted successfully", HttpStatus.OK, null);
+    }
+
+    @PostMapping("/admin/history/{bookingId}/recalculate-invoice")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse> recalculateInvoice(@PathVariable Integer bookingId) {
+        var ticket = bookingService.recalculateInvoice(bookingId);
+        return buildResponse("Invoice recalculated successfully", HttpStatus.OK, ticket);
+    }
+
 
 
     private ResponseEntity<GeneralResponse> buildResponse(String message, HttpStatus status, Object data) {

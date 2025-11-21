@@ -25,6 +25,7 @@ import ReservationsPage from "./pages/ReservationPage";
 import EmployeeCheckInPage from "./pages/EmployeeCheckInPage";
 import EditInventoryPage from "./components/EditInventoryPage";
 import EmployeeCheckOutPage from "./pages/EmployeeCheckOutPage";
+import AdminBookingHistoryPage from "./pages/AdminBookingHistoryPage";
 
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
             {/* ADMIN ONLY */}
             <Route element={<ProtectedRoutes allowedRoles={["ADMIN"]} />}>
               <Route path="/admin" element={<AdminPage />} />
+              <Route path="/admin/booking-history" element={<AdminBookingHistoryPage />} />
             </Route>
 
             {/* EMPLOYEE + ADMIN */}
