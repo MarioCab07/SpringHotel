@@ -121,6 +121,19 @@ const MyBookingsPage = () => {
     }
   };
 
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [openFilterMenu, setOpenFilterMenu] = useState(false);
+
+  const statusOptions = [
+    { value: "ALL", label: "All" },
+    { value: "PENDING", label: "Pending" },
+    { value: "CONFIRMED", label: "Confirmed" },
+    { value: "ACTIVE", label: "Active" },
+    { value: "CANCELLED", label: "Cancelled" },
+  ];
+
+
+
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center text-lg">
@@ -135,124 +148,221 @@ const MyBookingsPage = () => {
       </header>
 
       <div
-        className="flex justify-center"
-        style={{ fontFamily: '"Playfair Display", serif' }}
+        className="flex justify-center items-center gap-6 mt-8"
       >
-        <h2 className="text-3xl my-8 px-12">Reservations</h2>
+        <h2 className="text-3xl" style={{ fontFamily: '"Playfair Display", serif' }}>Reservations</h2>
+
+        <div className="relative">
+          <button
+            onClick={() => setOpenFilterMenu(!openFilterMenu)}
+            onBlur={() => setTimeout(() => setOpenFilterMenu(false), 150)}
+            className="
+      bg-white
+      border-2
+      border-[#D9C696]
+      text-gray-800
+      font-medium
+      px-5
+      py-1.5
+      rounded-xl
+      w-44
+      flex
+      items-center
+      justify-between
+      transition-all
+      duration-200
+      hover:border-[#CDB883]
+      hover:shadow-md
+      focus:outline-none
+      focus:ring-2
+      focus:ring-[#D9C696]/50
+    "
+          >
+            <span>{statusOptions.find((o) => o.value === statusFilter)?.label}</span>
+            <svg
+              className={`w-4 h-4 transition-transform duration-200 ${openFilterMenu ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {openFilterMenu && (
+            <div
+              className="
+        absolute
+        mt-2
+        w-44
+        bg-white
+        border
+        border-[#D9C696]
+        rounded-xl
+        shadow-lg
+        overflow-hidden
+        z-50
+        animate-fadeIn
+      "
+            >
+              {statusOptions.map((opt) => (
+                <div
+                  key={opt.value}
+                  onClick={() => {
+                    setStatusFilter(opt.value);
+                    setOpenFilterMenu(false);
+                  }}
+                  className={`
+            px-5
+            py-1.5
+            cursor-pointer
+            transition-all
+            duration-150
+            ${statusFilter === opt.value
+                      ? "bg-[#D9C696] text-gray-900 font-semibold"
+                      : "text-gray-700 hover:bg-[#D9C696]/60"
+                    }
+          `}
+                >
+                  {opt.label}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
+
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 px-12 mt-10">
-        {bookings.map((b) => {
-          const room = rooms[b.roomId];
-          if (!room) return null;
+        {bookings
+          .filter((b) => statusFilter === "ALL" || b.status === statusFilter)
+          .map((b) => {
 
-          const nights = getNights(b.checkIn, b.checkOut);
-          const total = nights * room.roomType.price;
+            const room = rooms[b.roomId];
+            if (!room) return null;
 
-          return (
-            <div
-              key={b.id}
-              className="bg-white shadow-lg rounded-xl border border-gray-200 p-10 flex flex-col justify-between min-w-[600px] mx-auto"
-            >
-              <div>
-                <h2 className="font-serif text-xl text-center">
-                  LUMÉ HOTEL & SUITES
-                </h2>
+            const nights = getNights(b.checkIn, b.checkOut);
+            const total = nights * room.roomType.price;
 
-                <div className="border-t border-[#d4a86a] mt-3 mb-6 w-3/4 mx-auto"></div>
+            return (
+              <div
+                key={b.id}
+                className="bg-white shadow-lg rounded-xl border border-gray-200 p-10 flex flex-col justify-between min-w-[600px] mx-auto"
+              >
+                <div>
+                  <h2 className="font-serif text-xl text-center">
+                    LUMÉ HOTEL & SUITES
+                  </h2>
 
-                <p className="text-right text-sm text-gray-600 font-medium">
-                  #{String(b.id).padStart(3, "0")}
-                </p>
+                  <div className="border-t border-[#d4a86a] mt-3 mb-6 w-3/4 mx-auto"></div>
 
-                <h3 className="text-xl text-center font-semibold mt-2">
-                  Booking
-                </h3>
-              </div>
+                  <p className="text-right text-sm text-gray-600 font-medium">
+                    #{String(b.id).padStart(3, "0")}
+                  </p>
 
-              <div className="mt-8 space-y-4 text-gray-700 text-[15px]">
-                <p>
-                  <strong>Name:</strong> {user.fullName}
-                </p>
-                <p>
-                  <strong>Email:</strong> {user.email}
-                </p>
-                <p>
-                  <strong>Phone Number:</strong> {user.phoneNumber}
-                </p>
-                <p className="pt-4">
-                  <strong>Type:</strong> {room.roomType.name}
-                </p>
-                <p>
-                  <strong>Status:</strong> {b.status}
-                </p>
+                  <h3 className="text-xl text-center font-semibold mt-2">
+                    Booking
+                  </h3>
+                </div>
 
-                <div className="flex justify-between">
+                <div className="mt-8 space-y-4 text-gray-700 text-[15px]">
                   <p>
-                    <strong>Price / Night:</strong> ${room.roomType.price}
+                    <strong>Name:</strong> {user.fullName}
                   </p>
                   <p>
-                    <strong>Nights:</strong> {nights}
+                    <strong>Email:</strong> {user.email}
+                  </p>
+                  <p>
+                    <strong>Phone Number:</strong> {user.phoneNumber}
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 pt-4">
+
+                    {/* LEFT COLUMN */}
+                    <div className="space-y-1">
+                      <p>
+                        <strong>Type:</strong> {room.roomType.name}
+                      </p>
+                      <p>
+                        <strong>Room Number:</strong> {room.roomNumber}
+                      </p>
+                    </div>
+
+                    {/* RIGHT COLUMN */}
+                    <div className="space-y-1 text-right">
+                      <p>
+                        <strong>Status:</strong> {b.status}
+                      </p>
+                      <p>
+                        <strong>Price / Night:</strong> ${room.roomType.price}
+                      </p>
+                    </div>
+
+                  </div>
+
+                  <div className="flex justify-between">
+                    <p>
+                      <strong>Nights:</strong> {nights}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-between pt-2">
+                    <p>
+                      <strong>Check-in:</strong> {formatDate(b.checkIn)}
+                    </p>
+                    <p>
+                      <strong>Check-out:</strong> {formatDate(b.checkOut)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-300 mt-6 pt-6 flex justify-between">
+                  <p className="text-xl font-bold">${total}</p>
+                  <p className="text-sm text-gray-600">
+                    {formatDate(b.createdAt)}
                   </p>
                 </div>
 
-                <div className="flex justify-between pt-2">
-                  <p>
-                    <strong>Check-in:</strong> {formatDate(b.checkIn)}
-                  </p>
-                  <p>
-                    <strong>Check-out:</strong> {formatDate(b.checkOut)}
-                  </p>
+                <p className="text-center text-gray-700 mt-6 text-sm leading-relaxed">
+                  Thank you for choosing Lumé Hotel & Suites.
+                  <br />
+                  We look forward to your stay.
+                </p>
+
+                <div className="mt-6 flex flex-col space-y-3">
+                  {b.status === "PENDING" && (
+                    <button
+                      onClick={() => openChangeDates(b)}
+                      className="bg-[#D9C696] hover:bg-[#cdb883] text-black font-medium px-6 py-2 rounded-lg transition"
+                    >
+                      Change Dates
+                    </button>
+                  )}
+
+                  {b.status === "ACTIVE" && (
+                    <button
+                      onClick={() => navigate(`/bookings/${b.id}`)}
+                      className="bg-[#172A45] hover:bg-[#1F3A5A] text-white font-medium px-6 py-2 rounded-lg transition"
+                    >
+                      View more
+                    </button>
+                  )}
+
+                  {["PENDING", "CONFIRMED", "ACTIVE"].includes(b.status) && (
+                    <button
+                      onClick={() => {
+                        setBookingToCancel(b.id);
+                        setShowCancelModal(true);
+                      }}
+                      className="bg-[#C96E5E] hover:bg-[#B86254] text-black font-medium px-6 py-2 rounded-lg transition"
+                    >
+                      Cancel reservation
+                    </button>
+                  )}
                 </div>
               </div>
-
-              <div className="border-t border-gray-300 mt-6 pt-6 flex justify-between">
-                <p className="text-xl font-bold">${total}</p>
-                <p className="text-sm text-gray-600">
-                  {formatDate(b.createdAt)}
-                </p>
-              </div>
-
-              <p className="text-center text-gray-700 mt-6 text-sm leading-relaxed">
-                Thank you for choosing Lumé Hotel & Suites.
-                <br />
-                We look forward to your stay.
-              </p>
-
-              <div className="mt-6 flex flex-col space-y-3">
-                {b.status === "PENDING" && (
-                  <button
-                    onClick={() => openChangeDates(b)}
-                    className="bg-[#D9C696] hover:bg-[#cdb883] text-black font-medium px-6 py-2 rounded-lg transition"
-                  >
-                    Change Dates
-                  </button>
-                )}
-
-                {b.status === "ACTIVE" && (
-                  <button
-                    onClick={() => navigate(`/bookings/${b.id}`)}
-                    className="bg-[#172A45] hover:bg-[#1F3A5A] text-white font-medium px-6 py-2 rounded-lg transition"
-                  >
-                    View more
-                  </button>
-                )}
-
-                {["PENDING", "CONFIRMED", "ACTIVE"].includes(b.status) && (
-                  <button
-                    onClick={() => {
-                      setBookingToCancel(b.id);
-                      setShowCancelModal(true);
-                    }}
-                    className="bg-[#C96E5E] hover:bg-[#B86254] text-black font-medium px-6 py-2 rounded-lg transition"
-                  >
-                    Cancel reservation
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
 
       {showModal && selectedBooking && (
