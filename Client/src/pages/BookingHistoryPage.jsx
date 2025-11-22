@@ -51,8 +51,15 @@ const BookingHistoryPage = () => {
       const historyRes = await getBookingHistory(userId);
       const fetched = historyRes.data.data || [];
       
-      // Ordenar por fecha de check-out descendente (más recientes primero)
+      // Ordenar: primero ACTIVE, luego PENDING, luego CANCELLED, luego otros
+      const statusOrder = { ACTIVE: 1, PENDING: 2, CANCELLED: 3, COMPLETED: 4, CONFIRMED: 5 };
       const sorted = fetched.sort((a, b) => {
+        const orderA = statusOrder[a.status] || 99;
+        const orderB = statusOrder[b.status] || 99;
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+        // Si tienen el mismo estado, ordenar por fecha de check-out descendente
         const dateA = new Date(b.checkOut);
         const dateB = new Date(a.checkOut);
         return dateA - dateB;
@@ -62,7 +69,7 @@ const BookingHistoryPage = () => {
       setFilteredHistory(sorted);
     } catch (error) {
       console.error("Error loading history:", error);
-      toast.error("Error al cargar el historial de reservas");
+      toast.error("Error loading booking history");
     } finally {
       setLoading(false);
     }
@@ -114,7 +121,7 @@ const BookingHistoryPage = () => {
       setSelectedInvoice(booking);
       setShowInvoiceModal(true);
     } else {
-      toast.info("No hay factura disponible para esta reserva");
+      toast.info("No invoice available for this reservation");
     }
   };
 
@@ -132,7 +139,7 @@ const BookingHistoryPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-lg">
-        Cargando historial de reservas...
+        Loading booking history...
       </div>
     );
   }
@@ -147,17 +154,17 @@ const BookingHistoryPage = () => {
         className="flex justify-center"
         style={{ fontFamily: '"Playfair Display", serif' }}
       >
-        <h2 className="text-3xl my-8 px-12">Historial de Reservas</h2>
+        <h2 className="text-3xl my-8 px-12">Booking History</h2>
       </div>
 
       {/* Filtros */}
       <div className="max-w-7xl mx-auto px-12 mb-8">
         <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Filtros</h3>
+          <h3 className="text-lg font-semibold mb-4">Filters</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fecha
+                Date
               </label>
               <input
                 type="date"
@@ -168,11 +175,11 @@ const BookingHistoryPage = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tipo de Servicio
+                Service Type
               </label>
               <input
                 type="text"
-                placeholder="Buscar servicio..."
+                placeholder="Search service..."
                 value={serviceTypeFilter}
                 onChange={(e) => setServiceTypeFilter(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4a86a] focus:border-transparent"
@@ -180,19 +187,19 @@ const BookingHistoryPage = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Estado
+                Status
               </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4a86a] focus:border-transparent"
               >
-                <option value="">Todos</option>
-                <option value="ACTIVE">Activa</option>
-                <option value="PENDING">Pendiente</option>
-                <option value="CONFIRMED">Confirmada</option>
-                <option value="COMPLETED">Completada</option>
-                <option value="CANCELLED">Cancelada</option>
+                <option value="">All</option>
+                <option value="ACTIVE">Active</option>
+                <option value="PENDING">Pending</option>
+                <option value="CONFIRMED">Confirmed</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="CANCELLED">Cancelled</option>
               </select>
             </div>
           </div>
@@ -205,7 +212,7 @@ const BookingHistoryPage = () => {
               }}
               className="mt-4 text-sm text-[#d4a86a] hover:text-[#c6ae7b] font-medium"
             >
-              Limpiar filtros
+              Clear filters
             </button>
           )}
         </div>
@@ -217,8 +224,8 @@ const BookingHistoryPage = () => {
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
               {history.length === 0
-                ? "No tienes reservas en tu historial"
-                : "No se encontraron reservas con los filtros aplicados"}
+                ? "You have no bookings in your history"
+                : "No bookings found with the applied filters"}
             </p>
           </div>
         ) : (
@@ -231,10 +238,10 @@ const BookingHistoryPage = () => {
                 <div className="flex justify-between items-start mb-6">
                   <div>
                     <h3 className="text-2xl font-serif">
-                      Reserva #{String(booking.id).padStart(3, "0")}
+                      Reservation #{String(booking.id).padStart(3, "0")}
                     </h3>
                     <p className="text-sm text-gray-500 mt-1">
-                      {booking.roomType} - Habitación {booking.roomNumber}
+                      {booking.roomType} - Room {booking.roomNumber}
                     </p>
                   </div>
                   <span
@@ -261,7 +268,7 @@ const BookingHistoryPage = () => {
                 {booking.services && booking.services.length > 0 && (
                   <div className="mb-6">
                     <h4 className="text-lg font-semibold mb-3">
-                      Servicios Adicionales
+                      Additional Services
                     </h4>
                     <div className="bg-gray-50 rounded-lg p-4">
                       <ul className="space-y-2">
@@ -271,7 +278,7 @@ const BookingHistoryPage = () => {
                             className="flex justify-between items-center"
                           >
                             <span className="text-gray-700">
-                              {service.serviceName || "Servicio"}
+                              {service.serviceName || "Service"}
                             </span>
                             <span className="font-medium">
                               ${service.price?.toFixed(2) || "0.00"}
@@ -290,14 +297,14 @@ const BookingHistoryPage = () => {
                       {booking.ticket ? (
                         <div>
                           <p className="text-sm text-gray-600">
-                            Factura emitida: {formatDateTime(booking.ticket.issuedAt)}
+                            Invoice issued: {formatDateTime(booking.ticket.issuedAt)}
                           </p>
                           <p className="text-lg font-bold mt-2">
                             Total: ${booking.totalPaid?.toFixed(2) || booking.ticket.total?.toFixed(2) || "0.00"}
                           </p>
                         </div>
                       ) : (
-                        <p className="text-gray-500">Sin factura disponible</p>
+                        <p className="text-gray-500">No invoice available</p>
                       )}
                     </div>
                     {booking.ticket && (
@@ -305,7 +312,7 @@ const BookingHistoryPage = () => {
                         onClick={() => handleViewInvoice(booking)}
                         className="bg-[#d4a86a] hover:bg-[#c6ae7b] text-white px-6 py-2 rounded-lg font-medium transition"
                       >
-                        Ver Factura
+                        View Invoice
                       </button>
                     )}
                   </div>

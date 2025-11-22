@@ -158,7 +158,7 @@ const EmployeeCheckOutPage = () => {
     className="border border-gray-300 p-3 w-full rounded-xl 
                focus:ring-2 focus:ring-[#d4bf92] focus:outline-none
                text-gray-700 placeholder-gray-400 font-light"
-    placeholder="Booking ID (Activo)"
+    placeholder="Booking ID (Active)"
     value={bookingId}
     onChange={(e) => setBookingId(e.target.value)}
   />
@@ -168,7 +168,7 @@ const EmployeeCheckOutPage = () => {
     className="bg-[#d4bf92] hover:bg-[#c4af82] transition 
                text-white px-8 py-3 rounded-xl shadow-md font-light"
   >
-    Buscar
+    Search
   </button>
 </div>
 

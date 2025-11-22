@@ -9,7 +9,7 @@ import AdminHeader from "../components/Admin/AdminHeader";
 import AdminBanner from "../components/Admin/AdminBanner";
 
 const EmployeePage = () => {
-  const [option, setOption] = useState("Dashboard");
+  const [option, setOption] = useState("Rooms");
 
   const handleSignOut = () => {
     sessionStorage.clear();
@@ -18,7 +18,6 @@ const EmployeePage = () => {
 
   const getSectionTitle = () => {
     const titles = {
-      Dashboard: "Dashboard",
       Rooms: "Room Management",
       Reservations: "Hotel Reservations",
       Services: "Services Management",
