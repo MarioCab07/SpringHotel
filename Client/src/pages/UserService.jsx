@@ -85,7 +85,9 @@ const UserService = () => {
   useEffect(() => {
     if (!incoming) {
       const pendingOrActive = bookedServices.filter(
-        (s) => s.roomServiceStatus === "PENDING" || s.roomServiceStatus === "ACTIVE"
+        (s) => s.roomServiceStatus === "PENDING" || 
+               s.roomServiceStatus === "ACTIVE" || 
+               s.roomServiceStatus === "IN_PROGRESS"
       );
 
       const ids = pendingOrActive.flatMap((s) => s.serviceTypeIds || []);
@@ -104,11 +106,13 @@ const UserService = () => {
   const isPastOrInactive =
     booking?.status !== "ACTIVE" || new Date(booking?.checkOut) < new Date();
 
-  const pendingService = bookedServices.find(
-    (s) => s.roomServiceStatus === "PENDING"
+  const activeService = bookedServices.find(
+    (s) => s.roomServiceStatus === "PENDING" || 
+           s.roomServiceStatus === "ACTIVE" || 
+           s.roomServiceStatus === "IN_PROGRESS"
   );
 
-  const canModifyOrCancel = !!pendingService; // solo si está PENDING
+  const canModifyOrCancel = !!activeService; // si está PENDING, ACTIVE o IN_PROGRESS
 
   const imageUrl = imagesUrl[room?.roomType.name] || room?.imageUrl;
 
@@ -125,11 +129,11 @@ const UserService = () => {
   };
 
   const handleModifyService = async () => {
-    if (!pendingService) return;
+    if (!activeService) return;
 
     try {
-      await updateRoomService(pendingService.roomServiceId, {
-        roomServiceStatus: "PENDING",
+      await updateRoomService(activeService.roomServiceId, {
+        roomServiceStatus: activeService.roomServiceStatus, // Mantener el estado actual
         serviceTypeIds: selected,
         roomServiceDescription: specialRequest
       });
@@ -144,14 +148,14 @@ const UserService = () => {
   };
 
   const handleCancelService = async () => {
-    if (!pendingService) return;
+    if (!activeService) return;
 
     if (!window.confirm("Are you sure you want to cancel this service?")) return;
 
     try {
-      await updateRoomService(pendingService.roomServiceId, {
+      await updateRoomService(activeService.roomServiceId, {
         roomServiceStatus: "CANCELED",
-        serviceTypeIds: pendingService.serviceTypeIds
+        serviceTypeIds: activeService.serviceTypeIds
       });
 
       const srvRes = await getRoomServicesByBookingId(bookingId);
@@ -223,10 +227,7 @@ const UserService = () => {
                       type="checkbox"
                       checked={selected.includes(s.id)}
                       onChange={() => toggleService(s.id)}
-                      disabled={
-                        isPastOrInactive ||
-                        (!!pendingService && pendingService.roomServiceStatus !== "PENDING")
-                      }
+                      disabled={isPastOrInactive}
                       className="w-4 h-4 accent-[#D9C696]"
                     />
                     <span className={isPastOrInactive ? "text-gray-400" : ""}>
@@ -247,10 +248,7 @@ const UserService = () => {
           <textarea
             value={specialRequest}
             onChange={(e) => setSpecialRequest(e.target.value)}
-            disabled={
-                        isPastOrInactive ||
-                        (!!pendingService && pendingService.roomServiceStatus !== "PENDING")
-                      }
+            disabled={isPastOrInactive}
             placeholder="Write your request..."
             className="w-full mt-2 p-3 border rounded-lg focus:ring-2 focus:ring-[#D9C696] outline-none disabled:bg-gray-100"
           />

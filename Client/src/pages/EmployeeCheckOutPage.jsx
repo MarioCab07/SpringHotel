@@ -47,14 +47,19 @@ const EmployeeCheckOutPage = () => {
 
       try {
         const srv = await getBookingServices(b.id);
+        
+        console.log("Servicios recibidos del backend:", srv.data);
 
         if (Array.isArray(srv.data)) {
           servicios = srv.data.map((s) => ({
-            name: s.serviceName,
+            name: s.serviceName || s.name || "Servicio sin nombre",
             price: s.price ?? 0
           }));
         }
+        
+        console.log("Servicios procesados:", servicios);
       } catch (err) {
+        console.error("Error obteniendo servicios:", err);
         servicios = [];
       }
 
