@@ -53,7 +53,7 @@ const ReservationsPage = () => {
 
       setRows(enriched);
     } catch {
-      toast.error("Error al cargar reservas.");
+      toast.error("Error loading reservations.");
     } finally {
       setLoading(false);
     }

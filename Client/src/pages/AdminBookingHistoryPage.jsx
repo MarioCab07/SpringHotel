@@ -112,11 +112,11 @@ const AdminBookingHistoryPage = () => {
       {/* Búsqueda */}
       <div className="bg-gray-50 p-4 rounded-lg mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Buscar por ID, nombre, email, número de habitación o fecha:
+          Search by ID, name, email, room number or date:
         </label>
         <input
           type="text"
-          placeholder="Buscar..."
+          placeholder="Search..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -133,19 +133,19 @@ const AdminBookingHistoryPage = () => {
                     ID
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cliente
+                    Client
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Habitación
+                    Room
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fechas
+                    Dates
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Estado
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Servicios
+                    Services
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Total
@@ -213,7 +213,7 @@ const AdminBookingHistoryPage = () => {
                             )}
                           </div>
                         ) : (
-                          <span className="text-gray-400">Sin servicios</span>
+                          <span className="text-gray-400">No services</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">

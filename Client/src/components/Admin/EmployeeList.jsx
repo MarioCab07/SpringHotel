@@ -20,7 +20,7 @@ const EmployeeList = () => {
         setEmployees(response.data.data);
       }
     } catch (error) {
-      toast.error("Error al cargar los empleados: " + error.message);
+      toast.error("Error loading employees: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -63,7 +63,7 @@ const EmployeeList = () => {
             onClick={openCreateModal}
             className="px-5 py-2 bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
           >
-            Registrar Empleado
+            Register Employee
           </button>
         </div>
         <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 p-4">
@@ -71,7 +71,7 @@ const EmployeeList = () => {
           {!loading && employees.length === 0 && (
             <div className="text-center py-8">
               <h2 className="text-lg font-semibold text-gray-600">
-                No hay empleados registrados
+                No employees registered
               </h2>
             </div>
           )}

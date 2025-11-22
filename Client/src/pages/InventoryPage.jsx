@@ -100,7 +100,7 @@ const InventoryPage = () => {
     try {
       await updateItemQuantity(id, quantity);
       toast.dismiss(toastId);
-      toast.success("Cantidad actualizada exitosamente");
+      toast.success("Quantity updated successfully");
       // Actualizar el estado local
       const updated = data.map((item) =>
         item.id === id ? { ...item, quantity } : item
@@ -112,7 +112,7 @@ const InventoryPage = () => {
       }
     } catch (error) {
       toast.dismiss(toastId);
-      toast.error("Error al actualizar la cantidad: " + (error.message || "Error desconocido"));
+      toast.error("Error updating quantity: " + (error.message || "Unknown error"));
     }
   };
 
@@ -161,7 +161,7 @@ const InventoryPage = () => {
       }
     } catch (error) {
       console.error("Error cargando datos:", error);
-      toast.error("Error cargando datos");
+      toast.error("Error loading data");
     }
   }, []);
 
@@ -198,7 +198,7 @@ const InventoryPage = () => {
     // También actualizar en modo edición si está activo
     if (isEditModeRef.current) {
       setGroupedData((prevGrouped) => {
-        const categoryName = updatedItem.categoryName || "Sin categoría";
+        const categoryName = updatedItem.categoryName || "No category";
         const categoryItems = prevGrouped[categoryName] || [];
         const itemIndex = categoryItems.findIndex((item) => Number(item.id) === updatedItemId);
         
@@ -300,7 +300,7 @@ const InventoryPage = () => {
 
   data.forEach((item) => {
     const catId = item.categoryId ?? 0;
-    const catName = item.categoryName ?? "Sin categoría";
+    const catName = item.categoryName ?? "No category";
 
     if (!categoriesMap[catId]) {
       categoriesMap[catId] = {
@@ -343,12 +343,12 @@ const InventoryPage = () => {
   const handleSaveItem = async (newItem) => {
     try {
       await createInventoryItem(newItem);
-      toast.success("Producto creado correctamente");
+      toast.success("Product created successfully");
       setShowAddItemModal(false);
       fetchEditDataMemo();
       fetchDataMemo();
     } catch (error) {
-      toast.error("Error al guardar producto");
+      toast.error("Error saving product");
     }
   };
 
@@ -358,18 +358,18 @@ const InventoryPage = () => {
     );
 
     if (categoryExists) {
-      toast.warning("La categoría ya existe");
+      toast.warning("Category already exists");
       return;
     }
 
     try {
       await createCategory({ name: newCategory });
-      toast.success("Categoría creada correctamente");
+      toast.success("Category created successfully");
       setShowAddCategoryModal(false);
       fetchEditDataMemo();
       fetchDataMemo();
     } catch (error) {
-      toast.error("Error al guardar categoría");
+      toast.error("Error saving category");
     }
   };
 
@@ -389,24 +389,24 @@ const InventoryPage = () => {
   const handleUpdateCategory = async (updatedCategory) => {
     try {
       await updateCategory(updatedCategory.id, { name: updatedCategory.name });
-      toast.success("Categoría actualizada correctamente");
+      toast.success("Category updated successfully");
       setShowEditCategoryModal(false);
       fetchEditDataMemo();
       fetchDataMemo();
     } catch (error) {
-      toast.error("Error actualizando categoría");
+      toast.error("Error updating category");
     }
   };
 
   const handleUpdateItem = async (updatedItem) => {
     try {
       await updateInventoryItem(updatedItem.id, updatedItem);
-      toast.success("Producto actualizado correctamente");
+      toast.success("Product updated successfully");
       setShowEditItemModal(false);
       fetchEditDataMemo();
       fetchDataMemo();
     } catch (error) {
-      toast.error("Error actualizando producto");
+      toast.error("Error updating product");
     }
   };
 
@@ -414,31 +414,31 @@ const InventoryPage = () => {
     const count = countProductsInCategory(id);
 
     if (count > 0) {
-      toast.warning("No se puede borrar categoría con productos dentro");
+      toast.warning("Cannot delete category with products inside");
       return;
     }
 
     try {
       await deleteCategory(id);
-      toast.success("Categoría eliminada correctamente");
+      toast.success("Category deleted successfully");
       setShowEditCategoryModal(false);
       fetchEditDataMemo();
       fetchDataMemo();
     } catch (error) {
-      toast.error("Error al eliminar categoría");
+      toast.error("Error deleting category");
     }
   };
 
   const handleDeleteItem = async (id) => {
     try {
       await deleteInventoryItem(id);
-      toast.success("Producto eliminado correctamente");
+      toast.success("Product deleted successfully");
       setShowEditItemModal(false);
       fetchEditDataMemo();
       fetchDataMemo();
     } catch (error) {
       console.error("Error eliminando producto:", error);
-      toast.error("Error eliminando producto");
+      toast.error("Error deleting product");
     }
   };
 
@@ -485,7 +485,7 @@ if (sortOption === "Nombre A-Z") {
         {filteredCategories.length === 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
             <p className="text-gray-500 text-lg">
-              {editQuery ? "No se encontraron productos o categorías con ese término" : "No hay categorías disponibles"}
+              {editQuery ? "No products or categories found with that term" : "No categories available"}
             </p>
           </div>
         )}
@@ -574,7 +574,7 @@ if (sortOption === "Nombre A-Z") {
               onClick={() => setShowMaterialRequests(!showMaterialRequests)}
               className="px-5 py-2 bg-[#172A45] hover:bg-[#1F3A5A] text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
             >
-              {showMaterialRequests ? "Ocultar Solicitudes" : "Ver Solicitudes"}
+              {showMaterialRequests ? "Hide Requests" : "View Requests"}
             </button>
           )}
           <EditInventoryButton onClick={handleEditClick} />
@@ -626,7 +626,7 @@ if (sortOption === "Nombre A-Z") {
                 category={
                   query.trim() 
                     ? `Resultados de búsqueda (${filteredData.length})` 
-                    : categoriesMap[selectedCategoryId]?.name || "Sin categoría"
+                    : categoriesMap[selectedCategoryId]?.name || "No category"
                 }
                 products={filteredData}
                 onToggleAvailability={isAdmin ? toggleAvailability : null}

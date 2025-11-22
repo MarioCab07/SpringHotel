@@ -15,7 +15,7 @@ const DetailPanel = ({
       <div className="w-80 h-full flex-shrink-0 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="h-full flex items-center justify-center text-gray-500">
           <p className="text-sm">
-            Selecciona una tarea para ver los detalles
+            Select a task to view details
           </p>
         </div>
       </div>
@@ -24,7 +24,7 @@ const DetailPanel = ({
 
   const isCleaned = item.status === "COMPLETED";
   const isInProgress = item.status === "IN_PROGRESS";
-  const canShowButtons = role === "CLEANING_STAFF" || role === "ADMIN";
+  const canShowButtons = role === "CLEANING_STAFF" || role === "ADMIN" || role === "EMPLOYEE";
 
   return (
     <div className="w-80 h-full flex-shrink-0 bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">
@@ -58,7 +58,7 @@ const DetailPanel = ({
                   : "bg-[#D9C696] hover:bg-[#c5b386] text-gray-900 shadow"
               }`}
           >
-            {isCleaned ? "Already Cleaned" : markLoading ? "Marcando…" : "Mark as clean"}
+            {isCleaned ? "Already Cleaned" : markLoading ? "Marking…" : "Mark as clean"}
           </button>
 
           <button
@@ -78,7 +78,7 @@ const DetailPanel = ({
               : isCleaned
               ? "Cannot revert"
               : inProgressLoading
-              ? "Marcando…"
+              ? "Marking…"
               : "Mark as In Progress"}
           </button>
 

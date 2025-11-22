@@ -45,8 +45,22 @@ const MyBookingsPage = () => {
     const bookingRes = await getUserBookings(userId);
     const fetched = bookingRes.data.data;
 
+    // Ordenar: primero ACTIVE, luego PENDING, luego CANCELLED, luego otros
+    const statusOrder = { ACTIVE: 1, PENDING: 2, CANCELLED: 3, COMPLETED: 4, CONFIRMED: 5 };
+    const sorted = fetched.sort((a, b) => {
+      const orderA = statusOrder[a.status] || 99;
+      const orderB = statusOrder[b.status] || 99;
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      // Si tienen el mismo estado, ordenar por fecha de check-in descendente
+      const dateA = new Date(b.checkIn);
+      const dateB = new Date(a.checkIn);
+      return dateA - dateB;
+    });
+
     const roomMap = {};
-    for (const b of fetched) {
+    for (const b of sorted) {
       if (!roomMap[b.roomId]) {
         const r = await getRoomById(b.roomId);
         roomMap[b.roomId] = r.data.data;
@@ -54,7 +68,7 @@ const MyBookingsPage = () => {
     }
 
     setRooms(roomMap);
-    setBookings(fetched);
+    setBookings(sorted);
   };
 
   useEffect(() => {

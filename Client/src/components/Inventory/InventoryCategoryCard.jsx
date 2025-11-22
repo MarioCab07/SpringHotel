@@ -11,14 +11,14 @@ const InventoryCategoryCard = ({ title, productCount, unavailableCount, lowStock
     >
       <div>
         <div className="text-lg font-semibold text-gray-900">{title}</div>
-        <div className="text-sm text-gray-500">{productCount} Productos</div>
+        <div className="text-sm text-gray-500">{productCount} Products</div>
       </div>
 
       <div className="flex items-center gap-2">
         {lowStockCount > 0 && (
           <span 
             className="w-8 h-8 text-xs font-semibold text-center bg-red-100 text-red-700 rounded-full flex items-center justify-center border-2 border-red-300"
-            title={`${lowStockCount} artículo${lowStockCount !== 1 ? 's' : ''} con stock bajo`}
+            title={`${lowStockCount} item${lowStockCount !== 1 ? 's' : ''} with low stock`}
           >
             <FaExclamationTriangle className="text-red-600" size={12} />
           </span>

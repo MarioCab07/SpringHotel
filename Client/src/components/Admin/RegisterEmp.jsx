@@ -49,7 +49,7 @@ const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
       !formData.phoneNumber.trim() ||
       !formData.country
     ) {
-      toast.error("Por favor completa todos los campos requeridos");
+      toast.error("Please complete all required fields");
       return;
     }
 
@@ -63,7 +63,7 @@ const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
       
       const response = await RegisterEmployee(data);
       if (response.status === 201) {
-        toast.success("Empleado registrado exitosamente");
+        toast.success("Employee registered successfully");
         
         setCredentials({
           userName: response.data.data.userName,
@@ -82,7 +82,7 @@ const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
         setBirthDate(dayjs());
       }
     } catch (error) {
-      toast.error("Error al registrar empleado: " + (error.message || "Error desconocido"));
+      toast.error("Error registering employee: " + (error.message || "Unknown error"));
     } finally {
       setLoading(false);
     }
@@ -141,24 +141,24 @@ const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
           <button onClick={handleClose} className="p-2 hover:bg-gray-100 rounded transition">
             <FaChevronLeft size={18} className="text-gray-700" />
           </button>
-          <h2 className="font-serif text-lg text-gray-900">Registrar Empleado</h2>
+          <h2 className="font-serif text-lg text-gray-900">Register Employee</h2>
           <button
             onClick={handleSubmit}
             disabled={loading}
             className="px-5 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400 disabled:hover:shadow-none disabled:hover:transform-none text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
           >
-            {loading ? "Registrando..." : "Registrar"}
+            {loading ? "Registering..." : "Register"}
           </button>
         </header>
 
         {showCredentials ? (
           <div className="p-6 space-y-6 flex-1 overflow-y-auto">
             <div className="bg-green-50 border border-green-200 rounded-lg p-6 space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Empleado registrado exitosamente</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Employee registered successfully</h3>
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Usuario:
+                    Username:
                   </label>
                   <p className="text-lg font-semibold text-gray-900 bg-white p-3 rounded-lg border border-gray-200">
                     {credentials.userName}
@@ -166,14 +166,14 @@ const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Contraseña:
+                    Password:
                   </label>
                   <p className="text-lg font-semibold text-gray-900 bg-white p-3 rounded-lg border border-gray-200">
                     {credentials.password}
                   </p>
                 </div>
                 <p className="text-sm text-gray-600 mt-4">
-                  Guarda estas credenciales. El empleado las necesitará para iniciar sesión.
+                  Save these credentials. The employee will need them to log in.
                 </p>
               </div>
               <div className="flex gap-3 pt-4">
@@ -181,13 +181,13 @@ const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
                   onClick={handleContinue}
                   className="flex-1 px-4 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
                 >
-                  Continuar
+                  Continue
                 </button>
                 <button
                   onClick={handleClose}
                   className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition"
                 >
-                  Cerrar
+                  Close
                 </button>
               </div>
             </div>
@@ -196,7 +196,7 @@ const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
           <form onSubmit={handleSubmit} className="p-6 space-y-6 flex-1 overflow-y-auto">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nombre Completo
+                Full Name
               </label>
               <input
                 type="text"
@@ -204,14 +204,14 @@ const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.fullName}
                 onChange={handleChange}
                 className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
-                placeholder="Ej: Juan Pérez"
+                placeholder="Ex: John Doe"
                 required
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Correo Electrónico
+                Email
               </label>
               <input
                 type="email"
@@ -219,14 +219,14 @@ const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.email}
                 onChange={handleChange}
                 className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
-                placeholder="Ej: juan@example.com"
+                placeholder="Ex: john@example.com"
                 required
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Número de Documento
+                Document Number
               </label>
               <input
                 type="text"
@@ -234,14 +234,14 @@ const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.documentNumber}
                 onChange={handleChange}
                 className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
-                placeholder="Ej: 12345678"
+                placeholder="Ex: 12345678"
                 required
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Número de Teléfono
+                Phone Number
               </label>
               <input
                 type="text"
@@ -249,20 +249,20 @@ const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.phoneNumber}
                 onChange={handleChange}
                 className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
-                placeholder="Ej: +1234567890"
+                placeholder="Ex: +1234567890"
                 required
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                País
+                Country
               </label>
               <Select
                 options={countryOptions}
                 value={selectedCountry}
                 onChange={(opt) => handleCountryChange(opt?.value ?? "")}
-                placeholder="Selecciona un país"
+                  placeholder="Select a country"
                 styles={customSelectStyles}
                 isClearable
               />
@@ -270,7 +270,7 @@ const RegisterEmp = ({ isOpen, onClose, onSuccess }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fecha de Nacimiento
+                Date of Birth
               </label>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
