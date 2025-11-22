@@ -80,6 +80,8 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     FROM RoomService rs
     JOIN rs.serviceTypes t
     WHERE rs.booking.id = :bookingId
+    AND rs.status != com.group07.hotel_API.utils.enums.ServiceStatus.CANCELED
+    ORDER BY rs.requestedAt ASC
 """)
     List<BookingServiceItemResponse> findServicesByBooking(@Param("bookingId") Integer bookingId);
 
