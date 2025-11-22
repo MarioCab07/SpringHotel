@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "room_type", schema = "public")
 @Data
@@ -27,4 +30,8 @@ public class RoomType {
 
     @Column(name = "price")
     private Double price;
+
+    @OneToMany(mappedBy = "roomType", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<RoomTypeImage> images = new ArrayList<>();
 }
