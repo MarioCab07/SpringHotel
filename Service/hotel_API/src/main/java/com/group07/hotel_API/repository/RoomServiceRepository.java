@@ -10,9 +10,28 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface RoomServiceRepository extends JpaRepository<RoomService, Integer> {
-    List<RoomService> findByBookingId(Integer bookingId);
-    List<RoomService> findByStatus(ServiceStatus status);
+    
+    @Query("""
+        SELECT DISTINCT rs FROM RoomService rs
+        LEFT JOIN FETCH rs.serviceTypes
+        WHERE rs.booking.id = :bookingId
+    """)
+    List<RoomService> findByBookingId(@Param("bookingId") Integer bookingId);
+    
+    @Query("""
+        SELECT DISTINCT rs FROM RoomService rs
+        LEFT JOIN FETCH rs.serviceTypes
+        WHERE rs.status = :status
+    """)
+    List<RoomService> findByStatus(@Param("status") ServiceStatus status);
 
+    @Query("""
+        SELECT DISTINCT rs FROM RoomService rs
+        LEFT JOIN FETCH rs.serviceTypes
+        WHERE rs.id = :id
+    """)
+    java.util.Optional<RoomService> findByIdWithServiceTypes(@Param("id") Integer id);
+    
     @Query(value = """
     SELECT rss.room_service_id AS roomServiceId,
            rss.service_type_id AS serviceTypeId,

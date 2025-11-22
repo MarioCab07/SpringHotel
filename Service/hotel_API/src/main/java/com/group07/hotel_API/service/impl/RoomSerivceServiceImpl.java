@@ -48,7 +48,7 @@ public class RoomSerivceServiceImpl implements RoomServiceService {
 
     @Override
     public RoomServiceResponse findById(Integer id) {
-        return RoomServiceMapper.toDTO(roomServiceRepository.findById(id)
+        return RoomServiceMapper.toDTO(roomServiceRepository.findByIdWithServiceTypes(id)
                 .orElseThrow(() -> new RoomServiceNotFoundException("Room service not found with id " + id)));
     }
 
@@ -89,18 +89,19 @@ public class RoomSerivceServiceImpl implements RoomServiceService {
     @Override
     @Transactional
     public RoomServiceResponse update(Integer id, RoomServiceUpdateRequest dto) {
-        RoomService existing = roomServiceRepository.findById(id)
+        RoomService existing = roomServiceRepository.findByIdWithServiceTypes(id)
                 .orElseThrow(() -> new RoomServiceNotFoundException("Room service not found with ID: " + id));
 
         existing.setStatus(ServiceStatus.fromString(dto.getRoomServiceStatus().toUpperCase())
                 .orElseThrow(() -> new InvalidRoomServiceRequestException(dto.getRoomServiceStatus())));
 
-        Set<RoomServiceType> serviceTypes = new HashSet<>(roomServiceTypeRepository.findAllById(dto.getServiceTypeIds()));
-        if (serviceTypes.size() != dto.getServiceTypeIds().size()) {
-            throw new RoomServiceTypeNotFoundException("One or more service types not found");
+        if (dto.getServiceTypeIds() != null && !dto.getServiceTypeIds().isEmpty()) {
+            Set<RoomServiceType> serviceTypes = new HashSet<>(roomServiceTypeRepository.findAllById(dto.getServiceTypeIds()));
+            if (serviceTypes.size() != dto.getServiceTypeIds().size()) {
+                throw new RoomServiceTypeNotFoundException("One or more service types not found");
+            }
+            existing.setServiceTypes(serviceTypes);
         }
-
-        existing.setServiceTypes(serviceTypes);
 
         var updated = roomServiceRepository.save(existing);
         return RoomServiceMapper.toDTO(updated);
