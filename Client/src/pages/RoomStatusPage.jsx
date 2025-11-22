@@ -423,13 +423,6 @@ const RoomStatusPage = () => {
         />
       </div>
 
-      {isReportOpen && (
-        <ReportIssueModal
-          isOpen={isReportOpen}
-          onClose={() => setIsReportOpen(false)}
-          item={selected}
-        />
-      )}
       {isDetailPanelOpen && (
         <RoomServiceDetailPanel
           isOpen={isDetailPanelOpen}
