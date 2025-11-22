@@ -34,7 +34,7 @@ const EmployeeCheckOutPage = () => {
 
       if (!b) return toast.error("Reserva no encontrada.");
       if (b.status !== "ACTIVE")
-        return toast.error("Solo puedes buscar reservas ACTIVAS.");
+        return toast.error("You can only search for ACTIVE reservations.");
 
       const resUser = await GetUser(b.userId);
       const resRoom = await getRoomById(b.roomId);
@@ -187,7 +187,7 @@ const EmployeeCheckOutPage = () => {
             <p><strong>Nombre:</strong> {user.fullName}</p>
             <p><strong>Email:</strong> {user.email}</p>
 
-            <p className="mt-4"><strong>Habitación:</strong> {room.roomNumber}</p>
+            <p className="mt-4"><strong>Room:</strong> {room.roomNumber}</p>
             <p><strong>Tipo:</strong> {room.roomType.name}</p>
 
             <p className="mt-4">
@@ -198,12 +198,12 @@ const EmployeeCheckOutPage = () => {
             </p>
 
             {/* SERVICIOS */}
-            <h3 className="text-xl font-semibold mt-6">Servicios Consumidos</h3>
+            <h3 className="text-xl font-semibold mt-6">Consumed Services</h3>
 
             {services.length === 0 ? (
               <div className="mt-4 flex flex-col items-center">
                 <p className="italic text-gray-600 mb-4">
-                  No hay servicios registrados para esta reserva.
+                  No services registered for this reservation.
                 </p>
 
                 <button
@@ -211,7 +211,7 @@ const EmployeeCheckOutPage = () => {
                   className="bg-[#d4bf92] hover:bg-[#b99f6c] transition text-white 
                              py-3 px-10 rounded-full font-semibold shadow-lg"
                 >
-                  Realizar Check-Out
+                  Perform Check-Out
                 </button>
               </div>
             ) : (

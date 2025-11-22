@@ -108,8 +108,8 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
         setBooking(activeBooking);
       } catch (err) {
         console.error("Error al cargar detalles:", err);
-        setError("No se pudieron cargar los datos");
-        toast.error("Error al cargar los detalles del servicio");
+        setError("Failed to load data");
+        toast.error("Error loading service details");
       } finally {
         setLoading(false);
       }
@@ -164,7 +164,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
         setExpandedCats(initExpanded);
       } catch (err) {
         console.error(err);
-        toast.error("No se pudo cargar inventario");
+        toast.error("Failed to load inventory");
       }
     };
     fetchInventory();
@@ -184,12 +184,12 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
     };
 
     if (!room || !room.roomId) {
-      toast.error("No se pudo obtener la información de la habitación");
+      toast.error("Failed to get room information");
       return;
     }
 
     if (!currentUserId) {
-      toast.error("No se pudo obtener la información del usuario");
+      toast.error("Failed to get user information");
       return;
     }
 
@@ -208,11 +208,11 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
         roomServiceStatus: "COMPLETED",
         serviceTypeIds: service.serviceTypeIds || [],
       });
-      toast.success("Habitación marcada como limpia");
+      toast.success("Room marked as clean");
       if (onSuccess) onSuccess();
     } catch (err) {
       console.error(err);
-      toast.error("No se pudo marcar como limpia: " + (err.response?.data?.message || err.message || "Error desconocido"));
+      toast.error("Failed to mark as clean: " + (err.response?.data?.message || err.message || "Unknown error"));
     }
   };
 
@@ -221,7 +221,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
     if (materialRequestFormRef.current && materialRequestFormRef.current.submit) {
       materialRequestFormRef.current.submit();
     } else {
-      toast.error("Error: No se pudo acceder al formulario de inventario");
+      toast.error("Error: Could not access inventory form");
     }
   };
 
@@ -240,7 +240,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
             <FaChevronLeft size={18} className="text-gray-700" />
           </button>
           <h2 className="font-serif text-lg font-semibold text-gray-900">
-            {room ? `Room: ${room.roomNumber}` : "Detalles del Servicio"}
+            {room ? `Room: ${room.roomNumber}` : "Service Details"}
           </h2>
           <div className="w-10" />
         </header>
@@ -249,7 +249,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
           <div className="p-6 space-y-6 max-w-full">
             {loading && (
               <div className="text-center py-12 text-gray-500">
-                <p className="text-base">Cargando detalles...</p>
+                <p className="text-base">Loading details...</p>
               </div>
             )}
 
@@ -283,17 +283,17 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                     {/* Room Details Card */}
                     <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
                       <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
-                        Información de Habitación
+                        Room Information
                       </h3>
                       <div className="space-y-3">
                         <div className="flex flex-col">
-                          <span className="text-xs text-gray-500 mb-1">Estado</span>
+                          <span className="text-xs text-gray-500 mb-1">Status</span>
                           <span className="text-sm font-medium text-gray-900">
                             {formatStatus(room.roomStatus)}
                           </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs text-gray-500 mb-1">Tipo de habitación</span>
+                          <span className="text-xs text-gray-500 mb-1">Room Type</span>
                           <span className="text-sm font-medium text-gray-900">
                             {room.roomType.name}
                           </span>
@@ -316,7 +316,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                         )}
                         {lastCleaning && (
                           <div className="flex flex-col">
-                            <span className="text-xs text-gray-500 mb-1">Última limpieza</span>
+                            <span className="text-xs text-gray-500 mb-1">Last Cleaning</span>
                             <span className="text-sm font-medium text-gray-900">
                               {new Date(lastCleaning.cleanedAt).toLocaleString()}
                             </span>
@@ -328,7 +328,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                     {/* Service Types Card */}
                     <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
                       <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
-                        Tipos de Servicio
+                        Service Types
                       </h3>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
                         {Object.keys(suppliesChecked).length > 0 ? (
@@ -356,7 +356,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                               </div>
                             ))
                         ) : (
-                          <p className="text-sm text-gray-500">No hay servicios solicitados</p>
+                          <p className="text-sm text-gray-500">No services requested</p>
                         )}
                       </div>
                     </div>
@@ -371,7 +371,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                       className="block text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide"
                       htmlFor="problem"
                     >
-                      Problema
+                      Problem
                     </label>
                     <textarea
                       id="problem"
@@ -381,8 +381,8 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                       disabled={isServiceCompleted}
                       placeholder={
                         isServiceCompleted
-                          ? "Servicio completado"
-                          : "Describe el problema..."
+                          ? "Service completed"
+                          : "Describe the problem..."
                       }
                     />
                   </div>
@@ -390,7 +390,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                   {/* Special Request Card */}
                   <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
                     <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
-                      Solicitud Especial
+                      Special Request
                     </h3>
                     <div className="min-h-[8rem] p-3 bg-gray-50 rounded-lg border border-gray-200">
                       <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">
@@ -404,7 +404,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                 <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                      Inventario
+                      Inventory
                     </h3>
                     {canShowCategoriesButton && (
                       <button
@@ -415,7 +415,7 @@ const RoomServiceDetailPanel = ({ isOpen, serviceId, onClose, onSuccess, role })
                             : "bg-[#D9C696] hover:bg-[#c5b386] text-gray-900 shadow-md hover:shadow-lg"
                         }`}
                       >
-                        {showCategories ? "Ocultar Categorías" : "Mostrar Categorías"}
+                        {showCategories ? "Hide Categories" : "Show Categories"}
                       </button>
                     )}
                   </div>

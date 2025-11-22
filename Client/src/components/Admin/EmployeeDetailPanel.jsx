@@ -51,7 +51,7 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
           setRoles(roleOptions);
         }
       } catch (error) {
-        toast.error("Error al cargar los roles: " + error.message);
+        toast.error("Error loading roles: " + error.message);
       }
     };
     if (isOpen) {
@@ -82,7 +82,7 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
     e.preventDefault();
     
     if (!changeUser.fullName.trim() || !changeUser.email.trim() || !changeUser.documentNumber.trim() || !changeUser.phoneNumber.trim()) {
-      toast.error("Por favor completa todos los campos requeridos");
+      toast.error("Please complete all required fields");
       return;
     }
 
@@ -90,11 +90,11 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
     try {
       const response = await UpdateUser(changeUser);
       if (response.status === 200) {
-        toast.success("Empleado actualizado exitosamente");
+        toast.success("Employee updated successfully");
         onSuccess();
       }
     } catch (error) {
-      toast.error("Error al actualizar el empleado: " + (error.message || "Error desconocido"));
+      toast.error("Error updating employee: " + (error.message || "Unknown error"));
     } finally {
       setLoading(false);
     }
@@ -103,19 +103,19 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
   const handleRoleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    toast.loading("Cambiando rol...");
+    toast.loading("Changing role...");
     try {
       const response = await SetRole(formData);
       if (response.status === 200) {
         toast.dismiss();
-        toast.success("Rol cambiado exitosamente");
+        toast.success("Role changed successfully");
         setTimeout(() => {
           onSuccess();
         }, 2000);
       }
     } catch (error) {
       toast.dismiss();
-      toast.error("Error al cambiar el rol: " + error.message);
+      toast.error("Error changing role: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -162,7 +162,7 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded transition">
             <FaChevronLeft size={18} className="text-gray-700" />
           </button>
-          <h2 className="font-serif text-lg text-gray-900">Detalles de Empleado</h2>
+          <h2 className="font-serif text-lg text-gray-900">Employee Details</h2>
           <div className="w-20" /> {/* Spacer para centrar el título */}
         </header>
 
@@ -204,7 +204,7 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
                   value={changeUser.fullName}
                   onChange={handleChange}
                   className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
-                  placeholder="Ej: Juan Pérez"
+                  placeholder="Ex: John Doe"
                   required
                 />
               </div>
@@ -219,7 +219,7 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
                   value={changeUser.email}
                   onChange={handleChange}
                   className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
-                  placeholder="Ej: juan@example.com"
+                  placeholder="Ex: john@example.com"
                   required
                 />
               </div>
@@ -234,7 +234,7 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
                   value={changeUser.documentNumber}
                   onChange={handleChange}
                   className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
-                  placeholder="Ej: 12345678"
+                  placeholder="Ex: 12345678"
                   required
                 />
               </div>
@@ -247,7 +247,7 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
                   options={countryOptions}
                   value={selectedCountry}
                   onChange={(opt) => handleCountryChange(opt?.value ?? "")}
-                  placeholder="Selecciona un país"
+                  placeholder="Select a country"
                   styles={customSelectStyles}
                   isClearable
                 />
@@ -263,7 +263,7 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
                   value={changeUser.phoneNumber}
                   onChange={handleChange}
                   className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2789f] focus:border-transparent transition"
-                  placeholder="Ej: +1234567890"
+                  placeholder="Ex: +1234567890"
                   required
                 />
               </div>
@@ -274,7 +274,7 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
                   disabled={loading}
                   className="px-5 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
                 >
-                  {loading ? "Guardando..." : "Guardar"}
+                  {loading ? "Saving..." : "Save"}
                 </button>
               </div>
             </form>
@@ -283,18 +283,18 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
           {activeTab === "role" && (
             <form onSubmit={handleRoleSubmit} className="p-6 space-y-6">
               <div className="bg-gray-50 rounded-lg p-6 space-y-4 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Información del Empleado</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Employee Information</h3>
                 <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Nombre</p>
+                    <p className="text-xs text-gray-500 mb-1">Name</p>
                     <p className="text-sm font-medium text-gray-900">{employee.fullName}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Usuario</p>
+                    <p className="text-xs text-gray-500 mb-1">Username</p>
                     <p className="text-sm font-medium text-gray-900">{employee.userName}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Rol Actual</p>
+                    <p className="text-xs text-gray-500 mb-1">Current Role</p>
                     <p className="text-sm font-medium text-gray-900">{employee.role}</p>
                   </div>
                 </div>
@@ -302,18 +302,18 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
 
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Seleccionar Nuevo Rol
+                  Select New Role
                 </label>
                 <Select
                   options={roles.map((role) => ({ value: role, label: role }))}
                   value={roles.includes(formData.roleName) ? { value: formData.roleName, label: formData.roleName } : null}
                   onChange={(opt) => handleRoleChange(opt?.value || "")}
-                  placeholder="Selecciona un rol"
+                  placeholder="Select a role"
                   styles={customSelectStyles}
                   isClearable={false}
                 />
                 <p className="text-xs text-gray-500 mt-2">
-                  El cambio de rol afectará los permisos del empleado
+                  Changing the role will affect the employee's permissions
                 </p>
               </div>
 
@@ -323,14 +323,14 @@ const EmployeeDetailPanel = ({ isOpen, employee, onClose, onSuccess }) => {
                   onClick={onClose}
                   className="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition"
                 >
-                  Cancelar
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
                   className="px-5 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
                 >
-                  {loading ? "Cambiando..." : "Confirmar Cambio"}
+                  {loading ? "Changing..." : "Confirm Change"}
                 </button>
               </div>
             </form>

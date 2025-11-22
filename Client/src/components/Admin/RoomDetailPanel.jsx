@@ -6,6 +6,8 @@ import { toast } from "react-toastify";
 import Select from "react-select";
 
 const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
+  const role = sessionStorage.getItem("role");
+  const isAdmin = role === "ADMIN";
   const [activeTab, setActiveTab] = useState("edit");
   const [changeRoom, setChangeRoom] = useState({
     roomId: room?.roomId || "",
@@ -21,10 +23,10 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
 
   const roomStatusOptions = [
-    { value: "AVAILABLE", label: "Disponible" },
-    { value: "OCCUPIED", label: "Ocupada" },
-    { value: "RESERVED", label: "Reservada" },
-    { value: "MAINTENANCE", label: "Mantenimiento" },
+    { value: "AVAILABLE", label: "Available" },
+    { value: "OCCUPIED", label: "Occupied" },
+    { value: "RESERVED", label: "Reserved" },
+    { value: "MAINTENANCE", label: "Maintenance" },
   ];
 
   // Función auxiliar para obtener el ID del tipo de habitación
@@ -163,7 +165,7 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
     e.preventDefault();
 
     if (!changeRoom.roomNumber.trim() || !changeRoom.roomType || !changeRoom.roomStatus) {
-      toast.error("Por favor completa todos los campos requeridos");
+      toast.error("Please complete all required fields");
       return;
     }
 
@@ -171,11 +173,11 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
     try {
       const res = await updateRoom(changeRoom.roomId, changeRoom);
       if (res.status === 200) {
-        toast.success("Habitación actualizada exitosamente");
+        toast.success("Room updated successfully");
         onSuccess();
       }
     } catch (error) {
-      toast.error("Error al actualizar la habitación: " + (error.message || "Error desconocido"));
+      toast.error("Error updating room: " + (error.message || "Unknown error"));
     } finally {
       setLoading(false);
     }
@@ -241,7 +243,7 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded transition">
             <FaChevronLeft size={18} className="text-gray-700" />
           </button>
-          <h2 className="font-serif text-lg text-gray-900">Detalles de Habitación</h2>
+          <h2 className="font-serif text-lg text-gray-900">Room Details</h2>
           <div className="w-20" /> {/* Spacer para centrar el título */}
         </header>
 
@@ -255,18 +257,20 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            Editar
+            Edit
           </button>
-          <button
-            onClick={() => setActiveTab("delete")}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-              activeTab === "delete"
-                ? "text-gray-900 border-b-2 border-gray-900"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Eliminar
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setActiveTab("delete")}
+              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                activeTab === "delete"
+                  ? "text-gray-900 border-b-2 border-gray-900"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Eliminar
+            </button>
+          )}
         </div>
 
         {/* Tab Content */}
@@ -275,7 +279,7 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
             <form onSubmit={handleUpdateSubmit} className="p-6 space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Número de Habitación
+                  Room Number
                 </label>
                 <input
                   type="text"
@@ -285,21 +289,21 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
                   value={changeRoom.roomNumber}
                   onChange={handleChange}
                   className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-transparent transition"
-                  placeholder="Ej: 101"
+                  placeholder="Ex: 101"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">Solo se permiten números</p>
+                <p className="text-xs text-gray-500 mt-1">Only numbers are allowed</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tipo de Habitación
+                  Room Type
                 </label>
                 <Select
                   options={roomTypeOptions}
                   value={selectedRoomType}
                   onChange={handleRoomTypeChange}
-                  placeholder="Selecciona un tipo de habitación"
+                  placeholder="Select a room type"
                   styles={customSelectStyles}
                   isClearable={false}
                 />
@@ -307,13 +311,13 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Estado de Habitación
+                  Room Status
                 </label>
                 <Select
                   options={roomStatusOptions}
                   value={selectedStatus}
                   onChange={handleStatusChange}
-                  placeholder="Selecciona un estado"
+                  placeholder="Select a status"
                   styles={customSelectStyles}
                   isClearable={false}
                 />
@@ -325,31 +329,31 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
                   disabled={loading}
                   className="px-5 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
                 >
-                  {loading ? "Guardando..." : "Guardar"}
+                  {loading ? "Saving..." : "Save"}
                 </button>
               </div>
             </form>
           )}
 
-          {activeTab === "delete" && (
+          {activeTab === "delete" && isAdmin && (
             <form onSubmit={handleDeleteSubmit} className="p-6 space-y-6">
               <div className="bg-gray-50 rounded-lg p-6 space-y-4 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Información de la Habitación</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Room Information</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">ID de Habitación</p>
+                    <p className="text-xs text-gray-500 mb-1">Room ID</p>
                     <p className="text-sm font-medium text-gray-900">{room.roomId}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Número de Habitación</p>
+                    <p className="text-xs text-gray-500 mb-1">Room Number</p>
                     <p className="text-sm font-medium text-gray-900">{room.roomNumber}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Tipo de Habitación</p>
+                    <p className="text-xs text-gray-500 mb-1">Room Type</p>
                     <p className="text-sm font-medium text-gray-900">{room.roomType?.name || room.roomType}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Estado</p>
+                    <p className="text-xs text-gray-500 mb-1">Status</p>
                     <p className="text-sm font-medium text-gray-900">{room.roomStatus}</p>
                   </div>
                 </div>
@@ -358,10 +362,10 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
               <div className="bg-red-50 border border-red-200 rounded-lg p-6 space-y-4">
                 <div className="text-center">
                   <p className="text-sm font-medium text-red-700 mb-2">
-                    Esta acción no se puede deshacer
+                    This action cannot be undone
                   </p>
                   <p className="text-xs text-red-600 mb-4">
-                    Escribe <span className="font-bold">CONFIRMAR</span> para eliminar la habitación
+                    Type <span className="font-bold">CONFIRMAR</span> to delete the room
                   </p>
                 </div>
                 <input
@@ -381,7 +385,7 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
                   onClick={onClose}
                   className="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition"
                 >
-                  Cancelar
+                  Cancel
                 </button>
                 <button
                   type="submit"
@@ -392,7 +396,7 @@ const RoomDetailPanel = ({ isOpen, room, onClose, onSuccess }) => {
                       : "bg-red-200 text-red-400 cursor-not-allowed opacity-70"
                   }`}
                 >
-                  Eliminar
+                  Delete
                 </button>
               </div>
             </form>

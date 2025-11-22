@@ -35,7 +35,7 @@ const EditItemModal = ({ isOpen, onClose, item, categories, onUpdate, onDelete }
   };
 
   const handleDelete = () => {
-    if (window.confirm("¿Estás seguro que deseas eliminar este producto?")) {
+    if (window.confirm("Are you sure you want to delete this product?")) {
       onDelete(item.id);
     }
   };
@@ -50,23 +50,23 @@ const EditItemModal = ({ isOpen, onClose, item, categories, onUpdate, onDelete }
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded transition">
             <FaChevronLeft size={18} className="text-gray-700" />
           </button>
-          <h2 className="font-serif text-lg text-gray-900">Editar Producto</h2>
+          <h2 className="font-serif text-lg text-gray-900">Edit Product</h2>
           <button
             onClick={handleSubmit}
             className="px-5 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
           >
-            Guardar
+            Save
           </button>
         </header>
 
         <div className="p-6 space-y-6 flex-1 overflow-y-auto">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Nombre del producto</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="Nombre del producto"
+              placeholder="Product name"
               className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
             />
           </div>
@@ -83,7 +83,7 @@ const EditItemModal = ({ isOpen, onClose, item, categories, onUpdate, onDelete }
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Cantidad</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
             <input
               name="quantity"
               type="number"
@@ -95,14 +95,14 @@ const EditItemModal = ({ isOpen, onClose, item, categories, onUpdate, onDelete }
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
             <select
               name="categoryId"
               value={form.categoryId}
               onChange={handleChange}
               className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
             >
-              <option value="">Selecciona una categoría</option>
+              <option value="">Select a category</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
@@ -123,7 +123,7 @@ const EditItemModal = ({ isOpen, onClose, item, categories, onUpdate, onDelete }
               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M10 3h4a1 1 0 011 1v1H9V4a1 1 0 011-1z"
             />
           </svg>
-          Eliminar producto
+          Delete Product
         </button>
       </div>
     </div>,

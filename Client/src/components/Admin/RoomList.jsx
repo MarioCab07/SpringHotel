@@ -15,6 +15,7 @@ const RoomList = forwardRef((props, ref) => {
 
   const role = sessionStorage.getItem("role");
   const isAdmin = role === "ADMIN";
+  const canEditRooms = role === "ADMIN" || role === "EMPLOYEE";
 
   const fetchRooms = async () => {
     setLoading(true);
@@ -24,7 +25,7 @@ const RoomList = forwardRef((props, ref) => {
         setRooms(response.data.data);
       }
     } catch (error) {
-      toast.error("Error al cargar las habitaciones: " + error.message);
+      toast.error("Error loading rooms: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -80,7 +81,7 @@ const RoomList = forwardRef((props, ref) => {
           {!loading && rooms.length === 0 && (
             <div className="text-center py-8">
               <h2 className="text-lg font-semibold text-gray-600">
-                No hay habitaciones registradas
+                No rooms registered
               </h2>
             </div>
           )}
@@ -111,9 +112,9 @@ const RoomList = forwardRef((props, ref) => {
                   {rooms.map((room) => (
                     <tr
                       key={room.roomId}
-                      onClick={() => isAdmin && openDetailPanel(room)}
+                      onClick={() => canEditRooms && openDetailPanel(room)}
                       className={`border-b border-gray-100 transition-colors ${
-                        isAdmin ? "cursor-pointer hover:bg-gray-50" : ""
+                        canEditRooms ? "cursor-pointer hover:bg-gray-50" : ""
                       }`}
                     >
                       <td className="py-2 px-3 text-sm text-gray-600">{room.roomId}</td>
@@ -145,7 +146,7 @@ const RoomList = forwardRef((props, ref) => {
           onSuccess={handleCreateSuccess}
         />
       )}
-      {isAdmin && showDetailPanel && (
+      {canEditRooms && showDetailPanel && (
         <RoomDetailPanel
           isOpen={showDetailPanel}
           room={selectedRoom}

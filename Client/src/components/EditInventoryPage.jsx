@@ -69,7 +69,7 @@ const EditInventoryPage = () => {
       }
     } catch (error) {
       console.error("Error cargando datos:", error);
-      toast.error("Error cargando datos");
+      toast.error("Error loading data");
     }
   };
 

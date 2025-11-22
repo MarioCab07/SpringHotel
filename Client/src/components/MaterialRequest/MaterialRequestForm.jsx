@@ -54,8 +54,8 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
       setExpandedCats(allExpanded);
     } catch (err) {
       console.error("Error loading data:", err);
-      const errorMsg = err.response?.data?.message || err.message || "Error desconocido";
-      toast.error("Error al cargar los datos: " + errorMsg);
+      const errorMsg = err.response?.data?.message || err.message || "Unknown error";
+      toast.error("Error loading data: " + errorMsg);
       setError(errorMsg);
       setInventoryItems([]);
       setCategories([]);
@@ -75,13 +75,13 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
     const qty = parseInt(quantity) || 0;
 
     if (qty < 0) {
-      toast.error("La cantidad no puede ser negativa");
+      toast.error("Quantity cannot be negative");
       return;
     }
 
     if (qty > item.quantity) {
       toast.error(
-        `No hay suficiente stock. Disponible: ${item.quantity} unidades`
+        `Insufficient stock. Available: ${item.quantity} units`
       );
       return;
     }
@@ -104,7 +104,7 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
       }));
 
     if (items.length === 0) {
-      toast.error("Debes seleccionar al menos un artículo");
+      toast.error("You must select at least one item");
       return;
     }
 
@@ -119,8 +119,8 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
       
       toast.success(
         directConsume 
-          ? "Inventario consumido correctamente" 
-          : "Solicitud de materiales enviada correctamente"
+          ? "Inventory consumed successfully" 
+          : "Material request sent successfully"
       );
 
       setSelectedItems({});
@@ -136,7 +136,7 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
       const message =
         err.response?.data?.message ||
         err.message ||
-        (directConsume ? "Error al consumir el inventario" : "Error al crear la solicitud");
+        (directConsume ? "Error consuming inventory" : "Error creating request");
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -153,7 +153,7 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
     return (
       <div className="text-center py-12">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#D9C696]"></div>
-        <p className="mt-4 text-gray-600">Cargando artículos disponibles...</p>
+        <p className="mt-4 text-gray-600">Loading available items...</p>
       </div>
     );
   }
@@ -161,7 +161,7 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-600 mb-2 font-semibold">Error al cargar datos</p>
+        <p className="text-red-600 mb-2 font-semibold">Error loading data</p>
         <p className="text-sm text-gray-500 mb-4">{error}</p>
         <button
           onClick={loadData}
@@ -177,8 +177,8 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
     return (
       <div className="text-center py-8">
         <FaShoppingCart className="mx-auto text-gray-400 text-4xl mb-3" />
-        <p className="text-gray-600 mb-2 font-medium">No hay artículos disponibles</p>
-        <p className="text-sm text-gray-500">Todos los artículos están agotados o inactivos</p>
+        <p className="text-gray-600 mb-2 font-medium">No items available</p>
+        <p className="text-sm text-gray-500">All items are out of stock or inactive</p>
       </div>
     );
   }
@@ -225,7 +225,7 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por categoría o artículo..."
+            placeholder="Search by category or item..."
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D9C696] focus:border-transparent text-sm"
           />
         </div>
@@ -244,7 +244,7 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
             id="notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Agregar comentarios o instrucciones especiales..."
+            placeholder="Add comments or special instructions..."
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D9C696] focus:border-transparent text-sm resize-none"
             rows={2}
           />
@@ -256,7 +256,7 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
         <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           {filteredCategories.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <p>No se encontraron artículos con "{searchQuery}"</p>
+              <p>No items found matching "{searchQuery}"</p>
             </div>
           ) : (
             filteredCategories.map((catId) => {
@@ -288,7 +288,7 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
                     </span>
                     {categorySelectedCount > 0 && (
                       <span className="text-xs bg-[#D9C696] text-gray-900 px-2 py-0.5 rounded-full font-medium">
-                        {categorySelectedCount} seleccionado{categorySelectedCount !== 1 ? 's' : ''}
+                        {categorySelectedCount} selected{categorySelectedCount !== 1 ? '' : ''}
                       </span>
                     )}
                   </div>
@@ -333,7 +333,7 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
                                   ? "bg-yellow-100 text-yellow-700"
                                   : "bg-red-100 text-red-700"
                               }`}>
-                                Stock: {item.quantity} unidades
+                                Stock: {item.quantity} units
                               </span>
                               {isSelected && (
                                 <span className="text-xs text-[#D9C696] font-semibold">
@@ -377,11 +377,11 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
           <div className="flex justify-between items-center mb-4">
             <div className="space-y-1">
               <p className="text-sm text-gray-600">
-                Artículos seleccionados:{" "}
+                Selected items:{" "}
                 <span className="font-bold text-gray-900">{selectedCount}</span>
               </p>
               <p className="text-sm text-gray-600">
-                Total de unidades:{" "}
+                Total units:{" "}
                 <span className="font-bold text-gray-900">{totalQuantity}</span>
               </p>
             </div>
@@ -393,7 +393,7 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
                 onClick={onCancel}
                 className="flex-1 px-4 py-2.5 text-sm text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 rounded-lg font-semibold transition-colors"
               >
-                Cancelar
+                Cancel
               </button>
             )}
             <button
@@ -412,7 +412,7 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
               ) : (
                 <span className="flex items-center justify-center gap-2">
                   <FaShoppingCart />
-                  {directConsume ? "Submit Inventory" : "Enviar Solicitud"}
+                  {directConsume ? "Submit Inventory" : "Send Request"}
                 </span>
               )}
             </button>
@@ -426,11 +426,11 @@ const MaterialRequestForm = forwardRef(({ onSuccess, onCancel, currentUserId, di
           <div className="flex justify-between items-center">
             <div className="space-y-1">
               <p className="text-sm text-gray-600">
-                Artículos seleccionados:{" "}
+                Selected items:{" "}
                 <span className="font-bold text-gray-900">{selectedCount}</span>
               </p>
               <p className="text-sm text-gray-600">
-                Total de unidades:{" "}
+                Total units:{" "}
                 <span className="font-bold text-gray-900">{totalQuantity}</span>
               </p>
             </div>

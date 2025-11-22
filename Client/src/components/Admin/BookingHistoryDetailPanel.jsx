@@ -162,23 +162,23 @@ const BookingHistoryDetailPanel = ({ isOpen, booking, onClose, onSuccess }) => {
             <form onSubmit={handleUpdateSubmit} className="p-6 space-y-6">
               {/* Información de la reserva */}
               <div className="bg-gray-50 rounded-lg p-4 space-y-3 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Información de la Reserva</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Reservation Information</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs text-gray-500 mb-1">ID de Reserva</p>
                     <p className="text-sm font-medium text-gray-900">#{String(booking.id).padStart(3, "0")}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Estado</p>
+                    <p className="text-xs text-gray-500 mb-1">Status</p>
                     <p className="text-sm font-medium text-gray-900">{booking.status}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Cliente</p>
+                    <p className="text-xs text-gray-500 mb-1">Client</p>
                     <p className="text-sm font-medium text-gray-900">{booking.userName}</p>
                     <p className="text-xs text-gray-500">{booking.userEmail}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Habitación</p>
+                    <p className="text-xs text-gray-500 mb-1">Room</p>
                     <p className="text-sm font-medium text-gray-900">
                       {booking.roomNumber} - {booking.roomType}
                     </p>
@@ -197,11 +197,11 @@ const BookingHistoryDetailPanel = ({ isOpen, booking, onClose, onSuccess }) => {
               {/* Servicios */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Servicios Adicionales
+                  Additional Services
                 </label>
                 <div className="border border-gray-300 rounded-lg p-4 max-h-64 overflow-y-auto bg-white">
                   {availableServices.length === 0 ? (
-                    <p className="text-gray-500 text-sm">Cargando servicios...</p>
+                    <p className="text-gray-500 text-sm">Loading services...</p>
                   ) : (
                     <div className="space-y-2">
                       {availableServices.map((service) => (
@@ -244,7 +244,7 @@ const BookingHistoryDetailPanel = ({ isOpen, booking, onClose, onSuccess }) => {
                   </span>
                 </label>
                 <p className="text-xs text-gray-500 mt-1 ml-7">
-                  Si está marcado, la factura se recalculará basándose en los servicios seleccionados
+                  If checked, the invoice will be recalculated based on the selected services
                 </p>
               </div>
 
@@ -277,23 +277,23 @@ const BookingHistoryDetailPanel = ({ isOpen, booking, onClose, onSuccess }) => {
           {activeTab === "delete" && (
             <form onSubmit={handleDeleteSubmit} className="p-6 space-y-6">
               <div className="bg-gray-50 rounded-lg p-6 space-y-4 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Información de la Reserva</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Reservation Information</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs text-gray-500 mb-1">ID de Reserva</p>
                     <p className="text-sm font-medium text-gray-900">#{String(booking.id).padStart(3, "0")}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Estado</p>
+                    <p className="text-xs text-gray-500 mb-1">Status</p>
                     <p className="text-sm font-medium text-gray-900">{booking.status}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Cliente</p>
+                    <p className="text-xs text-gray-500 mb-1">Client</p>
                     <p className="text-sm font-medium text-gray-900">{booking.userName}</p>
                     <p className="text-xs text-gray-500">{booking.userEmail}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Habitación</p>
+                    <p className="text-xs text-gray-500 mb-1">Room</p>
                     <p className="text-sm font-medium text-gray-900">
                       {booking.roomNumber} - {booking.roomType}
                     </p>
@@ -308,7 +308,7 @@ const BookingHistoryDetailPanel = ({ isOpen, booking, onClose, onSuccess }) => {
                   </div>
                   {booking.services && booking.services.length > 0 && (
                     <div className="col-span-2">
-                      <p className="text-xs text-gray-500 mb-1">Servicios</p>
+                      <p className="text-xs text-gray-500 mb-1">Services</p>
                       <p className="text-sm font-medium text-gray-900">
                         {booking.services.length} servicio(s) asociado(s)
                       </p>
@@ -331,7 +331,7 @@ const BookingHistoryDetailPanel = ({ isOpen, booking, onClose, onSuccess }) => {
                     Esta acción no se puede deshacer
                   </p>
                   <p className="text-xs text-red-600 mb-4">
-                    Se eliminarán la reserva, todos los servicios asociados y la factura (si existe).
+                    The reservation, all associated services, and the invoice (if it exists) will be deleted.
                   </p>
                   <p className="text-xs text-red-600 mb-4">
                     Escribe <span className="font-bold">CONFIRMAR</span> para eliminar el registro
