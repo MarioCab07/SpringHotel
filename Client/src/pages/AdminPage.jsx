@@ -10,6 +10,7 @@ import InventoryPage from "./InventoryPage";
 import AdminBookingHistoryPage from "./AdminBookingHistoryPage";
 import AdminHeader from "../components/Admin/AdminHeader";
 import AdminBanner from "../components/Admin/AdminBanner";
+import RoomTypeImageManager from "../components/Admin/RoomTypeImageManager";
 
 const AdminPage = () => {
   const [option, setOption] = useState("Customers");
@@ -33,15 +34,11 @@ const AdminPage = () => {
     setOption(newOption);
   };
 
-
   return (
     <div className="min-h-screen bg-white">
       <AdminHeader />
       <div className="w-full px-4 md:px-6 lg:px-8 py-4">
-        <AdminBanner
-          title={getSectionTitle()}
-          showButton={false}
-        />
+        <AdminBanner title={getSectionTitle()} showButton={false} />
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="w-full lg:w-auto">
             <SideBar option={option} setOption={handleOptionChange} />
@@ -49,7 +46,12 @@ const AdminPage = () => {
           <section className="flex-1 w-full">
             {option === "Customers" && <ClientsList />}
             {option === "Employees" && <EmployeeList />}
-            {option === "Rooms" && <RoomList ref={roomListRef} />}
+            {option === "Rooms" && (
+              <>
+                <RoomList ref={roomListRef} />
+                <RoomTypeImageManager />
+              </>
+            )}
             {option === "Reservations" && <BookingList />}
             {option === "Services" && <ServiceList />}
             {option === "Room Status" && <RoomStatusPage />}

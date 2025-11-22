@@ -30,7 +30,7 @@ const RoomPage = () => {
     setSelectedRoom(null);
     setBookingData(null);
     setUser(null);
-    loadRooms(); 
+    loadRooms();
   };
 
   const loadRooms = async () => {
@@ -41,6 +41,8 @@ const RoomPage = () => {
       setAllRooms(data);
 
       const available = data.filter((room) => room.roomStatus === "AVAILABLE");
+
+
       const grouped = Object.values(
         available.reduce((acc, room) => {
           if (!acc[room.roomType.id]) acc[room.roomType.id] = room;
@@ -49,31 +51,19 @@ const RoomPage = () => {
       );
 
       const roomsWithImage = grouped.map((room) => {
+        const images = room?.roomType?.images ?? [];
         let img = "";
 
-        switch (room.roomType.name) {
-          case "Single Room":
-            img =
-              "https://hotelvilnia.lt/wp-content/uploads/2018/06/DSC07003-HDR-Edit-Edit-1.jpg";
-            break;
-          case "Double Room":
-            img =
-              "https://cdn.traveltripper.io/site-assets/512_863_12597/media/2018-02-22-041437/large_DDBDB.jpg";
-            break;
-          case "Suite":
-            img =
-              "https://www.acevivillarroelbarcelona.com/img/jpg/habitaciones/Hab-Deluxe-01.jpg";
-            break;
-          default:
-            img =
-              "https://images.unsplash.com/photo-1590490350335-4043dc518d89?auto=format";
+        if (images.length > 0) {
+          const randomIndex = Math.floor(Math.random() * images.length);
+          img = images[randomIndex].url ?? "";
         }
 
         return {
           ...room,
           roomType: {
             ...room.roomType,
-            imageUrl: img,
+            imageUrl: img, 
           },
         };
       });
@@ -97,6 +87,7 @@ const RoomPage = () => {
             <UserMenu />
           </header>
 
+          {/* Hero */}
           <section className="flex justify-center mt-6">
             <div
               className="relative w-[92%] max-w-6xl h-[320px] rounded-3xl overflow-hidden bg-cover bg-center shadow-lg"
@@ -110,12 +101,12 @@ const RoomPage = () => {
             </div>
           </section>
 
-          {}
+          {/* Search */}
           <div className="relative z-20 flex justify-center mt-[-2.5rem]">
             <BookingSearchBar setInfo={setInfo} />
           </div>
 
-          {}
+          {/* Rooms */}
           <main className="max-w-6xl mx-auto px-6 py-12">
             <h3 className="text-lg font-semibold text-gray-800 mb-6">
               Explore rooms
@@ -137,6 +128,7 @@ const RoomPage = () => {
         </div>
       )}
 
+      {/* Booking Modal */}
       {showBookingModal && !showInvoiceModal && (
         <PaymentPage
           selectedRoom={selectedRoom}
@@ -148,6 +140,7 @@ const RoomPage = () => {
         />
       )}
 
+      {/* Invoice Modal */}
       {showInvoiceModal && (
         <InvoiceComponent
           booking={bookingData}
