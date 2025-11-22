@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 import {
   GetUserDetails,
@@ -14,7 +14,7 @@ import {
 import UserMenu from "../components/UserMenu";
 import { toast } from "react-toastify";
 
-// ------------------- FORMAT DATE -------------------
+// ------------------- HELPERS -------------------
 const formatDateShort = (dateStr) => {
   return new Date(dateStr).toLocaleDateString("en-US", {
     month: "short",
@@ -27,12 +27,17 @@ const UserService = () => {
   const { id } = useParams();
   const bookingId = Number(id);
   const navigate = useNavigate();
+  const location = useLocation();
+  const incoming = location.state;
 
   const [booking, setBooking] = useState(null);
   const [room, setRoom] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
   const [bookedServices, setBookedServices] = useState([]);
-  const [selected, setSelected] = useState([]);
+  const [selected, setSelected] = useState(incoming?.selectedServices || []);
+  const [specialRequest, setSpecialRequest] = useState(
+    incoming?.specialRequest || ""
+  );
   const [loading, setLoading] = useState(true);
 
   // ------------------- LOAD DATA -------------------
@@ -43,77 +48,155 @@ const UserService = () => {
         const userRes = await GetUserDetails();
         const userId = userRes.data.data.userId;
 
-        const bookingRes = await getUserBookings(userId);
-        const foundBooking = bookingRes.data.data.find((b) => b.id === bookingId);
+        const ubRes = await getUserBookings(userId);
+        const foundBooking = ubRes.data.data.find((b) => b.id === bookingId);
 
         if (!foundBooking) return;
+
         setBooking(foundBooking);
 
-        const roomRes = await getRoomById(foundBooking.roomId);
-        setRoom(roomRes.data.data);
+        const rRes = await getRoomById(foundBooking.roomId);
+        setRoom(rRes.data.data);
 
-        const typeRes = await getAllServicesTypes();
-        setAvailableServices(typeRes.data.data);
+        const typesRes = await getAllServicesTypes();
+        setAvailableServices(typesRes.data.data);
 
+        let srvData = [];
         try {
-          const serviceRes = await getRoomServicesByBookingId(bookingId);
-          setBookedServices(serviceRes.data.data);
-        } catch (err) {}
+          const srvRes = await getRoomServicesByBookingId(bookingId);
+          srvData = srvRes.data.data;
+        } catch (_) {}
 
+        setBookedServices(srvData);
       } finally {
         setLoading(false);
       }
     }
-
     loadData();
   }, [bookingId]);
 
-  // ------------------- DEFAULT SELECTED -------------------
+  // ---------------- DEFAULT SELECTED -------------------
   useEffect(() => {
-    const savedIds = bookedServices.flatMap((s) => s.serviceTypeIds || []);
-    setSelected((prev) => Array.from(new Set([...prev, ...savedIds])));
-  }, [bookedServices]);
+    if (!incoming) {
+      const pendingOrActive = bookedServices.filter(
+        (s) =>
+          s.roomServiceStatus === "PENDING" ||
+          s.roomServiceStatus === "ACTIVE" ||
+          s.roomServiceStatus === "IN_PROGRESS"
+      );
 
+      const ids = pendingOrActive.flatMap((s) => s.serviceTypeIds || []);
+      setSelected(ids);
+
+      setSpecialRequest(pendingOrActive[0]?.roomServiceDescription || "");
+    }
+  }, [bookedServices, incoming]);
+
+  // ---------------- CONDITIONS -------------------
   const alreadySavedIds = bookedServices.flatMap((s) => s.serviceTypeIds || []);
+  const isPastOrInactive =
+    booking?.status !== "ACTIVE" ||
+    new Date(booking?.checkOut) < new Date();
 
+  const activeService = bookedServices.find(
+    (s) =>
+      s.roomServiceStatus === "PENDING" ||
+      s.roomServiceStatus === "ACTIVE" ||
+      s.roomServiceStatus === "IN_PROGRESS"
+  );
+
+  const canModifyOrCancel = !!activeService;
+
+  const getShift = () => {
+  const hour = new Date().getHours();
+  return hour >= 6 && hour < 18 ? "MORNING" : "EVENING";
+};
+
+
+  // ---------------- TOGGLE SERVICE -------------------
   const toggleService = (id) => {
-    if (alreadySavedIds.includes(id)) return;
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
-  const pendingService = bookedServices.find(
-    (s) => s.roomServiceStatus === "PENDING"
-  );
+  // ---------------- ACTIONS -------------------
+  const handleModifyService = async () => {
+    if (!activeService) return;
 
-  // ------------------- SAVE SERVICES -------------------
-  const handleSaveServices = async () => {
     try {
-      if (pendingService) {
-        await updateRoomService(pendingService.roomServiceId, {
-          roomServiceStatus: "PENDING",
-          serviceTypeIds: selected,
-        });
-      } else {
-        await createRoomService({
-          bookingId,
-          serviceTypeIds: selected,
-          roomServiceStatus: "PENDING",
-          requestedAt: new Date().toISOString(),
-        });
-      }
+      await updateRoomService(activeService.roomServiceId, {
+        roomServiceStatus: activeService.roomServiceStatus,
+        serviceTypeIds: selected,
+        roomServiceDescription: specialRequest,
+      });
 
-      toast.success("¡Servicios guardados correctamente!");
+      const srvRes = await getRoomServicesByBookingId(bookingId);
+      setBookedServices(srvRes.data.data);
 
-      setTimeout(() => {
-        navigate("/rooms");
-      }, 1200);
+      toast.success("Service modified successfully.");
     } catch (err) {
-      toast.error("Error guardando los servicios.");
+      toast.error("Error modifying the service.");
     }
   };
 
+  const handleCancelService = async () => {
+    if (!activeService) return;
+
+    if (!window.confirm("Are you sure you want to cancel this service?")) return;
+
+    try {
+      await updateRoomService(activeService.roomServiceId, {
+        roomServiceStatus: "CANCELED",
+        serviceTypeIds: activeService.serviceTypeIds,
+      });
+
+      const srvRes = await getRoomServicesByBookingId(bookingId);
+      setBookedServices(srvRes.data.data);
+
+      toast.success("Service canceled.");
+    } catch (err) {
+      toast.error("Error canceling the service");
+    }
+  };
+
+  const handleSaveServices = async () => {
+  try {
+
+    // Si hay un servicio activo → modificarlo
+    if (activeService) {
+      await updateRoomService(activeService.roomServiceId, {
+        roomServiceStatus: activeService.roomServiceStatus,
+        serviceTypeIds: selected,
+        roomServiceDescription: specialRequest,
+        shift: getShift(),
+      });
+    } 
+    // Si NO hay servicio → crear uno nuevo
+    else {
+      await createRoomService({
+        bookingId,
+        serviceTypeIds: selected,
+        roomServiceStatus: "PENDING",
+        roomServiceDescription: specialRequest,
+        requestedAt: new Date().toISOString(),
+        shift: getShift(),
+      });
+    }
+
+    toast.success("¡Servicios guardados correctamente!");
+
+    setTimeout(() => {
+      navigate("/rooms");
+    }, 1200);
+
+  } catch (err) {
+    console.log(err);
+    toast.error("Error guardando los servicios.");
+  }
+};
+
+  // ---------------- LOADING / MISSING -------------------
   if (loading)
     return (
       <div className="min-h-screen flex justify-center items-center text-xl">
@@ -128,7 +211,7 @@ const UserService = () => {
       </div>
     );
 
-  // ------------------- UI -------------------
+  // ---------------- ROOM IMAGE LOGIC -------------------
   const nights = Math.max(
     1,
     Math.ceil(
@@ -137,7 +220,6 @@ const UserService = () => {
     )
   );
 
-  // ------------------- ROOM IMAGE LOGIC -------------------
   const imagesUrl = {
     Suite:
       "https://www.acevivillarroelbarcelona.com/img/jpg/habitaciones/Hab-Deluxe-01.jpg",
@@ -154,6 +236,7 @@ const UserService = () => {
     room.image ||
     "https://via.placeholder.com/600x350?text=Room";
 
+  // ---------------- UI -------------------
   return (
     <div className="bg-white flex flex-col min-h-screen">
       {/* HEADER */}
@@ -161,10 +244,8 @@ const UserService = () => {
         <UserMenu />
       </header>
 
-      {/* MAIN CONTENT */}
       <main className="flex justify-center mt-10 mb-16">
         <div className="max-w-6xl w-full flex justify-between gap-16">
-
           {/* ---------------- ROOM CARD ---------------- */}
           <div className="flex-1 bg-white rounded-2xl shadow-md p-5">
             <img
@@ -217,14 +298,18 @@ const UserService = () => {
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
-                        checked={isSaved || selected.includes(service.id)}
-                        disabled={isSaved}
+                        checked={selected.includes(service.id)}
                         onChange={() => toggleService(service.id)}
+                        disabled={isPastOrInactive}
                         className="w-4 h-4 accent-[#d4bf92]"
                       />
 
                       <span
-                        className={isSaved ? "text-gray-400" : "text-gray-800"}
+                        className={
+                          isSaved || isPastOrInactive
+                            ? "text-gray-400"
+                            : "text-gray-800"
+                        }
                       >
                         {service.name}
                       </span>
@@ -238,13 +323,47 @@ const UserService = () => {
               })}
             </div>
 
-            {/* SAVE BUTTON */}
-            <button
-              onClick={handleSaveServices}
-              className="w-full bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] font-medium px-8 py-3 rounded-full shadow-md transition mt-6"
-            >
-              Guardar Servicios
-            </button>
+            {/* SPECIAL REQUEST */}
+            <div className="mt-6">
+              <label className="font-medium text-gray-700">Special Request</label>
+              <textarea
+                value={specialRequest}
+                onChange={(e) => setSpecialRequest(e.target.value)}
+                disabled={isPastOrInactive}
+                placeholder="Write your request..."
+                className="w-full mt-2 p-3 border rounded-lg focus:ring-2 focus:ring-[#d4bf92] outline-none disabled:bg-gray-100"
+              />
+            </div>
+
+            {/* BUTTONS */}
+            <div className="flex justify-end gap-3 mt-6">
+              {canModifyOrCancel && (
+                <>
+                  <button
+                    onClick={handleModifyService}
+                    className="w-full bg-[#e8dcbc] hover:bg-[#dfd0a8] text-[#403a2c] font-semibold py-3 px-8 rounded-full shadow-sm transition-all"
+                  >
+                    Modify Service
+                  </button>
+
+                  <button
+                    onClick={handleCancelService}
+                    className="w-full bg-[#e9b1ad] hover:bg-[#dea5a0] text-[#2b2b2b] font-semibold py-3 px-8 rounded-full shadow-sm transition-all"
+                  >
+                    Cancel Service
+                  </button>
+                </>
+              )}
+
+              {!canModifyOrCancel && (
+                <button
+                  onClick={handleSaveServices}
+                  className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] font-medium px-6 py-2 rounded-lg shadow-md transition"
+                >
+                  Save Services
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </main>
@@ -252,7 +371,7 @@ const UserService = () => {
       {/* RETURN BUTTON */}
       <button
         onClick={() => navigate("/my-bookings")}
-        className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] font-medium px-8 py-3 rounded-full shadow-md transition mx-auto mb-4"
+        className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] font-medium px-8 py-3 rounded-full shadow-md transition mx-auto mb-6"
       >
         Return
       </button>
