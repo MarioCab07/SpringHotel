@@ -32,7 +32,7 @@ const AddItemModal = ({ isOpen, onClose, onSave, categories = [] }) => {
     !formData.quantity ||         // validación está bien
     !formData.categoryId
   ) {
-    toast.error("Por favor completa todos los campos.");
+      toast.error("Please complete all fields.");
     return;
   }
 
@@ -65,24 +65,24 @@ const AddItemModal = ({ isOpen, onClose, onSave, categories = [] }) => {
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded transition">
             <FaChevronLeft size={18} className="text-gray-700" />
           </button>
-          <h2 className="font-serif text-lg text-gray-900">Agregar Producto</h2>
+          <h2 className="font-serif text-lg text-gray-900">Add Product</h2>
           <button
             onClick={handleSave}
             className="px-5 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
           >
-            Guardar
+            Save
           </button>
         </header>
 
         <div className="p-6 space-y-6 overflow-y-auto flex-1">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Nombre del producto</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
             <input
               name="name"
               value={formData.name}
               onChange={handleChange}
               className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
-              placeholder="Ej: Botellas de agua"
+              placeholder="Ex: Water bottles"
             />
           </div>
 
@@ -93,7 +93,7 @@ const AddItemModal = ({ isOpen, onClose, onSave, categories = [] }) => {
               value={formData.type}
               onChange={handleChange}
               className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
-              placeholder="Ej: Bebida, Limpieza, etc."
+              placeholder="Ex: Beverage, Cleaning, etc."
             />
           </div>
 
@@ -105,7 +105,7 @@ const AddItemModal = ({ isOpen, onClose, onSave, categories = [] }) => {
               onChange={handleChange}
               className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
             >
-              <option value="">Selecciona una categoría</option>
+              <option value="">Select a category</option>
               {categories?.map((category) => (
                 <option key={category.id} value={category.id}>{category.name}</option>
               ))}
@@ -113,14 +113,14 @@ const AddItemModal = ({ isOpen, onClose, onSave, categories = [] }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Cantidad en stock</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Stock Quantity</label>
             <input
               type="number"
               name="quantity"
               value={formData.quantity}
               onChange={handleChange}
               className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
-              placeholder="Ej: 20"
+              placeholder="Ex: 20"
               min="0"
             />
           </div>

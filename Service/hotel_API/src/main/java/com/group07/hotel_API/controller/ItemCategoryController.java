@@ -18,7 +18,7 @@ public class ItemCategoryController {
 
     private final ItemCategoryService itemCategoryService;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF', 'EMPLOYEE')")
     @GetMapping
     public ResponseEntity<List<ItemCategoryResponse>> getAll() {
         return ResponseEntity.ok(itemCategoryService.getAllCategories());

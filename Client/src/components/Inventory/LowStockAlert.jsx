@@ -36,7 +36,7 @@ const LowStockAlert = ({ onItemClick, isCollapsed = false }) => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
         <div className="flex items-center gap-2 text-gray-500">
           <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-sm">Cargando alertas...</span>
+          <span className="text-sm">Loading alerts...</span>
         </div>
       </div>
     );
@@ -47,7 +47,7 @@ const LowStockAlert = ({ onItemClick, isCollapsed = false }) => {
       <div className="bg-green-50 rounded-xl shadow-sm border border-green-200 p-4">
         <div className="flex items-center gap-2 text-green-700">
           <FaExclamationTriangle className="text-green-600" />
-          <span className="text-sm font-medium">Todo el stock está en niveles normales</span>
+          <span className="text-sm font-medium">All stock is at normal levels</span>
         </div>
       </div>
     );
@@ -62,7 +62,7 @@ const LowStockAlert = ({ onItemClick, isCollapsed = false }) => {
         <div className="flex items-center gap-3">
           <FaExclamationTriangle className="text-red-600 text-lg" />
           <span className="font-semibold text-red-900">
-            Stock Bajo ({lowStockItems.length} {lowStockItems.length === 1 ? "artículo" : "artículos"})
+            Low Stock ({lowStockItems.length} {lowStockItems.length === 1 ? "item" : "items"})
           </span>
           <span className="text-xs font-medium px-2 py-1 rounded-full bg-red-200 text-red-800">
             {lowStockItems.length}
@@ -96,7 +96,7 @@ const LowStockAlert = ({ onItemClick, isCollapsed = false }) => {
                   <div className="text-sm font-bold text-red-600">
                     {item.quantity ?? item.itemQuantity ?? 0} / {item.minimumStock ?? 0}
                   </div>
-                  <div className="text-xs text-gray-500">unidades</div>
+                  <div className="text-xs text-gray-500">units</div>
                 </div>
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
               </div>

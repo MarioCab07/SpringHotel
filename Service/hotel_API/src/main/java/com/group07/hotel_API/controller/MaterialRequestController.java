@@ -30,7 +30,7 @@ public class MaterialRequestController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    @PreAuthorize("hasAnyRole('CLEANING_STAFF', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CLEANING_STAFF', 'ADMIN', 'EMPLOYEE')")
     @PostMapping
     public ResponseEntity<GeneralResponse> createRequest(
             @RequestBody @Valid MaterialRequestRequest request,
@@ -54,7 +54,7 @@ public class MaterialRequestController {
         return buildResponse("All material requests retrieved successfully", HttpStatus.OK, requests);
     }
 
-    @PreAuthorize("hasAnyRole('CLEANING_STAFF', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CLEANING_STAFF', 'ADMIN', 'EMPLOYEE')")
     @GetMapping("/me")
     public ResponseEntity<GeneralResponse> getMyRequests(HttpServletRequest httpRequest) {
         String token = getTokenFromRequest(httpRequest);
@@ -68,7 +68,7 @@ public class MaterialRequestController {
         return buildResponse("My material requests retrieved successfully", HttpStatus.OK, requests);
     }
 
-    @PreAuthorize("hasAnyRole('CLEANING_STAFF', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CLEANING_STAFF', 'ADMIN', 'EMPLOYEE')")
     @GetMapping("/{id}")
     public ResponseEntity<GeneralResponse> getRequestById(@PathVariable Long id) {
         MaterialRequestResponse request = materialRequestService.getRequestById(id);

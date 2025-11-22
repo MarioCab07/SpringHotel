@@ -168,7 +168,7 @@ const EmployeeCheckInPage = () => {
         <div className="flex gap-3 justify-center">
           <input
             className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-[#d4bf92]"
-            placeholder="Ingrese Booking ID"
+            placeholder="Enter Booking ID"
             value={bookingId}
             onChange={(e) => setBookingId(e.target.value)}
           />
@@ -176,7 +176,7 @@ const EmployeeCheckInPage = () => {
             className="bg-[#d4bf92] hover:bg-[#c4af82] transition text-white px-6 py-3 rounded-full font-semibold shadow-md"
             onClick={handleSearch}
           >
-            Buscar
+            Search
           </button>
         </div>
       </div>

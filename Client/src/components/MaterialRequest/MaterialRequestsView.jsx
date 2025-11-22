@@ -164,7 +164,7 @@ const MaterialRequestsView = ({ onClose }) => {
       });
     } catch (err) {
       console.error("Error loading requests:", err);
-      toast.error("Error al cargar las solicitudes");
+      toast.error("Error loading requests");
     } finally {
       setLoading(false);
     }
@@ -177,7 +177,7 @@ const MaterialRequestsView = ({ onClose }) => {
       setShowDetail(true);
     } catch (err) {
       console.error("Error loading request detail:", err);
-      toast.error("Error al cargar los detalles");
+      toast.error("Error loading details");
     }
   };
 
@@ -197,11 +197,11 @@ const MaterialRequestsView = ({ onClose }) => {
   const getStatusLabel = (status) => {
     switch (status) {
       case "APPROVED":
-        return "Aprobada";
+        return "Approved";
       case "PENDING":
-        return "Pendiente";
+        return "Pending";
       case "REJECTED":
-        return "Rechazada";
+        return "Rejected";
       default:
         return status;
     }
@@ -286,7 +286,7 @@ const MaterialRequestsView = ({ onClose }) => {
     
     console.log("Grupos formados:", Object.keys(groups).map(key => {
       const group = groups[key];
-      return `${key}: ${group.requests.length} solicitudes`;
+      return `${key}: ${group.requests.length} requests`;
     }));
     
     // Ordenar grupos por fecha descendente, luego por turno (MORNING primero)
@@ -311,7 +311,7 @@ const MaterialRequestsView = ({ onClose }) => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-semibold text-gray-900">
-            Detalles de Solicitud #{selectedRequest.id}
+            Request Details #{selectedRequest.id}
           </h3>
           <button
             onClick={() => {
@@ -348,10 +348,10 @@ const MaterialRequestsView = ({ onClose }) => {
               </div>
             </div>
             <div className="col-span-2">
-              <label className="text-xs text-gray-500">Comentarios/Notas</label>
+              <label className="text-xs text-gray-500">Comments/Notes</label>
               <div className="mt-1 p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <p className="text-sm text-gray-900 whitespace-pre-wrap">
-                  {selectedRequest.notes || "Sin comentarios"}
+                  {selectedRequest.notes || "No comments"}
                 </p>
               </div>
             </div>
@@ -359,7 +359,7 @@ const MaterialRequestsView = ({ onClose }) => {
 
           <div className="border-t border-gray-200 pt-4">
             <h4 className="text-sm font-semibold text-gray-900 mb-3">
-              Artículos Solicitados
+              Requested Items
             </h4>
             <div className="space-y-2">
               {selectedRequest.items.map((item) => (
@@ -375,7 +375,7 @@ const MaterialRequestsView = ({ onClose }) => {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-semibold text-gray-900">
-                      {item.requestedQuantity} unidades
+                      {item.requestedQuantity} units
                     </p>
                     <p className="text-xs text-gray-500">
                       Stock disponible: {item.availableStock}
@@ -393,7 +393,7 @@ const MaterialRequestsView = ({ onClose }) => {
   if (loading) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-        <p className="text-gray-600">Cargando solicitudes...</p>
+        <p className="text-gray-600">Loading requests...</p>
       </div>
     );
   }
@@ -402,14 +402,14 @@ const MaterialRequestsView = ({ onClose }) => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
         <h3 className="text-lg font-semibold text-gray-900">
-          Solicitudes de Materiales ({requests.length})
+          Material Requests ({requests.length})
         </h3>
         <div className="flex gap-2">
           <button
             onClick={loadRequests}
             className="text-sm text-[#D9C696] hover:text-[#c5b386] font-medium"
           >
-            Actualizar
+            Refresh
           </button>
           {onClose && (
             <button
@@ -424,7 +424,7 @@ const MaterialRequestsView = ({ onClose }) => {
 
       {requests.length === 0 ? (
         <div className="p-8 text-center">
-          <p className="text-gray-600">No hay solicitudes registradas</p>
+          <p className="text-gray-600">No requests registered</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -458,7 +458,7 @@ const MaterialRequestsView = ({ onClose }) => {
                       <p className={`text-sm ${
                         group.shift === "MORNING" ? "text-yellow-700" : "text-gray-700"
                       }`}>
-                        {formatShiftDate(group.shiftDate)} - {group.requests.length} solicitud{group.requests.length !== 1 ? 'es' : ''}
+                        {formatShiftDate(group.shiftDate)} - {group.requests.length} request{group.requests.length !== 1 ? 's' : ''}
                       </p>
                       <p className={`text-xs mt-1 ${
                         group.shift === "MORNING" ? "text-yellow-600" : "text-gray-600"
@@ -493,7 +493,7 @@ const MaterialRequestsView = ({ onClose }) => {
                             Fecha y Hora
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Artículos
+                            Items
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Total
@@ -502,7 +502,7 @@ const MaterialRequestsView = ({ onClose }) => {
                             Estado
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Comentarios/Notas
+                            Comments/Notes
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Acciones
@@ -560,7 +560,7 @@ const MaterialRequestsView = ({ onClose }) => {
                                     </p>
                                   </div>
                                 ) : (
-                                  <span className="text-gray-400 italic text-xs">Sin comentarios</span>
+                                  <span className="text-gray-400 italic text-xs">No comments</span>
                                 )}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">

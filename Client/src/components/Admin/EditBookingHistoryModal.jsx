@@ -59,13 +59,13 @@ const EditBookingHistoryModal = ({ booking, availableServices, onClose, onSave }
             </h3>
             <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
               <p>
-                <strong>Cliente:</strong> {booking.userName} ({booking.userEmail})
+                <strong>Client:</strong> {booking.userName} ({booking.userEmail})
               </p>
               <p>
-                <strong>Habitación:</strong> {booking.roomNumber} - {booking.roomType}
+                <strong>Room:</strong> {booking.roomNumber} - {booking.roomType}
               </p>
               <p>
-                <strong>Fechas:</strong> {new Date(booking.checkIn).toLocaleDateString()} -{" "}
+                <strong>Dates:</strong> {new Date(booking.checkIn).toLocaleDateString()} -{" "}
                 {new Date(booking.checkOut).toLocaleDateString()}
               </p>
             </div>
@@ -74,11 +74,11 @@ const EditBookingHistoryModal = ({ booking, availableServices, onClose, onSave }
           {/* Servicios */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Servicios Adicionales
+              Additional Services
             </label>
             <div className="border border-gray-300 rounded-lg p-4 max-h-64 overflow-y-auto">
               {availableServices.length === 0 ? (
-                <p className="text-gray-500 text-sm">No hay servicios disponibles</p>
+                <p className="text-gray-500 text-sm">No services available</p>
               ) : (
                 <div className="space-y-2">
                   {availableServices.map((service) => (
@@ -121,7 +121,7 @@ const EditBookingHistoryModal = ({ booking, availableServices, onClose, onSave }
               </span>
             </label>
             <p className="text-xs text-gray-500 mt-1 ml-7">
-              Si está marcado, la factura se recalculará basándose en los servicios seleccionados
+              If checked, the invoice will be recalculated based on the selected services
             </p>
           </div>
 

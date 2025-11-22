@@ -24,7 +24,7 @@ const ServiceList = () => {
         setServices(response.data.data);
       }
     } catch (error) {
-      toast.error("Error al cargar los servicios: " + error.message);
+      toast.error("Error loading services: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -67,7 +67,7 @@ const ServiceList = () => {
               onClick={openCreateModal}
               className="px-5 py-2 bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
             >
-              Crear Servicio
+              Create Service
             </button>
           </div>
         )}
@@ -76,7 +76,7 @@ const ServiceList = () => {
           {!loading && services.length === 0 && (
             <div className="text-center py-8">
               <h2 className="text-lg font-semibold text-gray-600">
-                No hay servicios registrados
+                No services registered
               </h2>
             </div>
           )}
