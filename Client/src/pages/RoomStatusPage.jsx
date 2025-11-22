@@ -72,7 +72,7 @@ const RoomStatusPage = () => {
         setUserId(res.data.data.userId);
       } catch (err) {
         console.error("Error fetching user details:", err);
-        if (isMounted) setError("No se pudo cargar los datos de usuario");
+        if (isMounted) setError("Failed to load user data");
       }
     };
     fetchUser();
@@ -134,7 +134,7 @@ const RoomStatusPage = () => {
         setSelected(mapped[0] ?? null);
       } catch (err) {
         console.error("Error fetching tasks or rooms:", err);
-        if (isMounted) setError("Error cargando servicios o habitaciones");
+        if (isMounted) setError("Error loading services or rooms");
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -165,7 +165,7 @@ const RoomStatusPage = () => {
   const handleMarkClean = useCallback(
     async (item) => {
       if (!userId) {
-        toast.error("Debes iniciar sesión");
+        toast.error("You must be logged in");
         return;
       }
       const cleaningPayload = {
@@ -190,10 +190,10 @@ const RoomStatusPage = () => {
         setTasks((ts) => ts.map((t) => (t.id === item.id ? updated : t)));
         setSelected(updated);
 
-        toast.success("Marcado como limpio");
+        toast.success("Marked as clean");
       } catch (err) {
         console.error("handleMarkClean error:", err);
-        toast.error("No se pudo marcar como limpio");
+        toast.error("Failed to mark as clean");
       } finally {
         setMarkLoadingId(null);
       }
@@ -204,7 +204,7 @@ const RoomStatusPage = () => {
   const handleMarkInProgress = useCallback(
     async (item) => {
       if (!userId) {
-        toast.error("Debes iniciar sesión");
+        toast.error("You must be logged in");
         return;
       }
 
@@ -231,10 +231,10 @@ const RoomStatusPage = () => {
         setTasks((ts) => ts.map((t) => (t.id === item.id ? updated : t)));
         setSelected(updated);
 
-        toast.success("Marcado como In Progress");
+        toast.success("Marked as In Progress");
       } catch (err) {
         console.error("handleMarkInProgress error:", err);
-        toast.error("No se pudo marcar como In Progress");
+        toast.error("Failed to mark as In Progress");
       } finally {
         setInProgressLoadingId(null);
       }
@@ -243,19 +243,19 @@ const RoomStatusPage = () => {
   );
 
   const handleDelete = async (item) => {
-    if (!window.confirm("¿Seguro que quieres borrar este servicio?")) return;
+    if (!window.confirm("Are you sure you want to delete this service?")) return;
     try {
       await deleteRoomService(item.id);
       setTasks((ts) => ts.filter((t) => t.id !== item.id));
       setSelected(null);
-      toast.success("Servicio eliminado");
+      toast.success("Service deleted");
     } catch (err) {
       console.error("Error al borrar serviceId", item.id, err.response || err);
       const msg =
         err.response?.data?.message ||
         err.message ||
-        "No se pudo eliminar el servicio";
-      toast.error(`Error al eliminar: ${msg}`);
+        "Failed to delete service";
+      toast.error(`Error deleting: ${msg}`);
     }
   };
 
@@ -329,7 +329,7 @@ const RoomStatusPage = () => {
     fetchTasks();
   };
 
-  if (loading) return <div className="p-4 text-center text-gray-600">Cargando…</div>;
+  if (loading) return <div className="p-4 text-center text-gray-600">Loading…</div>;
   if (error) return <div className="p-4 text-center text-red-600">{error}</div>;
 
   return (
@@ -362,7 +362,7 @@ const RoomStatusPage = () => {
           <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
             {filtered.length === 0 ? (
               <div className="px-6 py-8 text-center text-gray-500">
-                No hay tareas disponibles
+                No tasks available
               </div>
             ) : (
               filtered.map((t) => (

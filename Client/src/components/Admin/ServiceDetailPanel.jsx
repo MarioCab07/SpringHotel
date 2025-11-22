@@ -55,7 +55,7 @@ const ServiceDetailPanel = ({ isOpen, service, onClose, onSuccess }) => {
       };
       const res = await updateServiceType(data);
       if (res.status === 200) {
-        toast.success("Servicio actualizado exitosamente");
+        toast.success("Service updated successfully");
         onSuccess();
       }
     } catch (error) {
@@ -74,7 +74,7 @@ const ServiceDetailPanel = ({ isOpen, service, onClose, onSuccess }) => {
       const response = await deleteServiceType(service.id);
 
       if (response.status === 200) {
-        toast.success("Servicio eliminado exitosamente");
+        toast.success("Service deleted successfully");
         setTimeout(() => {
           onSuccess();
         }, 2000);
@@ -98,7 +98,7 @@ const ServiceDetailPanel = ({ isOpen, service, onClose, onSuccess }) => {
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded transition">
             <FaChevronLeft size={18} className="text-gray-700" />
           </button>
-          <h2 className="font-serif text-lg text-gray-900">Detalles de Servicio</h2>
+          <h2 className="font-serif text-lg text-gray-900">Service Details</h2>
           <div className="w-20" /> {/* Spacer para centrar el título */}
         </header>
 
@@ -122,7 +122,7 @@ const ServiceDetailPanel = ({ isOpen, service, onClose, onSuccess }) => {
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            Eliminar
+            Delete
           </button>
         </div>
 
@@ -132,7 +132,7 @@ const ServiceDetailPanel = ({ isOpen, service, onClose, onSuccess }) => {
             <form onSubmit={handleUpdateSubmit} className="p-6 space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre del Servicio
+                  Service Name
                 </label>
                 <input
                   type="text"
@@ -140,14 +140,14 @@ const ServiceDetailPanel = ({ isOpen, service, onClose, onSuccess }) => {
                   value={changeService.name}
                   onChange={handleChange}
                   className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
-                  placeholder="Ej: Servicio de Limpieza"
+                  placeholder="Ex: Cleaning Service"
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Precio del Servicio
+                  Service Price
                 </label>
                 <input
                   type="text"
@@ -160,7 +160,7 @@ const ServiceDetailPanel = ({ isOpen, service, onClose, onSuccess }) => {
                   placeholder="Ej: 500"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">Solo se permiten números</p>
+                <p className="text-xs text-gray-500 mt-1">Only numbers are allowed</p>
               </div>
 
               <div className="flex justify-end pt-4">
@@ -169,7 +169,7 @@ const ServiceDetailPanel = ({ isOpen, service, onClose, onSuccess }) => {
                   disabled={loading}
                   className="px-5 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
                 >
-                  {loading ? "Guardando..." : "Guardar"}
+                  {loading ? "Saving..." : "Save"}
                 </button>
               </div>
             </form>
@@ -178,18 +178,18 @@ const ServiceDetailPanel = ({ isOpen, service, onClose, onSuccess }) => {
           {activeTab === "delete" && (
             <form onSubmit={handleDeleteSubmit} className="p-6 space-y-6">
               <div className="bg-gray-50 rounded-lg p-6 space-y-4 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Información del Servicio</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Service Information</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">ID del Servicio</p>
+                    <p className="text-xs text-gray-500 mb-1">Service ID</p>
                     <p className="text-sm font-medium text-gray-900">{service.id}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Nombre del Servicio</p>
+                    <p className="text-xs text-gray-500 mb-1">Service Name</p>
                     <p className="text-sm font-medium text-gray-900">{service.name}</p>
                   </div>
                   <div className="col-span-2">
-                    <p className="text-xs text-gray-500 mb-1">Precio del Servicio</p>
+                    <p className="text-xs text-gray-500 mb-1">Service Price</p>
                     <p className="text-sm font-medium text-gray-900">${service.price} USD</p>
                   </div>
                 </div>
@@ -232,7 +232,7 @@ const ServiceDetailPanel = ({ isOpen, service, onClose, onSuccess }) => {
                       : "bg-red-200 text-red-400 cursor-not-allowed opacity-70"
                   }`}
                 >
-                  Eliminar
+                  Delete
                 </button>
               </div>
             </form>

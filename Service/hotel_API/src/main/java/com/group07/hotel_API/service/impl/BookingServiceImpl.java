@@ -19,6 +19,7 @@ import com.group07.hotel_API.repository.RoomRepository;
 import com.group07.hotel_API.repository.UserRepository;
 import com.group07.hotel_API.service.EmailService;
 import com.group07.hotel_API.utils.enums.BookingStatus;
+import com.group07.hotel_API.utils.enums.RoomStatus;
 import com.group07.hotel_API.utils.mappers.BookingMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -187,16 +188,29 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
 
+        // No permitir cancelar si ya está cancelada
         if (booking.getStatus() == BookingStatus.CANCELLED) {
             throw new RuntimeException("This booking is already cancelled");
         }
 
+        // No permitir cancelar si ya pasó o es el día del check-in
         LocalDate today = LocalDate.now();
         if (!today.isBefore(booking.getCheckIn())) {
             throw new RuntimeException("Cannot cancel a booking on or after the check-in date");
         }
 
+        // 1️⃣ Cambiar estado de la reserva
         booking.setStatus(BookingStatus.CANCELLED);
+
+        // 2️⃣ Cambiar estado de la habitación a AVAILABLE
+        Room room = booking.getRoom();
+        room.setStatus(RoomStatus.AVAILABLE);
+        roomRepository.save(room);
+
+        // 3️⃣ Guardar reserva cancelada
+        Booking saved = bookingRepository.save(booking);
+
+        // 4️⃣ Enviar correo de cancelación
         String body =
                 "Dear " + booking.getUser().getName() + ",\n\n" +
                         "We would like to inform you that your reservation with ID " + id + " has been cancelled.\n" +
@@ -206,11 +220,15 @@ public class BookingServiceImpl implements BookingService {
                         "Kind regards,\n" +
                         "Lume Hotel & Suites";
 
-        Booking saved = bookingRepository.save(booking);
-        emailService.sendSimpleEmail(booking.getUser().getEmail(),"Cancellation Confirmation – Reservation ID "+booking.getId(),body);
+        emailService.sendSimpleEmail(
+                booking.getUser().getEmail(),
+                "Cancellation Confirmation – Reservation ID " + booking.getId(),
+                body
+        );
 
         return BookingMapper.toDTO(saved);
     }
+
     @Override
     public List<BookingServiceItemResponse> getServicesForBooking(Integer bookingId) {
         return bookingRepository.findServicesByBooking(bookingId);

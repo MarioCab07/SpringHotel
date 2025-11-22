@@ -53,7 +53,7 @@ const ReservationsPage = () => {
 
       setRows(enriched);
     } catch {
-      toast.error("Error al cargar reservas.");
+      toast.error("Error loading reservations.");
     } finally {
       setLoading(false);
     }
@@ -145,14 +145,58 @@ const ReservationsPage = () => {
   const options = {
     selectableRows: "none",
     elevation: 0,
-    rowsPerPage: 5, // FIX ERROR
+    rowsPerPage: 5,
     rowsPerPageOptions: [5, 10, 20],
-    search: false,
-    filter: false,
+    search: true,
+    filter: true,
     print: false,
     download: true,
+    viewColumns: true,
   };
 
+  // Detectar si estamos en el contexto de EmployeePage
+  const isEmployeeContext = window.location.pathname.includes('/employee') || 
+                            sessionStorage.getItem('role') === 'EMPLOYEE';
+
+  if (isEmployeeContext) {
+    return (
+      <div className="w-full">
+        {/* Header con texto descriptivo y botones */}
+        <div className="flex flex-wrap items-center justify-between gap-4 w-full mb-6">
+          <p className="text-gray-600 text-sm md:text-base">
+            View all active reservations in real time
+          </p>
+          
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate("/employee/check-in")}
+              className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] px-6 py-2 rounded-full font-medium transition-colors"
+            >
+              Check-In
+            </button>
+            <button
+              onClick={() => navigate("/employee/check-out")}
+              className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] px-6 py-2 rounded-full font-medium transition-colors"
+            >
+              Check-Out
+            </button>
+          </div>
+        </div>
+
+        {/* Tabla de reservas */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Active Reservations</h2>
+          <MUIDataTable
+            data={rows}
+            columns={columns}
+            options={options}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Versión original para otros contextos
   return (
     <div className="min-h-screen bg-[#D6ECF7] py-10">
       <div className="max-w-6xl mx-auto px-4">

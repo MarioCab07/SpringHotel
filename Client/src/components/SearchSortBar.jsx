@@ -50,7 +50,7 @@ const SearchSortBar = ({
       <button
         onClick={() => onSearch(query)}
         className="bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 p-2 rounded-md transition-all duration-200 flex items-center justify-center h-7 w-7 shrink-0"
-        title="Buscar"
+        title="Search"
       >
         <FaSearch size={14} />
       </button>
