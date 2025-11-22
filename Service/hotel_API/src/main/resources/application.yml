@@ -2,8 +2,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: lumehotelsuites@gmail.com
-    password: hguf xfsv stno fjau
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -29,8 +29,8 @@ spring:
       client:
         registration:
           google:
-            client-id: 37913004901-oivf9svfmvuv02slrm7udsvd6tv792b2.apps.googleusercontent.com
-            client-secret: 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
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             redirect-uri: "{baseUrl}/api/v1/auth/google/callback"
             scope:
               - email
@@ -43,9 +43,9 @@ spring:
             user-name-attribute: sub
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/SpringHotelBD
-    username: postgres
-    password: admin
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -57,24 +57,27 @@ spring:
     defer-datasource-initialization: true
 
 app:
-  jwt-secret: 63a3101ac990aa2382bc6233189c036035fff09b46f0e18834614273e252debd
-  jwt-expiration-time: 86400000
+  jwt-secret: ${JWT_SECRET}
+  jwt-expiration-time: ${JWT_EXPIRATION}
+  cors:
+    allowed-origins: ${ALLOWED_ORIGINS}
+
 
 admin:
-  fullName: Admin User
-  country: AD
-  documentNumber: 123456778-9
-  phoneNumber: 12345678
-  email: admin@hotel.com
-  userName: adminUser
-  password: 49SuF7B9Wtzd
+  fullName: ${ADMIN_FULLNAME}
+  country: ${ADMIN_COUNTRY}
+  documentNumber: ${ADMIN_DOCUMENT}
+  phoneNumber: ${ADMIN_PHONE}
+  email: ${ADMIN_EMAIL}
+  userName: ${ADMIN_USERNAME}
+  password: ${ADMIN_PASSWORD}
 
 enterprise:
-  name: Lume Hotel & Suits
-  address: "Avenida Las Magnolias #123, Colonia San Benito, San Salvador, El Salvador"
-  phone_number: "+503 2265-8742"
-  lineBusiness: "Servicios hoteleros y turísticos"
-  nit: 0614-120923-102-4
-  email: lumehotelsuites@gmail.com
+  name: ${ENTERPRISE_NAME}
+  address: ${ENTERPRISE_ADDRESS}
+  phone_number: ${ENTERPRISE_PHONE}
+  lineBusiness: ${ENTERPRISE_LINE}
+  nit: ${ENTERPRISE_NIT}
+  email: ${ENTERPRISE_EMAIL}
 
 

@@ -129,7 +129,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         if( roomServices.isEmpty() ){
             return;
         }
-
+System.out.println("iterando sobre servicios");
         for (RoomServiceData service : roomServices) {
             InvoiceDetail invoiceDetail = InvoiceDetail.builder()
                     .invoice(invoice)
