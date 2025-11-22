@@ -19,4 +19,6 @@ public class RoomServiceUpdateRequest {
 
     @NotNull(message = "Room service status cannot be null")
     private String roomServiceStatus;
+
+    private String shift;
 }
