@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { FaStar, FaBath, FaParking, FaUtensils } from "react-icons/fa";
 import { MdWifi } from "react-icons/md";
+import axios from "axios";
 import { getRoomTypeReviewsSummary } from "../../service/api.services";
 
 const RoomCard = ({ room, setShowBookingModal, setSelectedRoom }) => {
   const [summary, setSummary] = useState({ count: 0, average: null });
   const [loadingSummary, setLoadingSummary] = useState(false);
+
+  const [imageUrl, setImageUrl] = useState(null);
+  const API = import.meta.env.VITE_BASE_URL + "/api";
 
   const handleBooking = () => {
     setSelectedRoom(room);
@@ -14,6 +18,35 @@ const RoomCard = ({ room, setShowBookingModal, setSelectedRoom }) => {
 
   const roomTypeId = room?.roomType?.id ?? null;
 
+  useEffect(() => {
+    let mounted = true;
+
+    const loadImage = async () => {
+      if (!roomTypeId) return;
+
+      try {
+        const resp = await axios.get(`${API}/room_type/${roomTypeId}/images`);
+        const list = resp?.data?.data ?? [];
+
+        if (mounted) {
+          if (list.length > 0) {
+            setImageUrl(list[0].url);
+          } else {
+            setImageUrl(null);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading roomType image for RoomCard", err);
+      }
+    };
+
+    loadImage();
+    return () => (mounted = false);
+  }, [roomTypeId]);
+
+  // -----------------------------
+  // REVIEWS
+  // -----------------------------
   useEffect(() => {
     let mounted = true;
     const loadSummary = async () => {
@@ -31,7 +64,7 @@ const RoomCard = ({ room, setShowBookingModal, setSelectedRoom }) => {
           average: payload?.average ?? null,
         });
       } catch (err) {
-        console.error("Error cargando summary reviews:", err);
+        console.error("Error loading summary reviews:", err);
         if (!mounted) return;
         setSummary({ count: 0, average: null });
       } finally {
@@ -46,20 +79,20 @@ const RoomCard = ({ room, setShowBookingModal, setSelectedRoom }) => {
     };
   }, [roomTypeId]);
 
-  const ratingText = loadingSummary
-    ? "..."
-    : summary.average !== null
-    ? summary.average
-    : "—";
+  const ratingText = loadingSummary ? "..." : summary.average ?? "—";
   const countText = loadingSummary ? "..." : summary.count ?? 0;
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col md:flex-row overflow-hidden hover:shadow-lg transition-all duration-300">
-      <img
-        src={room.roomType?.imageUrl}
-        alt={room.roomType?.name}
-        className="w-full md:w-[320px] h-[210px] object-cover rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none"
-      />
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={room.roomType?.name}
+          className="w-full md:w-[320px] h-[210px] object-cover rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none"
+        />
+      ) : (
+        <div className="w-full md:w-[320px] h-[210px] bg-gray-200 rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none"></div>
+      )}
 
       <div className="flex-1 flex flex-col justify-between p-6 md:flex-row md:items-center">
         <div className="flex flex-col gap-2 flex-1">

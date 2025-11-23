@@ -10,11 +10,9 @@ import {
   FaWifi,
 } from "react-icons/fa";
 
-/* Simple ImageCarousel inline (pequeño, mantiene tamaño y overlay) */
 const ImageCarousel = ({ images = [], children }) => {
   const [idx, setIdx] = useState(0);
   if (!images || images.length === 0) {
-    // fallback: render children but with empty background
     return (
       <div className="relative h-64 md:h-80 overflow-hidden group bg-gray-100">
         {children}
@@ -34,7 +32,6 @@ const ImageCarousel = ({ images = [], children }) => {
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
 
-      {/* flechas */}
       <button onClick={prev} aria-label="prev" className="absolute left-3 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white px-2 py-1 rounded shadow">
         ‹
       </button>
@@ -42,14 +39,12 @@ const ImageCarousel = ({ images = [], children }) => {
         ›
       </button>
 
-      {/* indicators */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-20">
         {images.map((_, i) => (
           <span key={i} className={`block w-2 h-2 rounded-full ${i===idx ? "bg-[#bfa166]" : "bg-gray-300"}`} />
         ))}
       </div>
 
-      {/* overlays children */}
       <div className="absolute inset-0 pointer-events-none">
         {children}
       </div>
@@ -62,7 +57,6 @@ const RoomBookingCard = ({ selectedRoom, info = {} }) => {
   const [images, setImages] = useState([]);
   const VITE_API = import.meta.env.VITE_BASE_URL + "/api";
 
-  // cálculo de noches y precios (sin cambios)
   const nights =
     Math.ceil(
       (new Date(info.endDate) - new Date(info.startDate)) /
@@ -91,7 +85,6 @@ const RoomBookingCard = ({ selectedRoom, info = {} }) => {
     let mounted = true;
 
     const loadImages = async () => {
-      // 1) si el selectedRoom ya trae images dentro de roomType, úsalas
       const imagesFromSelected = selectedRoom?.roomType?.images;
       if (imagesFromSelected && imagesFromSelected.length > 0) {
         const urls = imagesFromSelected.map(i => i.url);
@@ -99,10 +92,8 @@ const RoomBookingCard = ({ selectedRoom, info = {} }) => {
         return;
       }
 
-      // 2) fallback: pedir al endpoint publico de images: /api/room_type/{id}/images
       const roomTypeId = selectedRoom?.roomType?.id;
       if (!roomTypeId) {
-        // fallback legacy (imageUrl)
         const legacy = selectedRoom?.roomType?.imageUrl;
         if (legacy && mounted) setImages([legacy]);
         return;
@@ -110,19 +101,16 @@ const RoomBookingCard = ({ selectedRoom, info = {} }) => {
 
       try {
         const resp = await axios.get(`${VITE_API}/room_type/${roomTypeId}/images`);
-        // respuesta: GeneralResponse -> resp.data.data = array images
         const imgs = (resp?.data?.data ?? []).map(i => i.url).filter(Boolean);
         if (mounted) {
           if (imgs.length > 0) setImages(imgs);
           else {
-            // último fallback: imageUrl si existe
             const legacy = selectedRoom?.roomType?.imageUrl;
             setImages(legacy ? [legacy] : []);
           }
         }
       } catch (err) {
         console.error("Error loading roomType images ", err.response?.data ?? err);
-        // si falla (403 u otro), fallback a imageUrl si existe
         const legacy = selectedRoom?.roomType?.imageUrl;
         if (mounted) setImages(legacy ? [legacy] : []);
       }
@@ -135,9 +123,7 @@ const RoomBookingCard = ({ selectedRoom, info = {} }) => {
 
   return (
     <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 hover:shadow-2xl transition-shadow duration-300">
-      {/* Room Image with Overlay -> ahora carrusel */}
       <ImageCarousel images={images}>
-        {/* Room Number Badge */}
         <div className="absolute top-4 right-4 pointer-events-auto">
           <div className="bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
             <p className="text-sm font-semibold text-gray-800">
@@ -146,7 +132,6 @@ const RoomBookingCard = ({ selectedRoom, info = {} }) => {
           </div>
         </div>
 
-        {/* Room Title Overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-6 pointer-events-none">
           <h2 className="text-3xl font-bold text-white mb-1" style={{ fontFamily: '"Playfair Display", serif' }}>
             {selectedRoom?.roomType?.name}
@@ -154,7 +139,6 @@ const RoomBookingCard = ({ selectedRoom, info = {} }) => {
         </div>
       </ImageCarousel>
 
-      {/* Card content (igual que antes) */}
       <div className="p-6 md:p-8">
         <p className="text-gray-600 mb-6 leading-relaxed text-base">
           {selectedRoom?.roomType?.description}
