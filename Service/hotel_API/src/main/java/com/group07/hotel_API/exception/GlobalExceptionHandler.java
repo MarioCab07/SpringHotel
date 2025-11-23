@@ -179,6 +179,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleIllegalState(IllegalStateException e){
         return buildErrorResponse(e,HttpStatus.BAD_REQUEST,e.getMessage());
     }
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiErrorResponse> handleRuntimeException(RuntimeException e) {
+        return buildErrorResponse(e, HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
 
     public ResponseEntity<ApiErrorResponse> buildErrorResponse(Exception e, HttpStatus status, Object data){
         String uri = ServletUriComponentsBuilder.fromCurrentRequestUri().build().getPath();

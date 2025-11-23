@@ -35,7 +35,7 @@ public class RoleController {
 
     @PostMapping()
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<GeneralResponse> saveRole(RoleRequest role){
+    public ResponseEntity<GeneralResponse> saveRole(@RequestBody RoleRequest role){
         return buildResponse("Role created", HttpStatus.CREATED, roleService.save(role));
     }
 
