@@ -53,7 +53,6 @@
     "tailwindcss": "^4.1.8",
     "vite": "^6.2.0"
   },
-  "packageManager": "yarn@4.9.2",
   "main": "q",
   "repository": "https://github.com/PNC-012025/pnc-proyecto-final-frontend-ft-grupo-07-s02.git",
   "author": "AvalosJorge00009322 <00009322@uca.edu.sv>",

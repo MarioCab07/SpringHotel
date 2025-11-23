@@ -1,38 +1,36 @@
 # ================================
-# 1. Build del frontend (Vite + Yarn)
+# 1. Build del frontend
 # ================================
-FROM node:20-alpine AS build
+FROM node:20 AS build
 
 WORKDIR /app
 
-# Copiamos dependencias
-COPY package.json yarn.lock ./
-RUN yarn install
+COPY package.json package-lock.json ./
 
-# Copiamos el resto del front
+# ---- FIX para Rollup en Docker (este es el que lo arregla) ----
+RUN npm_config_ignore_optional=false npm install --force
+RUN npm rebuild rollup esbuild --platform=linux --arch=x64
+
+# Instalar dependencias normales
+RUN npm install --legacy-peer-deps
+
+# Copiar resto del proyecto
 COPY . .
 
-# Creamos la build de producción
-RUN yarn build
+# Build de producción
+RUN npm run build
 
 
 # ================================
-# 2. Nginx: servidor para la web final
+# 2. Servidor Nginx
 # ================================
 FROM nginx:alpine
 
 WORKDIR /usr/share/nginx/html
 
-# Copiamos el build (dist/)
 COPY --from=build /app/dist ./
-
-# Copiamos config.json inicial al destino exacto
 COPY public/config.json ./config.json
-
-# Copiamos configuración personalizada de nginx
 COPY nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
-
-# Railway reemplazará este comando por uno dinámico si queremos sobrescribir config.json
 CMD ["nginx", "-g", "daemon off;"]
