@@ -1,12 +1,17 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_BASE_URL+"/api";
+import { getAPIBaseURL } from "../config/config";
 
-const apiClient = axios.create({
-    baseURL: API_BASE_URL,
-});
+let apiClient = null;
 
-apiClient.interceptors.request.use(
+const getClient = ()=>{
+  if(!apiClient){
+    apiClient = axios.create({
+      baseURL: getAPIBaseURL() + "/api",
+    })
+
+    
+    apiClient.interceptors.request.use(
   (config) => {
     const excluded = [
       "/auth/login",
@@ -30,11 +35,18 @@ apiClient.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+  }
+
+  return apiClient;
+
+}
+
+
 
 
 export const LoginWithGoogle = async(data)=>{
     try {
-        return await apiClient.post("/auth/google", data,{ headers: { "Content-Type": "application/json" } } );
+        return await getClient().post("/auth/google", data,{ headers: { "Content-Type": "application/json" } } );
     } catch (error) {
         throw error.response ? error.response.data : error; 
     }
@@ -43,7 +55,7 @@ export const LoginWithGoogle = async(data)=>{
 
 export const Login = async(data)=>{
     try {
-        return await apiClient.post("/auth/login", data);
+        return await getClient().post("/auth/login", data);
     } catch (error) {
         throw error.response ? error.response.data : error;    
     }
@@ -52,7 +64,7 @@ export const Login = async(data)=>{
 export const Logout = async()=>{
     try {
         sessionStorage.removeItem("token");
-        return await apiClient.post("/auth/logout");
+        return await getClient().post("/auth/logout");
         
     } catch (error) {
         throw error.response ? error.response.data : error;    
@@ -61,7 +73,7 @@ export const Logout = async()=>{
 
 export const UserRegister = async(data)=>{
     try {
-        return await apiClient.post("/auth/register/user",data);
+        return await getClient().post("/auth/register/user",data);
     } catch (error) {
         throw error.response ? error.response.data : error;    
         
@@ -71,14 +83,14 @@ export const UserRegister = async(data)=>{
 
 export const SetRole = async(data)=>{
     try {
-        return await apiClient.post("/auth/set/role",data);
+        return await getClient().post("/auth/set/role",data);
     } catch (error) {
         throw error.response ? error.response.data : error;    
     }
 }
 export const GetUserDetails = async()=>{
     try {
-        return await apiClient.get("/auth/get/user/details");
+        return await getClient().get("/auth/get/user/details");
         
     } catch (error) {
         throw error.response ? error.response.data : error;
@@ -87,7 +99,7 @@ export const GetUserDetails = async()=>{
 
 export const GetUser = async(id)=>{
     try {
-        return await apiClient.get(`/auth/get/user/${id}`);
+        return await getClient().get(`/auth/get/user/${id}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -95,7 +107,7 @@ export const GetUser = async(id)=>{
 
 export const UpdateUser = async(data)=>{
     try {
-        return await apiClient.put("/auth/update/user", data);
+        return await getClient().put("/auth/update/user", data);
     } catch (error) {
         throw error.response ? error.response.data : error;
         
@@ -104,7 +116,7 @@ export const UpdateUser = async(data)=>{
 
 export const GetAllUsers = async()=>{
     try {
-        return await apiClient.get("/auth/getAll/users");
+        return await getClient().get("/auth/getAll/users");
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -112,7 +124,7 @@ export const GetAllUsers = async()=>{
 
 export const GetUsersByRole = async(role)=>{
     try {
-        return await apiClient.get(`/auth/get/users/role/${role}`);
+        return await getClient().get(`/auth/get/users/role/${role}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
         
@@ -121,7 +133,7 @@ export const GetUsersByRole = async(role)=>{
 
 export const RegisterEmployee = async(data)=>{
     try {
-        return await apiClient.post("/auth/register/employee", data);
+        return await getClient().post("/auth/register/employee", data);
     } catch (error) {
         throw error.response ? error.response.data : error;
         
@@ -131,7 +143,7 @@ export const RegisterEmployee = async(data)=>{
 
 export const GetAllRoles = async()=>{
     try {
-        return await apiClient.get("/role");
+        return await getClient().get("/role");
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -139,7 +151,7 @@ export const GetAllRoles = async()=>{
 
 export const GetAllEmployees = async()=>{
     try {
-        return await apiClient.get("/auth/get/employees");
+        return await getClient().get("/auth/get/employees");
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -149,7 +161,7 @@ export const GetAllEmployees = async()=>{
 // Invnentory
 export const getAllInventoryItems = async() => {
     try {
-        return await apiClient.get("/inventory");
+        return await getClient().get("/inventory");
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -157,7 +169,7 @@ export const getAllInventoryItems = async() => {
 
 export const updateInventoryItemStatus = async (id, status) => {
   try {
-    return await apiClient.patch(`/inventory/${id}/status`, null, {
+    return await getClient().patch(`/inventory/${id}/status`, null, {
       params: { status }
     });
   } catch (error) {
@@ -167,7 +179,7 @@ export const updateInventoryItemStatus = async (id, status) => {
 
 export const getInventoryItemById = async(id) => {
     try {
-        return await apiClient.get("/inventory/${id}");
+        return await getClient().get("/inventory/${id}");
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -175,7 +187,7 @@ export const getInventoryItemById = async(id) => {
 
 export const createInventoryItem = async(data) => {
     try {
-        return await apiClient.post("/inventory", data);
+        return await getClient().post("/inventory", data);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -183,7 +195,7 @@ export const createInventoryItem = async(data) => {
 
 export const updateInventoryItem = async(id, data) => {
     try {
-        return await apiClient.put(`/inventory/${id}`, data);
+        return await getClient().put(`/inventory/${id}`, data);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -191,7 +203,7 @@ export const updateInventoryItem = async(id, data) => {
 
 export const updateItemQuantity = async(id, quantity) =>{
     try {
-        return await apiClient.patch(`/inventory/${id}/quantity`, quantity, {
+        return await getClient().patch(`/inventory/${id}/quantity`, quantity, {
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -203,7 +215,7 @@ export const updateItemQuantity = async(id, quantity) =>{
 
 export const getLowStockItems = async() => {
     try {
-        return await apiClient.get("/inventory/low-stock");
+        return await getClient().get("/inventory/low-stock");
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -212,7 +224,7 @@ export const getLowStockItems = async() => {
 export const updateItemQuantityWithLog = async(id, quantity, userId, action) => {
     try {
         console.log("API: Llamando updateItemQuantityWithLog - ID:", id, "cantidad:", quantity, "userId:", userId, "action:", action);
-        const response = await apiClient.patch(`/inventory/${id}/quantity-with-log`, {
+        const response = await getClient().patch(`/inventory/${id}/quantity-with-log`, {
             quantity,
             userId,
             action
@@ -231,7 +243,7 @@ export const updateItemQuantityWithLog = async(id, quantity, userId, action) => 
 
 export const deleteInventoryItem = async(id) => {
     try {
-        return await apiClient.delete(`/inventory/${id}`);
+        return await getClient().delete(`/inventory/${id}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -240,7 +252,7 @@ export const deleteInventoryItem = async(id) => {
 
 export const getGroupedInventoryItems = async() =>{
     try {
-        return await apiClient.get("/inventory/grouped-by-category")
+        return await getClient().get("/inventory/grouped-by-category")
     } catch (error) {
         throw error.response ? error.response.data : error
     }
@@ -249,7 +261,7 @@ export const getGroupedInventoryItems = async() =>{
 // Inventory Category
 export const getAllCategories = async () => {
   try {
-    return await apiClient.get("/inventory/category");
+    return await getClient().get("/inventory/category");
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -257,7 +269,7 @@ export const getAllCategories = async () => {
 
 export const createCategory = async (data) => {
   try {
-    return await apiClient.post("/inventory/category", data);
+    return await getClient().post("/inventory/category", data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -265,7 +277,7 @@ export const createCategory = async (data) => {
 
 export const updateCategory = async (id, data) => {
   try {
-    return await apiClient.put(`/inventory/category/${id}`, data);
+    return await getClient().put(`/inventory/category/${id}`, data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -273,7 +285,7 @@ export const updateCategory = async (id, data) => {
 
 export const deleteCategory = async (id, data) => {
   try {
-    return await apiClient.delete(`/inventory/category/${id}`, data);
+    return await getClient().delete(`/inventory/category/${id}`, data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -284,7 +296,7 @@ export const deleteCategory = async (id, data) => {
 
 export const createBooking = async (data) => {
     try {
-        return await apiClient.post("/bookings", data);
+        return await getClient().post("/bookings", data);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -292,7 +304,7 @@ export const createBooking = async (data) => {
 
 export const updateBooking = async (id, data) => {
     try {
-        return await apiClient.put(`/bookings/${id}`, data);
+        return await getClient().put(`/bookings/${id}`, data);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -301,7 +313,7 @@ export const updateBooking = async (id, data) => {
 
 export const deleteBooking = async (id) => {
     try {
-        return await apiClient.delete(`/bookings/${id}`);
+        return await getClient().delete(`/bookings/${id}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -309,7 +321,7 @@ export const deleteBooking = async (id) => {
 
 export const getUserBookings = async (id) => {
     try {
-        return await apiClient.get(`/bookings/me/${id}`);
+        return await getClient().get(`/bookings/me/${id}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -317,7 +329,7 @@ export const getUserBookings = async (id) => {
 
 export const getBookingHistory = async (userId) => {
     try {
-        return await apiClient.get(`/bookings/history/${userId}`);
+        return await getClient().get(`/bookings/history/${userId}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -326,7 +338,7 @@ export const getBookingHistory = async (userId) => {
 // Admin booking history endpoints
 export const getAllBookingHistory = async () => {
     try {
-        return await apiClient.get("/bookings/admin/history");
+        return await getClient().get("/bookings/admin/history");
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -334,7 +346,7 @@ export const getAllBookingHistory = async () => {
 
 export const updateBookingHistory = async (bookingId, data) => {
     try {
-        return await apiClient.put(`/bookings/admin/history/${bookingId}`, data);
+        return await getClient().put(`/bookings/admin/history/${bookingId}`, data);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -342,7 +354,7 @@ export const updateBookingHistory = async (bookingId, data) => {
 
 export const deleteBookingHistoryRecord = async (bookingId) => {
     try {
-        return await apiClient.delete(`/bookings/admin/history/${bookingId}`);
+        return await getClient().delete(`/bookings/admin/history/${bookingId}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -350,7 +362,7 @@ export const deleteBookingHistoryRecord = async (bookingId) => {
 
 export const recalculateInvoice = async (bookingId) => {
     try {
-        return await apiClient.post(`/bookings/admin/history/${bookingId}/recalculate-invoice`);
+        return await getClient().post(`/bookings/admin/history/${bookingId}/recalculate-invoice`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -358,7 +370,7 @@ export const recalculateInvoice = async (bookingId) => {
 
 export const getActiveBookings = async () => {
     try {
-        return await apiClient.get("/bookings/active");
+        return await getClient().get("/bookings/active");
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -366,7 +378,7 @@ export const getActiveBookings = async () => {
 
 export const getAllBookings = async()=>{
     try {
-        return await apiClient.get("/bookings");
+        return await getClient().get("/bookings");
     } catch (error) {
         throw error.response ? error.response.data : error;
         
@@ -375,7 +387,7 @@ export const getAllBookings = async()=>{
 
 export const checkIn = async (userId) => {
     try {
-        return await apiClient.post(`/bookings/checkIn/${userId}`);
+        return await getClient().post(`/bookings/checkIn/${userId}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -383,7 +395,7 @@ export const checkIn = async (userId) => {
 
 export const checkOut = async (userId) => {
     try {
-        return await apiClient.post(`/bookings/checkOut/${userId}`);
+        return await getClient().post(`/bookings/checkOut/${userId}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -393,7 +405,7 @@ export const checkOut = async (userId) => {
 // Ticket
 export const createTicket = async (data) => {
     try {
-        return await apiClient.post("/tickets", data);
+        return await getClient().post("/tickets", data);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -401,7 +413,7 @@ export const createTicket = async (data) => {
 
 export const getAllTickets = async () => {
     try {
-        return await apiClient.get("/tickets");
+        return await getClient().get("/tickets");
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -409,7 +421,7 @@ export const getAllTickets = async () => {
 
 export const getTicketById = async (id) => {
     try {
-        return await apiClient.get(`/tickets/${id}`);
+        return await getClient().get(`/tickets/${id}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -417,7 +429,7 @@ export const getTicketById = async (id) => {
 
 export const getTicketByBookingId = async (bookingId) => {
     try {
-        return await apiClient.get(`/tickets/booking/${bookingId}`);
+        return await getClient().get(`/tickets/booking/${bookingId}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -425,7 +437,7 @@ export const getTicketByBookingId = async (bookingId) => {
 
 export const getTicketsByUserId = async (userId) => {
     try {
-        return await apiClient.get(`/tickets/user/${userId}`);
+        return await getClient().get(`/tickets/user/${userId}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -433,7 +445,7 @@ export const getTicketsByUserId = async (userId) => {
 
 export const getActiveTickets = async () => {
     try {
-        return await apiClient.get("/tickets/active");
+        return await getClient().get("/tickets/active");
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -441,7 +453,7 @@ export const getActiveTickets = async () => {
 
 export const getPastTickets = async () => {
     try {
-        return await apiClient.get("/tickets/past");
+        return await getClient().get("/tickets/past");
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -449,7 +461,7 @@ export const getPastTickets = async () => {
 
 export const updateTicket = async (id, data) => {
     try {
-        return await apiClient.put(`/tickets/${id}`, data);
+        return await getClient().put(`/tickets/${id}`, data);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -457,7 +469,7 @@ export const updateTicket = async (id, data) => {
 
 export const deleteTicket = async (id) => {
     try {
-        return await apiClient.delete(`/tickets/${id}`);
+        return await getClient().delete(`/tickets/${id}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -465,7 +477,7 @@ export const deleteTicket = async (id) => {
 
 export const getAllRoomTypes = async()=>{
     try {
-        return await apiClient.get("/room_type")
+        return await getClient().get("/room_type")
     } catch (error) {
         throw error.response ? error.response.data : error;
         
@@ -474,7 +486,7 @@ export const getAllRoomTypes = async()=>{
 
 export const getRoomTypeById = async(id)=>{
     try {
-        return await apiClient.get(`/room_type/${id}`);
+        return await getClient().get(`/room_type/${id}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -482,7 +494,7 @@ export const getRoomTypeById = async(id)=>{
 
 export const getAllRooms = async()=>{
     try {
-        return await apiClient.get("/room");
+        return await getClient().get("/room");
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -490,7 +502,7 @@ export const getAllRooms = async()=>{
 
 export const getRoomById = async(id)=>{
     try {
-        return await apiClient.get(`/room/${id}`);
+        return await getClient().get(`/room/${id}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -498,7 +510,7 @@ export const getRoomById = async(id)=>{
 
 export const getRoomByStatus = async(status)=>{
     try {
-        return await apiClient.get(`/room/status/${status}`);
+        return await getClient().get(`/room/status/${status}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -506,7 +518,7 @@ export const getRoomByStatus = async(status)=>{
 
 export const createRoom = async(data)=>{
     try {
-        return await apiClient.post("/room", data);
+        return await getClient().post("/room", data);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -514,7 +526,7 @@ export const createRoom = async(data)=>{
 
 export const updateRoom = async(id, data)=>{
     try {
-        return await apiClient.put(`/room/${id}`, data);
+        return await getClient().put(`/room/${id}`, data);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -522,7 +534,7 @@ export const updateRoom = async(id, data)=>{
 
 export const deleteRoom = async (id) =>{
     try {
-        return await apiClient.delete(`/room/${id}`);
+        return await getClient().delete(`/room/${id}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -530,7 +542,7 @@ export const deleteRoom = async (id) =>{
 
 export const getAllRoomServices = async () => {
   try {
-    return await apiClient.get("/room-services");
+    return await getClient().get("/room-services");
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -538,7 +550,7 @@ export const getAllRoomServices = async () => {
 
 export const getRoomServiceById = async (id) => {
   try {
-    return await apiClient.get(`/room-services/${id}`);
+    return await getClient().get(`/room-services/${id}`);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -547,7 +559,7 @@ export const getRoomServiceById = async (id) => {
 
 export const getRoomServicesByBookingId = async (bookingId) => {
   try {
-    return await apiClient.get(`/room-services/booking/${bookingId}`);
+    return await getClient().get(`/room-services/booking/${bookingId}`);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -556,7 +568,7 @@ export const getRoomServicesByBookingId = async (bookingId) => {
 
 export const getRoomServicesByStatus = async (status) => {
   try {
-    return await apiClient.get(`/room-services/status/${status}`);
+    return await getClient().get(`/room-services/status/${status}`);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -565,7 +577,7 @@ export const getRoomServicesByStatus = async (status) => {
 
 export const createRoomService = async (data) => {
   try {
-    return await apiClient.post("/room-services", data);
+    return await getClient().post("/room-services", data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -574,7 +586,7 @@ export const createRoomService = async (data) => {
 
 export const updateRoomService = async (id, data) => {
   try {
-    return await apiClient.put(`/room-services/${id}`, data);
+    return await getClient().put(`/room-services/${id}`, data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -582,7 +594,7 @@ export const updateRoomService = async (id, data) => {
 
 export const deleteRoomService = async (id) => {
   try {
-    return await apiClient.delete(`/room-services/${id}`);
+    return await getClient().delete(`/room-services/${id}`);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -590,7 +602,7 @@ export const deleteRoomService = async (id) => {
 
 export const getAllRoomCleanings = async () => {
   try {
-    return await apiClient.get("/room-cleaning");
+    return await getClient().get("/room-cleaning");
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -598,7 +610,7 @@ export const getAllRoomCleanings = async () => {
 
 export const getRoomCleaningById = async (id) => {
   try {
-    return await apiClient.get(`/room-cleaning/${id}`);
+    return await getClient().get(`/room-cleaning/${id}`);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -606,7 +618,7 @@ export const getRoomCleaningById = async (id) => {
 
 export const getRoomCleaningSummaries = async () => {
   try {
-    return await apiClient.get("/room-cleaning/room-summary");
+    return await getClient().get("/room-cleaning/room-summary");
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -614,7 +626,7 @@ export const getRoomCleaningSummaries = async () => {
 
 export const PostRoomCleaningRecord = async (data) => {
   try {
-    return await apiClient.post("/room-cleaning", data);
+    return await getClient().post("/room-cleaning", data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -622,7 +634,7 @@ export const PostRoomCleaningRecord = async (data) => {
 
 export const updateRoomCleaning = async (id, data) => {
   try {
-    return await apiClient.put(`/room-cleaning/${id}`, data);
+    return await getClient().put(`/room-cleaning/${id}`, data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -630,7 +642,7 @@ export const updateRoomCleaning = async (id, data) => {
 
 export const deleteRoomCleaning = async (id) => {
   try {
-    return await apiClient.delete(`/room-cleaning/${id}`);
+    return await getClient().delete(`/room-cleaning/${id}`);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -638,7 +650,7 @@ export const deleteRoomCleaning = async (id) => {
 
 export const getRoomCleaningByRoomId = async (id) => {
   try {
-    return await apiClient.get(`/room-cleaning/room/${id}`);
+    return await getClient().get(`/room-cleaning/room/${id}`);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -646,7 +658,7 @@ export const getRoomCleaningByRoomId = async (id) => {
 
 export const getActiveBookingByRoomId = async (id) => {
   try {
-    return await apiClient.get(`/bookings/active/room/${id}`);
+    return await getClient().get(`/bookings/active/room/${id}`);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -654,7 +666,7 @@ export const getActiveBookingByRoomId = async (id) => {
 
 export const getAllServicesTypes = async()=>{
     try {
-        return await apiClient.get("/room-service-types");
+        return await getClient().get("/room-service-types");
     } catch (error) {
         throw error.response ? error.response.data : error;
         
@@ -663,7 +675,7 @@ export const getAllServicesTypes = async()=>{
 
 export const getServiceTypeById = async(id)=>{
     try {
-        return await apiClient.get(`/room-service-types/${id}`);
+        return await getClient().get(`/room-service-types/${id}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -671,7 +683,7 @@ export const getServiceTypeById = async(id)=>{
 
 export const createServiceType = async(data)=>{
     try {
-        return await apiClient.post("/room-service-types", data);
+        return await getClient().post("/room-service-types", data);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -679,7 +691,7 @@ export const createServiceType = async(data)=>{
 
 export const updateServiceType = async(id, data)=>{
     try {
-        return await apiClient.put(`/room-service-types${id}`, data);
+        return await getClient().put(`/room-service-types${id}`, data);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -687,7 +699,7 @@ export const updateServiceType = async(id, data)=>{
 
 export const deleteServiceType = async (id) => {
     try {
-        return await apiClient.delete(`/room-service-types/${id}`);
+        return await getClient().delete(`/room-service-types/${id}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -695,7 +707,7 @@ export const deleteServiceType = async (id) => {
 
 export const validateCardPayment = async (data) => {
   try {
-    return await apiClient.post("/payment-methods/validate-card", data);
+    return await getClient().post("/payment-methods/validate-card", data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -703,7 +715,7 @@ export const validateCardPayment = async (data) => {
 
 export const processDeposit = async (data) => {
   try {
-    return await apiClient.post("/payment-methods/process-deposit", data);
+    return await getClient().post("/payment-methods/process-deposit", data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -711,7 +723,7 @@ export const processDeposit = async (data) => {
 
 export const processFullPayment = async (data) => {
   try {
-    return await apiClient.post("/payment-methods/process-full-payment", data);
+    return await getClient().post("/payment-methods/process-full-payment", data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -719,7 +731,7 @@ export const processFullPayment = async (data) => {
 
 export const processBookingPayment = async (data) => {
   try {
-    return await apiClient.post("/payments/booking", data);
+    return await getClient().post("/payments/booking", data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -727,7 +739,7 @@ export const processBookingPayment = async (data) => {
 
 export const processCheckInPayment = async (data) => {
   try {
-    return await apiClient.post("/payments/checkin", data);
+    return await getClient().post("/payments/checkin", data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -735,7 +747,7 @@ export const processCheckInPayment = async (data) => {
 
 export const processCheckOutPayment = async (data) => {
   try {
-    return await apiClient.post("/payments/checkout", data);
+    return await getClient().post("/payments/checkout", data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -743,7 +755,7 @@ export const processCheckOutPayment = async (data) => {
 
 export const getRoomSummary = async () => {
   try {
-    return await apiClient.get("/room/summary");
+    return await getClient().get("/room/summary");
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -751,7 +763,7 @@ export const getRoomSummary = async () => {
 
 export const getRandomAvailableRooms = async () => {
   try {
-    return await apiClient.get("/room/random");
+    return await getClient().get("/room/random");
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -759,7 +771,7 @@ export const getRandomAvailableRooms = async () => {
 
 export const getBookingById = async (id) => {
     try {
-        return await apiClient.get(`/bookings/${id}`);
+        return await getClient().get(`/bookings/${id}`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -770,7 +782,7 @@ export const getBookingById = async (id) => {
 
 export const cancelBooking = async (id) => {
     try {
-        return await apiClient.put(`/bookings/${id}/cancel`);
+        return await getClient().put(`/bookings/${id}/cancel`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -778,7 +790,7 @@ export const cancelBooking = async (id) => {
 
 export const modifyBooking = async (id, data) => {
   try {
-    return await apiClient.put(`/bookings/${id}/modify`, data);
+    return await getClient().put(`/bookings/${id}/modify`, data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -787,7 +799,7 @@ export const modifyBooking = async (id, data) => {
 // Material Request Services
 export const createMaterialRequest = async (data) => {
   try {
-    return await apiClient.post("/inventory/requests", data);
+    return await getClient().post("/inventory/requests", data);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -795,7 +807,7 @@ export const createMaterialRequest = async (data) => {
 
 export const getMyMaterialRequests = async () => {
   try {
-    return await apiClient.get("/inventory/requests/me");
+    return await getClient().get("/inventory/requests/me");
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -803,7 +815,7 @@ export const getMyMaterialRequests = async () => {
 
 export const getAllMaterialRequests = async () => {
   try {
-    return await apiClient.get("/inventory/requests");
+    return await getClient().get("/inventory/requests");
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -811,19 +823,19 @@ export const getAllMaterialRequests = async () => {
 
 export const getMaterialRequestById = async (id) => {
   try {
-    return await apiClient.get(`/inventory/requests/${id}`);
+    return await getClient().get(`/inventory/requests/${id}`);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
 };
 
 export const getBookingServices = async (bookingId) => {
-  return await apiClient.get(`/bookings/booking/${bookingId}/services`);
+  return await getClient().get(`/bookings/booking/${bookingId}/services`);
 };
 
 export const getRoomTypeReviews = async (roomTypeId) => {
   try {
-    return await apiClient.get(`/room_type/${roomTypeId}/reviews`);
+    return await getClient().get(`/room_type/${roomTypeId}/reviews`);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -831,7 +843,7 @@ export const getRoomTypeReviews = async (roomTypeId) => {
 
 export const createRoomTypeReview = async (roomTypeId, body) => {
   try {
-    return await apiClient.post(`/room_type/${roomTypeId}/reviews`, body, {
+    return await getClient().post(`/room_type/${roomTypeId}/reviews`, body, {
       headers: { "Content-Type": "application/json" }
     });
   } catch (error) {
@@ -841,7 +853,7 @@ export const createRoomTypeReview = async (roomTypeId, body) => {
 
 export const deleteRoomTypeReview = async (roomTypeId, reviewId) => {
   try {
-    return await apiClient.delete(`/room_type/${roomTypeId}/reviews/${reviewId}`);
+    return await getClient().delete(`/room_type/${roomTypeId}/reviews/${reviewId}`);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
@@ -849,7 +861,7 @@ export const deleteRoomTypeReview = async (roomTypeId, reviewId) => {
 
 export const getRoomTypeReviewsSummary = async (roomTypeId) => {
   try {
-    return await apiClient.get(`/room_type/${roomTypeId}/reviews/summary`);
+    return await getClient().get(`/room_type/${roomTypeId}/reviews/summary`);
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
