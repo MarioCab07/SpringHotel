@@ -2,19 +2,15 @@ import { useEffect, useState } from "react";
 import { GetAllEmployees } from "../../service/api.services";
 import { Loading } from "../Loading";
 import { toast } from "react-toastify";
-import { BsPencilSquare } from "react-icons/bs";
 import RegisterEmp from "./RegisterEmp";
-import UpdateEmployee from "./UpdateUserComp";
-import SetRoleComp from "./SetRoleComp";
-import { RiUserSettingsLine } from "react-icons/ri";
+import EmployeeDetailPanel from "./EmployeeDetailPanel";
 
 const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userEmployee, setUserEmployee] = useState(null);
-  const [showUpdate, setShowUpdate] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showDetailPanel, setShowDetailPanel] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
-  const [showSetRole, setShowSetRole] = useState(false);
 
   const fetchEmployees = async () => {
     setLoading(true);
@@ -24,7 +20,7 @@ const EmployeeList = () => {
         setEmployees(response.data.data);
       }
     } catch (error) {
-      toast.error("Error al cargar los empleados: " + error.message);
+      toast.error("Error loading employees: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -34,17 +30,17 @@ const EmployeeList = () => {
     fetchEmployees();
   }, []);
 
-  const openUpdateModal = (employee) => {
-    setUserEmployee(employee);
-    setShowUpdate(true);
+  const openDetailPanel = (employee) => {
+    setSelectedEmployee(employee);
+    setShowDetailPanel(true);
   };
-  const closeUpdateModal = () => {
-    setShowUpdate(false);
-    setUserEmployee(null);
+  const closeDetailPanel = () => {
+    setShowDetailPanel(false);
+    setSelectedEmployee(null);
   };
-  const handleUpdateSuccess = () => {
-    setShowUpdate(false);
-    setUserEmployee(null);
+  const handleDetailSuccess = () => {
+    setShowDetailPanel(false);
+    setSelectedEmployee(null);
     fetchEmployees();
   };
 
@@ -59,159 +55,104 @@ const EmployeeList = () => {
     fetchEmployees();
   };
 
-  const openSetRoleModal = (employee) => {
-    setUserEmployee(employee);
-    setShowSetRole(true);
-  };
-
-  const closeSetRoleModal = () => {
-    setShowSetRole(false);
-    setUserEmployee(null);
-  };
-  const handleSetRoleSuccess = () => {
-    setShowSetRole(false);
-    setUserEmployee(null);
-    fetchEmployees();
-  };
-
   return (
     <>
-      <article className="w-full h-full flex flex-col gap-4 items-center justify-between relative">
-        <h4
-          style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
-          className="rounded-b-2xl bg-white font-zain-extrabold p-4 w-1/3 text-3xl text-center"
-        >
-          Listado de Empleados
-        </h4>
-        <div className="w-full flex justify-end px-4 py-2">
+      <div className="w-full flex flex-col gap-4">
+        <div className="w-full flex justify-end">
           <button
             onClick={openCreateModal}
-            style={{ boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px" }}
-            className="bg-pink-400 hover:bg-pink-600 transition-all ease-in-out 0.5s text-white font-bold py-2 px-4 cursor-pointer rounded-lg "
+            className="px-5 py-2 bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
           >
-            Registrar Empleado
+            Register Employee
           </button>
         </div>
-        <div className="w-full h-full flex-1  flex flex-col py-5 items-center justify-center overflow-scroll">
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           {loading && <Loading fullscreen={false} />}
           {!loading && employees.length === 0 && (
-            <>
-              <h2 className="text-center text-2xl font-bold">
-                No hay clientes registrados
+            <div className="text-center py-8">
+              <h2 className="text-lg font-semibold text-gray-600">
+                No employees registered
               </h2>
-            </>
+            </div>
           )}
 
           {!loading && employees.length > 0 && (
-            <>
-              <div
-                style={{
-                  boxShadow: "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px",
-                }}
-                className="w-full max-w-8xl h-full mx-auto p-4 bg-white rounded-3xl"
-              >
-                <div className="grid grid-cols-9 gap-4 mb-4 text-center font-bold">
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    ID
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Usuario
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Email
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Nombre
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Responsabilidad
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Telefono
-                  </h5>
-                  <h5 className="col-span-1 flex items-center justify-center">
-                    Numero de Documento
-                  </h5>
-                </div>
-                <hr />
-                {employees.map((employee) => {
-                  return (
-                    <div
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      ID
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Name
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Phone Number
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Email
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      DUI
+                    </th>
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">
+                      Responsibility
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {employees.map((employee) => (
+                    <tr
                       key={employee.userId}
-                      className="bg-white py-4 rounded-lg shadow-md mb-4 grid grid-cols-9 gap-3 w-full"
+                      onClick={() => openDetailPanel(employee)}
+                      className="border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
                     >
-                      <p className="text-gray-600 flex items-center justify-center">
+                      <td className="py-2 px-3 text-sm text-gray-600">
                         {employee.userId}
-                      </p>
-                      <h3 className="text-xl font-semibold flex items-center justify-center text-center">
-                        {employee.userName}
-                      </h3>
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {employee.email}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-900 font-medium">
                         {employee.fullName}
-                      </p>
-
-                      <p className="text-gray-600 flex items-center justify-center">
-                        {employee.role}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-600">
                         {employee.phoneNumber}
-                      </p>
-                      <p className="text-gray-600 flex items-center justify-center">
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-600">
+                        <a
+                          href={`mailto:${employee.email}`}
+                          className="text-blue-500 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {employee.email}
+                        </a>
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-600">
                         {employee.documentNumber}
-                      </p>
-                      <button
-                        onClick={() => {
-                          openUpdateModal(employee);
-                        }}
-                        className="text-gray-600 flex items-center justify-center"
-                      >
-                        <BsPencilSquare className="text-blue-500 cursor-pointer hover:text-blue-700 transition-colors duration-300" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          openSetRoleModal(employee);
-                        }}
-                        className="text-gray-600 flex items-center justify-center"
-                      >
-                        <RiUserSettingsLine className="text-blue-500 cursor-pointer hover:text-blue-700 transition-colors duration-300" />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
+                      </td>
+                      <td className="py-2 px-3 text-sm text-gray-600">{employee.role}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
-      </article>
+      </div>
 
       {showCreate && (
-        <>
-          <RegisterEmp
-            onClose={closeCreateModal}
-            onSuccess={handleCreateSuccess}
-          />
-        </>
+        <RegisterEmp
+          isOpen={showCreate}
+          onClose={closeCreateModal}
+          onSuccess={handleCreateSuccess}
+        />
       )}
-      {showUpdate && (
-        <>
-          <UpdateEmployee
-            user={userEmployee}
-            onClose={closeUpdateModal}
-            onSuccess={handleUpdateSuccess}
-          />
-        </>
-      )}
-      {showSetRole && (
-        <>
-          <SetRoleComp
-            employee={userEmployee}
-            onClose={closeSetRoleModal}
-            onSuccess={handleSetRoleSuccess}
-          />
-        </>
+      {showDetailPanel && (
+        <EmployeeDetailPanel
+          isOpen={showDetailPanel}
+          employee={selectedEmployee}
+          onClose={closeDetailPanel}
+          onSuccess={handleDetailSuccess}
+        />
       )}
     </>
   );

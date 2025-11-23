@@ -1,20 +1,18 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-const EditInventoryButton = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth
+const EditInventoryButton = ({ onClick }) => {
+  const { user } = useAuth;
 
   const role = sessionStorage.getItem("role");
-  if(role!=="ADMIN"){
+  if(role !== "ADMIN"){
     return null;
   }
 
   return (
     <button
-      onClick={() => navigate("/inventory/edit")}
-      className="bg-[#172A45] text-white px-6 py-2 rounded-xl hover:bg-blue-800 transition"
+      onClick={onClick}
+      className="px-5 py-2 bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
     >
       Edit Inventory
     </button>

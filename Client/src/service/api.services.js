@@ -7,33 +7,30 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(
-    (config)=>{
-        const excludedPaths = ['/auth/login', '/auth/register','/auth/google'];
+  (config) => {
+    const excluded = [
+      "/auth/login",
+      "/auth/register/user",
+      "/auth/google",
+    ];
 
-        try {
-            
-            const fullUrl = new URL(config.url, API_BASE_URL);
-            const path = fullUrl.pathname;
+    const path = config.url; 
 
-            const shouldExclude = excludedPaths.includes(path);
+    const isExcluded = excluded.some((ex) => path.includes(ex));
 
-            if (!shouldExclude) {
-                const token = sessionStorage.getItem("token");
-                if (token) {
-                    config.headers.Authorization = `Bearer ${token}`;
-                }
-            }
+    if (!isExcluded) {
+      const token = sessionStorage.getItem("token");
 
-        } catch (e) {
-            
-        }
-        
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
+
 
 export const LoginWithGoogle = async(data)=>{
     try {
@@ -192,13 +189,45 @@ export const updateInventoryItem = async(id, data) => {
     }
 };
 
-export const updateItemQuantity = async(id, data) =>{
+export const updateItemQuantity = async(id, quantity) =>{
     try {
-        return await apiClient.patch(`/inventory/${id}/quantity`, data);
+        return await apiClient.patch(`/inventory/${id}/quantity`, quantity, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
         throw error.response ? error.response.data : error
     }
 }
+
+export const getLowStockItems = async() => {
+    try {
+        return await apiClient.get("/inventory/low-stock");
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const updateItemQuantityWithLog = async(id, quantity, userId, action) => {
+    try {
+        console.log("API: Llamando updateItemQuantityWithLog - ID:", id, "cantidad:", quantity, "userId:", userId, "action:", action);
+        const response = await apiClient.patch(`/inventory/${id}/quantity-with-log`, {
+            quantity,
+            userId,
+            action
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log("API: updateItemQuantityWithLog completado exitosamente", response);
+        return response;
+    } catch (error) {
+        console.error("API: Error en updateItemQuantityWithLog", error);
+        throw error.response ? error.response.data : error;
+    }
+};
 
 export const deleteInventoryItem = async(id) => {
     try {
@@ -281,6 +310,47 @@ export const deleteBooking = async (id) => {
 export const getUserBookings = async (id) => {
     try {
         return await apiClient.get(`/bookings/me/${id}`);
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const getBookingHistory = async (userId) => {
+    try {
+        return await apiClient.get(`/bookings/history/${userId}`);
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
+// Admin booking history endpoints
+export const getAllBookingHistory = async () => {
+    try {
+        return await apiClient.get("/bookings/admin/history");
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const updateBookingHistory = async (bookingId, data) => {
+    try {
+        return await apiClient.put(`/bookings/admin/history/${bookingId}`, data);
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const deleteBookingHistoryRecord = async (bookingId) => {
+    try {
+        return await apiClient.delete(`/bookings/admin/history/${bookingId}`);
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const recalculateInvoice = async (bookingId) => {
+    try {
+        return await apiClient.post(`/bookings/admin/history/${bookingId}/recalculate-invoice`);
     } catch (error) {
         throw error.response ? error.response.data : error;
     }
@@ -623,3 +693,164 @@ export const deleteServiceType = async (id) => {
     }
 };
 
+export const validateCardPayment = async (data) => {
+  try {
+    return await apiClient.post("/payment-methods/validate-card", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processDeposit = async (data) => {
+  try {
+    return await apiClient.post("/payment-methods/process-deposit", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processFullPayment = async (data) => {
+  try {
+    return await apiClient.post("/payment-methods/process-full-payment", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processBookingPayment = async (data) => {
+  try {
+    return await apiClient.post("/payments/booking", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processCheckInPayment = async (data) => {
+  try {
+    return await apiClient.post("/payments/checkin", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const processCheckOutPayment = async (data) => {
+  try {
+    return await apiClient.post("/payments/checkout", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getRoomSummary = async () => {
+  try {
+    return await apiClient.get("/room/summary");
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getRandomAvailableRooms = async () => {
+  try {
+    return await apiClient.get("/room/random");
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getBookingById = async (id) => {
+    try {
+        return await apiClient.get(`/bookings/${id}`);
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+
+    
+};
+
+
+export const cancelBooking = async (id) => {
+    try {
+        return await apiClient.put(`/bookings/${id}/cancel`);
+    } catch (error) {
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const modifyBooking = async (id, data) => {
+  try {
+    return await apiClient.put(`/bookings/${id}/modify`, data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+// Material Request Services
+export const createMaterialRequest = async (data) => {
+  try {
+    return await apiClient.post("/inventory/requests", data);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getMyMaterialRequests = async () => {
+  try {
+    return await apiClient.get("/inventory/requests/me");
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getAllMaterialRequests = async () => {
+  try {
+    return await apiClient.get("/inventory/requests");
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getMaterialRequestById = async (id) => {
+  try {
+    return await apiClient.get(`/inventory/requests/${id}`);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getBookingServices = async (bookingId) => {
+  return await apiClient.get(`/bookings/booking/${bookingId}/services`);
+};
+
+export const getRoomTypeReviews = async (roomTypeId) => {
+  try {
+    return await apiClient.get(`/room_type/${roomTypeId}/reviews`);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const createRoomTypeReview = async (roomTypeId, body) => {
+  try {
+    return await apiClient.post(`/room_type/${roomTypeId}/reviews`, body, {
+      headers: { "Content-Type": "application/json" }
+    });
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const deleteRoomTypeReview = async (roomTypeId, reviewId) => {
+  try {
+    return await apiClient.delete(`/room_type/${roomTypeId}/reviews/${reviewId}`);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getRoomTypeReviewsSummary = async (roomTypeId) => {
+  try {
+    return await apiClient.get(`/room_type/${roomTypeId}/reviews/summary`);
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};

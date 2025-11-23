@@ -7,6 +7,7 @@ import {
   FaUsers,
   FaClipboardList,
   FaBoxes,
+  FaHistory,
 } from "react-icons/fa";
 export const sidebarItems = [
   {
@@ -43,5 +44,10 @@ export const sidebarItems = [
     label: "Room Status",
     icon: <FaDoorOpen size={20} />,
     roles: ["ADMIN", "EMPLOYEE", "CLEANING_STAFF"],
+  },
+  {
+    label: "Booking History",
+    icon: <FaHistory size={20} />,
+    roles: ["ADMIN"],
   },
 ];

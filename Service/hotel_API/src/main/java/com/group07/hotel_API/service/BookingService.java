@@ -2,9 +2,11 @@ package com.group07.hotel_API.service;
 
 
 
+import com.group07.hotel_API.dto.request.Booking.BookingModifyRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingUpdateRequest;
 import com.group07.hotel_API.dto.response.Booking.BookingResponse;
+import com.group07.hotel_API.dto.response.Booking.BookingServiceItemResponse;
 
 import java.util.List;
 
@@ -19,5 +21,16 @@ public interface BookingService {
     BookingResponse findActiveByRoomId(Integer roomId);
     BookingResponse checkIn(int userId);
     BookingResponse checkOut(int userId);
+    BookingResponse findPendingBookingById(int id);
+    BookingResponse cancel(int id);
+    BookingResponse modify(int id, BookingModifyRequest booking);
+    List<BookingServiceItemResponse> getServicesForBooking(Integer bookingId);
+    List<com.group07.hotel_API.dto.response.Booking.BookingHistoryResponse> getBookingHistory(Integer userId);
+    
+    // Admin methods
+    List<com.group07.hotel_API.dto.response.Booking.BookingHistoryResponse> getAllBookingHistory();
+    com.group07.hotel_API.dto.response.Booking.BookingHistoryResponse updateBookingHistory(Integer bookingId, com.group07.hotel_API.dto.request.Booking.BookingHistoryUpdateRequest request);
+    void deleteBookingHistoryRecord(Integer bookingId);
+    com.group07.hotel_API.dto.response.Ticket.TicketResponse recalculateInvoice(Integer bookingId);
 
 }

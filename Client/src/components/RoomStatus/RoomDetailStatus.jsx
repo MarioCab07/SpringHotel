@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import SideBar from "../SideBar";
 import { FaChevronLeft } from "react-icons/fa";
 import { toast } from "react-toastify";
 import InventoryByCategory from "./InventoryByCategory";
@@ -28,6 +27,7 @@ const RoomDetailServicePage = () => {
     const [problem, setProblem] = useState("");
     const [suppliesChecked, setSuppliesChecked] = useState({});
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const isServiceCompleted = service?.roomServiceStatus === "COMPLETED";
     const [serviceTypes, setServiceTypes] = useState([]);
@@ -51,57 +51,87 @@ const RoomDetailServicePage = () => {
   s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 
 useEffect(() => {
-  if (!serviceId) return;
+  if (!serviceId) {
+    setError("No se proporcionó un ID de servicio");
+    setLoading(false);
+    return;
+  }
 
   const fetchDetails = async () => {
+    setLoading(true);
+    setError(null);
     try {
+      console.log("Fetching service with ID:", serviceId);
       const [svcRes, typesRes] = await Promise.all([
         getRoomServiceById(serviceId),
         getAllServicesTypes()
       ]);
 
-      const svc = svcRes.data.data;
+      console.log("Service response:", svcRes);
+      console.log("Types response:", typesRes);
+
+      const svc = svcRes?.data?.data || svcRes?.data;
+      if (!svc) {
+        throw new Error("No se encontró el servicio");
+      }
       setService(svc);
 
       const checked = Array.isArray(svc.serviceTypeIds)
         ? Object.fromEntries(svc.serviceTypeIds.map(id => [id, true]))
-        : { [svc.serviceTypeId]: true };
+        : svc.serviceTypeId ? { [svc.serviceTypeId]: true } : {};
       setSuppliesChecked(checked);
 
-      setServiceTypes(typesRes.data.data);
+      setServiceTypes(typesRes?.data?.data || typesRes?.data || []);
 
       let roomId = svc.roomId;
-      if (!roomId) {
-        const allBookingsRes = await getAllBookings();
-        const bookingFound = allBookingsRes.data.data.find(
-          (b) => b.id === svc.bookingId
-        );
-        roomId = bookingFound?.roomId;
+      if (!roomId && svc.bookingId) {
+        try {
+          const allBookingsRes = await getAllBookings();
+          const bookingFound = allBookingsRes?.data?.data?.find(
+            (b) => b.id === svc.bookingId
+          );
+          roomId = bookingFound?.roomId;
+        } catch (e) {
+          console.error("Error fetching bookings:", e);
+        }
       }
-      if (!roomId) throw new Error("No pude determinar el roomId");
+      
+      if (!roomId) {
+        console.warn("No se pudo determinar el roomId, pero continuando...");
+        setLoading(false);
+        return;
+      }
 
       const roomRes = await getRoomById(roomId);
-      const roomData = roomRes.data.data;
-      setRoom(roomData);
+      const roomData = roomRes?.data?.data || roomRes?.data;
+      if (roomData) {
+        setRoom(roomData);
 
-      if (roomData.lastClean) {
-        setLastCleaning({
-          cleanedAt: roomData.lastClean,
-          comments: ""
-        });
+        if (roomData.lastClean) {
+          setLastCleaning({
+            cleanedAt: roomData.lastClean,
+            comments: ""
+          });
+        }
       }
 
-      const activeRes = await getActiveBookingByRoomId(roomId);
-      let activeBooking = activeRes.data.data[0] ?? null;
-      if (!activeBooking) {
-        const allRes = await getAllBookings();
-        activeBooking = allRes.data.data.find((b) => b.roomId === roomId) ?? null;
+      try {
+        const activeRes = await getActiveBookingByRoomId(roomId);
+        let activeBooking = activeRes?.data?.data?.[0] ?? null;
+        if (!activeBooking) {
+          const allRes = await getAllBookings();
+          activeBooking = allRes?.data?.data?.find((b) => b.roomId === roomId) ?? null;
+        }
+        setBooking(activeBooking);
+      } catch (e) {
+        console.error("Error fetching booking:", e);
       }
-      setBooking(activeBooking);
 
     } catch (err) {
       console.error("Error al cargar detalles:", err);
-      setError("No se pudieron cargar los datos");
+      setError(err?.message || "No se pudieron cargar los datos");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -149,6 +179,11 @@ useEffect(() => {
   const changeQty = (itemId, qty) =>
     setItemQuantities(prev => ({ ...prev, [itemId]: qty }));
 
+  const getShift = () => {
+    const hour = new Date().getHours();
+    return hour >= 6 && hour < 18 ? "MORNING" : "EVENING";
+  };
+
   const handleMarkClean = async () => {
     try {
       const payload = {
@@ -156,7 +191,8 @@ useEffect(() => {
         userId:    service.userId,
         status:    "COMPLETED",
         cleanedAt: new Date().toISOString(),
-        comments:  ""
+        comments:  "",
+        shift: getShift(),
       };
       const res = await PostRoomCleaningRecord(payload);
       setLastCleaning(res.data.data);
@@ -222,101 +258,199 @@ const handleSubmitInventory = async () => {
   }
 };
 
-    if (error) return <div></div>;
-    if (!service || !room) return <div>Cargando habitación…</div>;
+    // Mostrar información de debug
+    console.log("Render state:", { serviceId, loading, error, service, room, booking });
 
-    return (
-    <div className="flex h-screen bg-blue-50">
-      <div className="flex-1 p-8 overflow-auto">
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <div className="flex items-center mb-4 p-4 bg-gray-100 rounded-lg shadow">
+    if (loading) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 max-w-md w-full text-center">
+            <p className="text-lg text-gray-600 mb-2">Cargando habitación…</p>
+            <p className="text-sm text-gray-500">Service ID: {serviceId}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 max-w-md w-full">
+            <p className="text-lg font-semibold text-red-600 mb-2">Error al cargar los datos</p>
+            <p className="text-sm text-gray-600 mb-4">{error}</p>
+            <p className="text-xs text-gray-500 mb-6">Service ID: {serviceId}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex-1 px-5 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg text-sm font-semibold transition-all duration-200"
+              >
+                Volver
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="flex-1 px-5 py-2 bg-[#D9C696] hover:bg-[#c5b386] text-gray-900 rounded-lg text-sm font-semibold transition-all duration-200"
+              >
+                Reintentar
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    // Mostrar información incluso si no hay service o room completo
+    if (!service) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 max-w-md w-full">
+            <p className="text-lg font-semibold text-gray-900 mb-2">Servicio no encontrado</p>
+            <p className="text-sm text-gray-600 mb-4">No se pudo cargar el servicio con ID: {serviceId}</p>
             <button
               onClick={() => navigate(-1)}
-              className="p-2 hover:bg-gray-200 rounded mr-4"
+              className="w-full px-5 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg text-sm font-semibold transition-all duration-200"
             >
-              <FaChevronLeft size={20} />
+              Volver
             </button>
-            <h1 className="flex-1 text-center font-jomolhari text-3xl">
-              Room: {room.roomNumber}
-            </h1>
           </div>
+        </div>
+      );
+    }
 
-          <div className="flex flex-col md:flex-row gap-6 mb-6">
-            <img
-              alt="Room"
-              className="w-full md:w-1/3 max-h-64 object-cover rounded-lg"
-              src={imagesUrl[room.roomType.name] || room.imageUrl || "/default-room.jpg"}
-            />
-
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-100 rounded-lg flex flex-col gap-2">
-                <p>
-                  <strong>Estado:</strong> {formatStatus(room.roomStatus)}
-                </p>
-                <p>
-                  <strong>Tipo de habitación:</strong> {room.roomType.name}
-                </p>
-                {booking && (
-                  <>
-                    <p>
-                      <strong>Check-in:</strong> {booking.checkIn}
-                    </p>
-                    <p>
-                      <strong>Check-out:</strong> {booking.checkOut}
-                    </p>
-                  </>
-                )}
-                {lastCleaning && (
-                  <p>
-                    <strong>Última limpieza:</strong>{" "}
-                    {lastCleaning.cleanedAt}
-                  </p>
-                )}
-              </div>
-
-              <div className="p-4 bg-gray-100 rounded-lg">
-                <h2 className="font-medium mb-2">Service Types</h2>
-                <ul className="grid grid-cols-2 gap-4">
-                  {serviceTypes.map(type => (
-                    <li key={type.id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={`srv-type-${type.id}`}
-                        checked={!!suppliesChecked[type.id]}
-                        disabled
-                        className="form-checkbox w-6 h-6 black mr-2 cursor-not-allowed opacity-80 "
-                      />
-                      <label 
-                        htmlFor={`srv-type-${type.id}`}
-                        className="cursor-not-allowed text-gray-700"
-                      >
-                        {type.name}
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+    return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="w-full px-4 md:px-6 lg:px-8 py-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center mb-6 pb-4 border-b border-gray-200">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 hover:bg-gray-100 rounded-lg mr-4 transition-colors"
+            >
+              <FaChevronLeft size={20} className="text-gray-700" />
+            </button>
+            <h1 className="flex-1 text-2xl font-semibold text-gray-900">
+              {room ? `Room ${room.roomNumber}` : `Service #${serviceId}`}
+            </h1>
+            <div className="text-xs text-gray-500">
+              ID: {serviceId}
             </div>
           </div>
 
+          {/* Información del servicio */}
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Información del Servicio</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <p>
+                <span className="text-gray-500 font-medium">Service ID:</span>{" "}
+                <span className="text-gray-900">{service.roomServiceId || serviceId}</span>
+              </p>
+              <p>
+                <span className="text-gray-500 font-medium">Estado:</span>{" "}
+                <span className="text-gray-900">{service.roomServiceStatus || "N/A"}</span>
+              </p>
+              {service.bookingId && (
+                <p>
+                  <span className="text-gray-500 font-medium">Booking ID:</span>{" "}
+                  <span className="text-gray-900">{service.bookingId}</span>
+                </p>
+              )}
+              {service.roomId && (
+                <p>
+                  <span className="text-gray-500 font-medium">Room ID:</span>{" "}
+                  <span className="text-gray-900">{service.roomId}</span>
+                </p>
+              )}
+            </div>
+          </div>
+
+          {room && (
+            <>
+              <div className="flex flex-col md:flex-row gap-6 mb-6">
+                <img
+                  alt="Room"
+                  className="w-full md:w-1/3 max-h-64 object-cover rounded-lg"
+                  src={imagesUrl[room.roomType?.name] || room.imageUrl || "/default-room.jpg"}
+                />
+
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex flex-col gap-3">
+                    <p className="text-sm">
+                      <span className="text-gray-500 font-medium">Estado:</span>{" "}
+                      <span className="text-gray-900">{formatStatus(room.roomStatus)}</span>
+                    </p>
+                    {room.roomType && (
+                      <p className="text-sm">
+                        <span className="text-gray-500 font-medium">Tipo de habitación:</span>{" "}
+                        <span className="text-gray-900">{room.roomType.name}</span>
+                      </p>
+                    )}
+                    {booking && (
+                      <>
+                        <p className="text-sm">
+                          <span className="text-gray-500 font-medium">Check-in:</span>{" "}
+                          <span className="text-gray-900">{booking.checkIn}</span>
+                        </p>
+                        <p className="text-sm">
+                          <span className="text-gray-500 font-medium">Check-out:</span>{" "}
+                          <span className="text-gray-900">{booking.checkOut}</span>
+                        </p>
+                      </>
+                    )}
+                    {lastCleaning && (
+                      <p className="text-sm">
+                        <span className="text-gray-500 font-medium">Última limpieza:</span>{" "}
+                        <span className="text-gray-900">{lastCleaning.cleanedAt}</span>
+                      </p>
+                    )}
+                  </div>
+
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex flex-col">
+                <h2 className="font-semibold text-gray-900 mb-3">TIPOS DE SERVICIO</h2>
+                <div className="flex-1 overflow-y-auto max-h-64">
+                  <ul className="space-y-2">
+                    {serviceTypes.map(type => (
+                      <li key={type.id} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id={`srv-type-${type.id}`}
+                          checked={!!suppliesChecked[type.id]}
+                          disabled
+                          className="w-4 h-4 text-[#D9C696] border-gray-300 rounded cursor-not-allowed opacity-60 mr-2 shrink-0"
+                        />
+                        <label 
+                          htmlFor={`srv-type-${type.id}`}
+                          className="text-sm text-gray-700 cursor-not-allowed flex-1"
+                        >
+                          {type.name}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+                </div>
+              </div>
+            </>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="p-4 bg-gray-100 rounded-lg">
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
               <label
-                className="block font-medium mb-1"
+                className="block text-sm font-semibold text-gray-900 mb-2"
                 htmlFor="problem"
               >
                 Problem:
               </label>
               <textarea
                 id="problem"
-                className="w-full h-24 p-2 rounded"
+                className="w-full h-24 p-3 rounded-lg bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition text-sm text-gray-900"
                 value={problem}
                 onChange={(e) => setProblem(e.target.value)}
+                placeholder="Describe el problema..."
               />
             </div>
-            <div className="p-4 bg-gray-100 rounded-lg">
-              <p className="font-medium mb-1">Special request:</p>
-              <p>{service.roomServiceDescription}</p>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm font-semibold text-gray-900 mb-2">Special request:</p>
+              <p className="text-sm text-gray-700">{service.roomServiceDescription || "—"}</p>
             </div>
           </div>
 
@@ -331,19 +465,24 @@ const handleSubmitInventory = async () => {
             onChangeQty={changeQty}
           />
 
-          <div className="flex justify-between">
+          <div className="flex justify-between gap-4 pt-4 border-t border-gray-200">
             {!isServiceCompleted && (
-              <button
-                onClick={handleMarkClean}
-                className="bg-[#f2789f] hover:bg-[#e76b91] text-white py-2 px-6 rounded-full"
-              >
-                Mark as clean
-              </button>
+            <button
+              onClick={handleMarkClean}
+              disabled={!room}
+              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ease-in-out ${
+                !room 
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-[#D9C696] hover:bg-[#c5b386] active:bg-[#b5a476] text-gray-900 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"
+              }`}
+            >
+              Mark as clean
+            </button>
             )}
             {isServiceCompleted && (
               <button
                 disabled
-                className="bg-gray-300 text-gray-600 py-2 px-6 rounded-full cursor-not-allowed opacity-50"
+                className="px-5 py-2 bg-gray-200 text-gray-400 rounded-lg text-sm font-semibold cursor-not-allowed"
               >
                 Already cleaned
               </button>
@@ -351,13 +490,13 @@ const handleSubmitInventory = async () => {
             <button
               onClick={handleSubmitInventory}
               disabled={isServiceCompleted}
-              className={`py-2 px-6 rounded-full ${
+              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ease-in-out ${
                 isServiceCompleted
-                  ? "bg-gray-300 text-gray-600 cursor-not-allowed opacity-50"
-                  : "bg-[#f2789f] hover:bg-[#e76b91] text-white"
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"
               }`}
             >
-              Submit
+              Submit Inventory
             </button>
           </div>
         </div>

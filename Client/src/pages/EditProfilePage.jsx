@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { GetUserDetails, UpdateUser } from "../service/api.services";
-import logo from "../assets/Logo.png";
 import UserMenu from "../components/UserMenu";
-import { FaSave, FaUserEdit } from "react-icons/fa";
+import { FaUserEdit, FaUserCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -62,83 +61,100 @@ const EditProfilePage = () => {
   if (loading) return <p className="text-center mt-10">Cargando perfil...</p>;
 
   return (
-    <div className="min-h-screen bg-[#D6ECF7] py-12">
-      <header className="flex justify-between items-center px-8 py-4">
-        <img src={logo} alt="Hotel Logo" className="w-40 h-auto" />
+    <div className="min-h-screen bg-white">
+
+      <header className="py-3" >
         <UserMenu />
       </header>
 
-      <main className="max-w-xl mx-auto mt-10">
-        <div className="bg-white p-10 rounded-2xl shadow-xl">
-          <h1 className="text-2xl font-bold text-[#f2789f] mb-6 flex items-center gap-2">
-            <FaUserEdit /> Editar Perfil
-          </h1>
+      <div className="flex justify-center mt-10"  style={{ fontFamily: '"Playfair Display", serif' }}>
+        <h1 className="text-4xl">Edit Profile</h1>
+      </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block font-semibold text-gray-700">Nombre Completo</label>
-              <input
-                type="text"
-                name="fullName"
-                value={user.fullName}
-                onChange={handleChange}
-                className="w-full mt-1 p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
+      <main className="flex justify-center items-center min-h-[60vh] gap-20">
 
-            <div>
-              <label className="block font-semibold text-gray-700">Correo Electrónico</label>
-              <input
-                type="email"
-                name="email"
-                value={user.email}
-                onChange={handleChange}
-                className="w-full mt-1 p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
 
-            <div>
-              <label className="block font-semibold text-gray-700">Número de Documento</label>
-              <input
-                type="text"
-                name="documentNumber"
-                value={user.documentNumber}
-                onChange={handleChange}
-                className="w-full mt-1 p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold text-gray-700">Teléfono</label>
-              <p className="mt-1 p-2 border border-gray-300 rounded bg-gray-100 text-gray-700">
-                {user.phoneNumber}
-              </p>
-            </div>
-
-            <div className="flex justify-between items-center mt-4">
-              <button
-                type="button"
-                onClick={() => navigate("/profile")}
-                className="px-6 py-2 bg-[#f2789f] hover:bg-[#e76b91] text-white font-semibold rounded-full flex items-center gap-2"
-              >
-                Volver al Perfil
-              </button>
-
-              <button
-                type="submit"
-                className="px-6 py-2 bg-[#f2789f] hover:bg-[#e76b91] text-white font-semibold rounded-full flex items-center gap-2"
-              >
-                <FaSave /> Guardar Cambios
-              </button>
-            </div>
-          </form>
+        <div className="flex items-center justify-center">
+          <FaUserCircle className="text-gray-300 text-[200px]" />
         </div>
+
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col w-[500px] gap-5"
+        >
+          <div>
+            <label className="block text-gray-500">Name</label>
+            <input
+              type="text"
+              placeholder="Name"
+              name="fullName"
+              value={user.fullName}
+              onChange={handleChange}
+              required
+              className="w-full p-3 border-2 border-black rounded-md focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-500">Email</label>
+            <input
+              type="email"
+              placeholder="Email"
+              name="email"
+              value={user.email}
+              onChange={handleChange}
+              required
+              className="w-full p-3 border-2 border-black rounded-md"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-500">Document Number</label>
+            <input
+              type="text"
+              placeholder="Document Number"
+              name="documentNumber"
+              value={user.documentNumber}
+              onChange={handleChange}
+              required
+              className="w-full p-3 border-2 border-black rounded-md"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-500">PhoneNumber</label>
+            <input
+              type="text"
+              placeholder="Phone Number"
+              name="phoneNumber"
+              value={user.phoneNumber}
+              onChange={handleChange}
+              required
+              className="w-full p-3 border-2 border-black rounded-md"
+            />
+          </div>
+
+          <div className="flex justify-between pt-4">
+            <button
+              type="button"
+              onClick={() => navigate("/profile")}
+              className="px-10 py-3 bg-[#D9C696] hover:bg-[#cdb883] transition rounded-md font-medium min-w-[200px]"
+            >
+              Return
+            </button>
+
+            <button
+              type="submit"
+              className="px-10 py-3 bg-[#D9C696] hover:bg-[#cdb883] transition rounded-md font-medium min-w-[200px]"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
       </main>
     </div>
   );
+
 };
 
 export default EditProfilePage;

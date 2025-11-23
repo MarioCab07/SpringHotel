@@ -30,4 +30,6 @@ public class RoomServiceRequest {
 
     @NotNull(message = "Requested at cannot be null")
     private LocalDateTime requestedAt;
+
+    private String shift;
 }

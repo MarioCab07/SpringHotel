@@ -17,12 +17,15 @@
     "@mui/icons-material": "^7.1.1",
     "@mui/material": "^7.1.1",
     "@mui/system": "^7.0.2",
+    "@mui/x-data-grid": "^8.18.0",
     "@mui/x-date-pickers": "^7.28.0",
     "@react-oauth/google": "^0.12.2",
+    "@stomp/stompjs": "^7.2.1",
     "@tailwindcss/vite": "^4.1.8",
     "axios": "^1.8.3",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
+    "mui-datatables": "^4.3.0",
     "react": "^19.0.0",
     "react-date-range": "^2.0.1",
     "react-datepicker": "^8.4.0",
@@ -33,7 +36,8 @@
     "react-select-country-list": "^2.2.3",
     "react-toastify": "^11.0.5",
     "recharts": "^2.15.1",
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.1",
+    "sockjs-client": "^1.6.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

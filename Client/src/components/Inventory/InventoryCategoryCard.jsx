@@ -1,21 +1,34 @@
-import { FaChevronRight } from "react-icons/fa";
-const InventoryCategoryCard = ({ title, productCount, unavailableCount, selected, onClick }) => {
+import { FaChevronRight, FaExclamationTriangle } from "react-icons/fa";
+const InventoryCategoryCard = ({ title, productCount, unavailableCount, lowStockCount = 0, selected, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className={`cursor-pointer border border-[#2A3E4C] rounded-lg px-4 py-2 shadow-sm flex items-center justify-between 
-        ${selected ? "border-[#2A3E4C] bg-white border-2" : "border-[#1a1a1a] bg-white"} hover:border-2 hover:border-[#2A3E4C] transition-colors`}
+      className={`cursor-pointer border rounded-lg px-4 py-3 shadow-sm flex items-center justify-between transition-all duration-200
+        ${selected 
+          ? "border-[#D9C696] bg-gray-50 border-2 shadow-md" 
+          : "border-gray-200 bg-white hover:border-[#D9C696] hover:shadow-md"
+        }`}
     >
       <div>
-        <div className="text-xl font-semibold text-[#1a1a1a]">{title}</div>
-        <div className="text-m text-gray-500">{productCount} Productos</div>
+        <div className="text-lg font-semibold text-gray-900">{title}</div>
+        <div className="text-sm text-gray-500">{productCount} Products</div>
       </div>
 
       <div className="flex items-center gap-2">
-        <span className=" w-10 h-10 text-l font-semibold text-center bg-gray-200 rounded-full flex items-center justify-center">
-          {unavailableCount}
-        </span>
-        <FaChevronRight className="text-sm text-[#1a1a1a]" />
+        {lowStockCount > 0 && (
+          <span 
+            className="w-8 h-8 text-xs font-semibold text-center bg-red-100 text-red-700 rounded-full flex items-center justify-center border-2 border-red-300"
+            title={`${lowStockCount} item${lowStockCount !== 1 ? 's' : ''} with low stock`}
+          >
+            <FaExclamationTriangle className="text-red-600" size={12} />
+          </span>
+        )}
+        {unavailableCount > 0 && (
+          <span className="w-8 h-8 text-xs font-semibold text-center bg-red-100 text-red-700 rounded-full flex items-center justify-center">
+            {unavailableCount}
+          </span>
+        )}
+        <FaChevronRight className={`text-sm transition-colors ${selected ? "text-[#D9C696]" : "text-gray-400"}`} />
       </div>
     </div>
   );

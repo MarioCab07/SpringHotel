@@ -1,6 +1,7 @@
 package com.group07.hotel_API.entities;
 
 import com.group07.hotel_API.utils.enums.ServiceStatus;
+import com.group07.hotel_API.utils.enums.ShiftStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,4 +46,8 @@ public class RoomService {
 
     @Column(name = "requested_at")
     private LocalDateTime requestedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "shift", nullable = false)
+    private ShiftStatus shift;
 }

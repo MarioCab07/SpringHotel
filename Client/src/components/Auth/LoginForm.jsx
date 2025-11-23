@@ -4,8 +4,9 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { GoogleLogin } from "@react-oauth/google";
 import { LoginWithGoogle } from "../../service/api.services";
-import { CircularProgress } from "@mui/material";
+import { Button, CircularProgress } from "@mui/material";
 import Backdrop from "@mui/material/Backdrop";
+import { Box, Typography, FormControl, TextField } from "@mui/material";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -77,51 +78,87 @@ const LoginForm = () => {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        <h2 className="text-2xl font-bold text-white text-center">
-          Inicia Sesión
-        </h2>
+      <Typography
+        variant="h2"
+        sx={{ fontFamily: "Times New Roman, Times, serif" }}
+      >
+        Log In{" "}
+      </Typography>
+      <FormControl
+        sx={{ display: "flex", flexDirection: "column", width: "80%", gap: 6 }}
+      >
+        <TextField
+          value={formData.username}
+          label={"User"}
+          name="username"
+          required
+          onChange={handleChange}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderWidth: 2, // borde más grueso
+                borderColor: "#D9C696", // opcional: tu color
+              },
+              "&:hover fieldset": {
+                borderWidth: 2,
+              },
+              "&.Mui-focused fieldset": {
+                borderWidth: 2,
+              },
+            },
+          }}
+        />
+        <TextField
+          value={formData.password}
+          label={"Password"}
+          required
+          name="password"
+          type="password"
+          onChange={handleChange}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderWidth: 2, // borde más grueso
+                borderColor: "#D9C696", // opcional: tu color
+              },
+              "&:hover fieldset": {
+                borderWidth: 2,
+              },
+              "&.Mui-focused fieldset": {
+                borderWidth: 2,
+              },
+            },
+          }}
+        />
 
-        <div className="flex flex-col gap-2">
-          <label className="text-white font-medium">Usuario</label>
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            className="border border-white bg-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-            required
+        <Box display={"flex"} flexDirection={"column"} gap={2}>
+          <Typography color="gray">
+            Don't have an account? Sign up{" "}
+            <Link
+              to="/register"
+              style={{ color: "#D9C696" }}
+              className="hover:underline"
+            >
+              here
+            </Link>
+          </Typography>
+          <Button
+            variant="contained"
+            sx={{ backgroundColor: "#D9C696" }}
+            onClick={handleSubmit}
+          >
+            Log In
+          </Button>
+
+          <GoogleLogin
+            locale="en"
+            onSuccess={handleSuccess}
+            onError={handleError}
+            text="signin_with"
           />
-        </div>
+        </Box>
+      </FormControl>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-white font-medium">Contraseña</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            className="border border-white bg-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="bg-orange-500 text-white font-semibold px-6 py-2 rounded hover:bg-orange-600 transition"
-        >
-          Iniciar Sesión
-        </button>
-
-        <GoogleLogin onSuccess={handleSuccess} onError={handleError} />
-
-        <p className="text-white text-center">
-          ¿No tienes cuenta?{" "}
-          <Link to="/register" className="text-pink-400 hover:underline">
-            Regístrate
-          </Link>
-        </p>
-      </form>
       <Backdrop open={loading}>
         <CircularProgress />
       </Backdrop>

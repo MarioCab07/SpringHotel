@@ -1,50 +1,61 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+
 import {
   GetUserDetails,
   getUserBookings,
   getRoomById,
   getAllServicesTypes,
   getRoomServicesByBookingId,
-} from '../service/api.services';
+  createRoomService,
+  updateRoomService,
+} from "../service/api.services";
+
+import UserMenu from "../components/UserMenu";
+import { toast } from "react-toastify";
+
+// ------------------- HELPERS -------------------
+const formatDateShort = (dateStr) => {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
 
 const UserService = () => {
-const { id } = useParams();
+  const { id } = useParams();
   const bookingId = Number(id);
   const navigate = useNavigate();
   const location = useLocation();
   const incoming = location.state;
+
   const [booking, setBooking] = useState(null);
   const [room, setRoom] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
   const [bookedServices, setBookedServices] = useState([]);
   const [selected, setSelected] = useState(incoming?.selectedServices || []);
-  const [specialRequest, setSpecialRequest] = useState(incoming?.specialRequest || '');
+  const [specialRequest, setSpecialRequest] = useState(
+    incoming?.specialRequest || ""
+  );
   const [loading, setLoading] = useState(true);
-  const formatState = state => state.charAt(0).toUpperCase() + state.slice(1).toLowerCase();
 
-  const imagesUrl = {
-  Suite:
-    "https://www.acevivillarroelbarcelona.com/img/jpg/habitaciones/Hab-Deluxe-01.jpg",
-  "Double Room":
-    "https://cdn.traveltripper.io/site-assets/512_863_12597/media/2018-02-22-041437/large_DDBDB.jpg",
-  "Single Room":
-    "https://hotelvilnia.lt/wp-content/uploads/2018/06/DSC07003-HDR-Edit-Edit-1.jpg",
-};
-
-useEffect(() => {
-    async function fetchData() {
+  // ------------------- LOAD DATA -------------------
+  useEffect(() => {
+    async function loadData() {
       setLoading(true);
       try {
         const userRes = await GetUserDetails();
         const userId = userRes.data.data.userId;
 
         const ubRes = await getUserBookings(userId);
-        const found = ubRes.data.data.find(b => b.id === bookingId);
-        if (!found) return;
-        setBooking(found);
+        const foundBooking = ubRes.data.data.find((b) => b.id === bookingId);
 
-        const rRes = await getRoomById(found.roomId);
+        if (!foundBooking) return;
+
+        setBooking(foundBooking);
+
+        const rRes = await getRoomById(foundBooking.roomId);
         setRoom(rRes.data.data);
 
         const typesRes = await getAllServicesTypes();
@@ -54,128 +65,318 @@ useEffect(() => {
         try {
           const srvRes = await getRoomServicesByBookingId(bookingId);
           srvData = srvRes.data.data;
-        } catch (e) {
-          if (e.status !== 404) throw e;
-        }
+        } catch (_) {}
+
         setBookedServices(srvData);
-      } catch (err) {
-        console.error(err);
       } finally {
         setLoading(false);
       }
     }
-    fetchData();
+    loadData();
   }, [bookingId]);
 
+  // ---------------- DEFAULT SELECTED -------------------
   useEffect(() => {
-  if (!incoming) {
-    const activeServices = bookedServices.filter(s => s.roomServiceStatus === 'PENDING' || s.roomServiceStatus === 'ACTIVE');
-    const ids = activeServices.flatMap(s => s.serviceTypeIds || []);
-    setSelected(ids);
-    setSpecialRequest(activeServices[0]?.roomServiceDescription || '');
-  }
-}, [bookedServices, incoming]);
+    if (!incoming) {
+      const pendingOrActive = bookedServices.filter(
+        (s) =>
+          s.roomServiceStatus === "PENDING" ||
+          s.roomServiceStatus === "ACTIVE" ||
+          s.roomServiceStatus === "IN_PROGRESS"
+      );
 
-  const toggleService = typeId => {
-    setSelected(prev =>
-      prev.includes(typeId)
-        ? prev.filter(x => x !== typeId)
-        : [...prev, typeId]
+      const ids = pendingOrActive.flatMap((s) => s.serviceTypeIds || []);
+      setSelected(ids);
+
+      setSpecialRequest(pendingOrActive[0]?.roomServiceDescription || "");
+    }
+  }, [bookedServices, incoming]);
+
+  // ---------------- CONDITIONS -------------------
+  const alreadySavedIds = bookedServices.flatMap((s) => s.serviceTypeIds || []);
+  const isPastOrInactive =
+    booking?.status !== "ACTIVE" ||
+    new Date(booking?.checkOut) < new Date();
+
+  const activeService = bookedServices.find(
+    (s) =>
+      s.roomServiceStatus === "PENDING" ||
+      s.roomServiceStatus === "ACTIVE" ||
+      s.roomServiceStatus === "IN_PROGRESS"
+  );
+
+  const canModifyOrCancel = !!activeService;
+
+  const getShift = () => {
+  const hour = new Date().getHours();
+  return hour >= 6 && hour < 18 ? "MORNING" : "EVENING";
+};
+
+
+  // ---------------- TOGGLE SERVICE -------------------
+  const toggleService = (id) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
-  const handleProceedToTicket = () => {
-    if (!booking || booking.status !== 'ACTIVE' || new Date(booking.checkOut) < new Date()) {
-      alert('No se puede solicitar servicios para una reserva pasada o inactiva.');
-      return;
+  // ---------------- ACTIONS -------------------
+  const handleModifyService = async () => {
+    if (!activeService) return;
+
+    try {
+      await updateRoomService(activeService.roomServiceId, {
+        roomServiceStatus: activeService.roomServiceStatus,
+        serviceTypeIds: selected,
+        roomServiceDescription: specialRequest,
+      });
+
+      const srvRes = await getRoomServicesByBookingId(bookingId);
+      setBookedServices(srvRes.data.data);
+
+      toast.success("Service modified successfully.");
+    } catch (err) {
+      toast.error("Error modifying the service.");
     }
-    navigate(`/invoice/${bookingId}`, {
-      state: { selectedServices: selected, specialRequest }
-    });
   };
 
+  const handleCancelService = async () => {
+    if (!activeService) return;
 
-  if (loading) return <div className="text-center py-20 text-lg">Cargando...</div>;
-  if (!booking || !room) return <div className="text-center py-20 text-lg">Reserva no encontrada</div>;
+    if (!window.confirm("Are you sure you want to cancel this service?")) return;
 
-  const isPastOrInactive = booking.status !== 'ACTIVE' || new Date(booking.checkOut) < new Date();
-  const hasActiveService = bookedServices.some(s => s.roomServiceStatus === 'PENDING' || s.roomServiceStatus === 'ACTIVE');
-  const imageUrl = imagesUrl[room.roomType.name] || room.imageUrl || '';
+    try {
+      await updateRoomService(activeService.roomServiceId, {
+        roomServiceStatus: "CANCELED",
+        serviceTypeIds: activeService.serviceTypeIds,
+      });
 
+      const srvRes = await getRoomServicesByBookingId(bookingId);
+      setBookedServices(srvRes.data.data);
+
+      toast.success("Service canceled.");
+    } catch (err) {
+      toast.error("Error canceling the service");
+    }
+  };
+
+  const handleSaveServices = async () => {
+  try {
+
+    // Si hay un servicio activo → modificarlo
+    if (activeService) {
+      await updateRoomService(activeService.roomServiceId, {
+        roomServiceStatus: activeService.roomServiceStatus,
+        serviceTypeIds: selected,
+        roomServiceDescription: specialRequest,
+        shift: getShift(),
+      });
+    } 
+    // Si NO hay servicio → crear uno nuevo
+    else {
+      await createRoomService({
+        bookingId,
+        serviceTypeIds: selected,
+        roomServiceStatus: "PENDING",
+        roomServiceDescription: specialRequest,
+        requestedAt: new Date().toISOString(),
+        shift: getShift(),
+      });
+    }
+
+    toast.success("¡Servicios guardados correctamente!");
+
+    setTimeout(() => {
+      navigate("/rooms");
+    }, 1200);
+
+  } catch (err) {
+    console.log(err);
+    toast.error("Error guardando los servicios.");
+  }
+};
+
+  // ---------------- LOADING / MISSING -------------------
+  if (loading)
     return (
-    <>
-      <div className="min-h-screen bg-[#D6ECF7] flex items-center justify-center p-6">
-        <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl">
-          {/* Header */}
-          <div className="relative bg-gray-100 rounded-t-2xl p-5">
-            <button
-              onClick={() => navigate("/my-bookings")}
-              className="absolute left-5 top-1/2 transform -translate-y-1/2 text-3xl hover:text-gray-600 transition-colors"
-            >
-              ←
-            </button>
-            <h1 className="text-2xl font-semibold text-center">
-              Room {room.roomNumber}
-            </h1>
-          </div>
+      <div className="min-h-screen flex justify-center items-center text-xl">
+        Cargando...
+      </div>
+    );
 
-          {/* Main content */}
-          <div className="flex flex-col md:flex-row p-8 gap-8">
-            <div className="md:w-1/2 space-y-3 text-lg">
-              <img src={imageUrl} alt="Room" className="w-full h-56 object-cover rounded-lg" />
-              <p><span className="font-semibold">State:</span> {formatState(booking.status)}</p>
-              <p><span className="font-semibold">Room type:</span> {room.roomType.name}</p>
-              <p><span className="font-semibold">Check-out:</span> {booking.checkOut}</p>
-              <p><span className="font-semibold">Last cleaned:</span> {room.lastCleanedAt || 'N/A'}</p>
-            </div>
+  if (!room || !booking)
+    return (
+      <div className="min-h-screen flex justify-center items-center text-xl">
+        No se encontró la reserva
+      </div>
+    );
 
-            <div className="md:w-1/2 bg-[#F6F6F6] p-6 rounded-lg">
-              <h2 className="text-xl font-semibold mb-4">Supplies</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {availableServices.map(s => (
-                  <label key={s.id} className="flex items-center space-x-2 cursor-pointer text-base">
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(s.id)}
-                      onChange={() => toggleService(s.id)}
-                      disabled={isPastOrInactive}
-                      className="form-checkbox h-5 w-5 text-pink-400 disabled:opacity-50"
-                    />
-                    <span className={isPastOrInactive ? 'text-gray-400' : ''}>{s.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
+  // ---------------- ROOM IMAGE LOGIC -------------------
+  const nights = Math.max(
+    1,
+    Math.ceil(
+      (new Date(booking.checkOut) - new Date(booking.checkIn)) /
+        (1000 * 60 * 60 * 24)
+    )
+  );
 
-          <div className="px-8 py-4">
-            <label htmlFor="specialRequest" className="block text-lg font-medium mb-2">Special Request</label>
-            <input
-              id="specialRequest"
-              type="text"
-              value={specialRequest}
-              onChange={e => setSpecialRequest(e.target.value)}
-              placeholder="Write your request..."
-              disabled={isPastOrInactive}
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 disabled:opacity-50"
+  const imagesUrl = {
+    Suite:
+      "https://www.acevivillarroelbarcelona.com/img/jpg/habitaciones/Hab-Deluxe-01.jpg",
+    "Double Room":
+      "https://cdn.traveltripper.io/site-assets/512_863_12597/media/2018-02-22-041437/large_DDBDB.jpg",
+    "Single Room":
+      "https://hotelvilnia.lt/wp-content/uploads/2018/06/DSC07003-HDR-Edit-Edit-1.jpg",
+  };
+
+  const imageUrl =
+    imagesUrl[room.roomType?.name] ||
+    room.roomType?.photoUrl ||
+    room.photoUrl ||
+    room.image ||
+    "https://via.placeholder.com/600x350?text=Room";
+
+  // ---------------- UI -------------------
+  return (
+    <div className="bg-white flex flex-col min-h-screen">
+      {/* HEADER */}
+      <header className="py-3">
+        <UserMenu />
+      </header>
+
+      <main className="flex justify-center mt-10 mb-16">
+        <div className="max-w-6xl w-full flex justify-between gap-16">
+          {/* ---------------- ROOM CARD ---------------- */}
+          <div className="flex-1 bg-white rounded-2xl shadow-md p-5">
+            <img
+              src={imageUrl}
+              alt="Room"
+              className="rounded-xl w-full h-64 object-cover mb-4"
             />
+
+            <h2 className="text-2xl font-semibold">{room.roomType.name}</h2>
+            <p className="text-gray-600">
+              Room Number: <strong>{room.roomNumber}</strong>
+            </p>
+
+            <p className="mt-2 text-gray-700">{room.roomType.description}</p>
+
+            <ul className="mt-4 text-gray-700 space-y-1">
+              <li>
+                <strong>{nights}</strong> night(s):{" "}
+                {formatDateShort(booking.checkIn)} →{" "}
+                {formatDateShort(booking.checkOut)}
+              </li>
+              <li>
+                Location: <strong>Lumé Hotel & Suites</strong>
+              </li>
+            </ul>
+
+            <div className="mt-4">
+              <p className="font-semibold text-gray-900 text-lg">
+                ${room.roomType.price} / night
+              </p>
+              <p className="text-gray-800">
+                <strong>${room.roomType.price * nights}</strong> Total
+              </p>
+            </div>
           </div>
 
-          <div className="px-8 pb-6 flex justify-end">
-            <button
-              onClick={handleProceedToTicket}
-              disabled={isPastOrInactive || hasActiveService}
-              className={`bg-pink-400 hover:bg-pink-500 text-white font-medium py-3 px-10 rounded-full transition text-lg ${
-                isPastOrInactive || hasActiveService ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-            >
-              {hasActiveService ? 'Service in Progress' : 'View Ticket'}
-            </button>
+          {/* ---------------- SERVICES CARD ---------------- */}
+          <div className="bg-white rounded-2xl shadow-md p-6 w-96">
+            <h2 className="text-xl font-semibold mb-6">Room Services</h2>
+
+            <div className="space-y-4">
+              {availableServices.map((service) => {
+                const isSaved = alreadySavedIds.includes(service.id);
+
+                return (
+                  <label
+                    key={service.id}
+                    className="flex justify-between items-center border p-3 rounded-lg cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selected.includes(service.id)}
+                        onChange={() => toggleService(service.id)}
+                        disabled={isPastOrInactive}
+                        className="w-4 h-4 accent-[#d4bf92]"
+                      />
+
+                      <span
+                        className={
+                          isSaved || isPastOrInactive
+                            ? "text-gray-400"
+                            : "text-gray-800"
+                        }
+                      >
+                        {service.name}
+                      </span>
+                    </div>
+
+                    <span className="font-medium text-gray-700">
+                      ${service.price}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+
+            {/* SPECIAL REQUEST */}
+            <div className="mt-6">
+              <label className="font-medium text-gray-700">Special Request</label>
+              <textarea
+                value={specialRequest}
+                onChange={(e) => setSpecialRequest(e.target.value)}
+                disabled={isPastOrInactive}
+                placeholder="Write your request..."
+                className="w-full mt-2 p-3 border rounded-lg focus:ring-2 focus:ring-[#d4bf92] outline-none disabled:bg-gray-100"
+              />
+            </div>
+
+            {/* BUTTONS */}
+            <div className="flex justify-end gap-3 mt-6">
+              {canModifyOrCancel && (
+                <>
+                  <button
+                    onClick={handleModifyService}
+                    className="w-full bg-[#e8dcbc] hover:bg-[#dfd0a8] text-[#403a2c] font-semibold py-3 px-8 rounded-full shadow-sm transition-all"
+                  >
+                    Modify Service
+                  </button>
+
+                  <button
+                    onClick={handleCancelService}
+                    className="w-full bg-[#e9b1ad] hover:bg-[#dea5a0] text-[#2b2b2b] font-semibold py-3 px-8 rounded-full shadow-sm transition-all"
+                  >
+                    Cancel Service
+                  </button>
+                </>
+              )}
+
+              {!canModifyOrCancel && (
+                <button
+                  onClick={handleSaveServices}
+                  className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] font-medium px-6 py-2 rounded-lg shadow-md transition"
+                >
+                  Save Services
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </>
-  )
-}
+      </main>
+
+      {/* RETURN BUTTON */}
+      <button
+        onClick={() => navigate("/my-bookings")}
+        className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] font-medium px-8 py-3 rounded-full shadow-md transition mx-auto mb-6"
+      >
+        Return
+      </button>
+    </div>
+  );
+};
 
 export default UserService;

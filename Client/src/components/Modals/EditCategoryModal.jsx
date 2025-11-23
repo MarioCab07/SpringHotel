@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { FaChevronLeft } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 const EditCategoryModal = ({
   isOpen,
@@ -35,11 +36,11 @@ const EditCategoryModal = ({
 
   const handleDelete = () => {
   if (productCount > 0) {
-    toast.warning("No se puede borrar categoría con productos dentro");
+    toast.warning("Cannot delete category with products inside");
     return;
   }
 
-  if (window.confirm("¿Estás seguro que deseas eliminar esta categoría?")) {
+  if (window.confirm("Are you sure you want to delete this category?")) {
     onDelete(category.id);
   }
 };
@@ -49,14 +50,14 @@ const EditCategoryModal = ({
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       <div className="relative ml-auto w-1/2 h-full bg-white shadow-xl flex flex-col">
-        <header className="bg-[#172A45] text-white p-4 flex items-center justify-between">
-          <button onClick={onClose} className="p-2">
-            <FaChevronLeft size={18} />
+        <header className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded transition">
+            <FaChevronLeft size={18} className="text-gray-700" />
           </button>
-          <h2 className="font-serif text-lg">Edit Category</h2>
+          <h2 className="font-serif text-lg text-gray-900">Edit Category</h2>
           <button
             onClick={handleUpdate}
-            className="px-4 py-1 bg-[#f2789f] hover:bg-[#e76b91] rounded text-sm"
+            className="px-5 py-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 ease-in-out"
           >
             Save
           </button>
@@ -64,19 +65,19 @@ const EditCategoryModal = ({
 
         <div className="p-6 space-y-6 flex-1 overflow-y-auto">
           <div>
-            <label className="block text-sm font-medium">Category name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Category Name</label>
             <input
               name="categoryName"
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
-              placeholder="Ej. Kitchen, Maintenance..."
-              className="w-full rounded-xl bg-gray-200 p-3 text-sm placeholder-gray-500 focus:outline-none"
+              placeholder="Ej. Cocina, Mantenimiento..."
+              className="w-full rounded-xl bg-gray-100 border border-gray-300 p-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D9C696] focus:border-[#D9C696] transition"
             />
           </div>
 
-          <div className="text-sm text-gray-600">
-            Esta categoría contiene <strong>{productCount}</strong>{" "}
-            {productCount === 1 ? "producto" : "productos"}.
+          <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200">
+            This category contains <strong className="text-gray-900">{productCount}</strong>{" "}
+            {productCount === 1 ? "product" : "products"}.
           </div>
         </div>
 
@@ -103,8 +104,8 @@ const EditCategoryModal = ({
             />
           </svg>
           {productCount > 0
-            ? "No se puede eliminar categoria con productos"
-            : "Eliminar categoría"}
+            ? "Cannot delete category with products"
+            : "Delete Category"}
         </button>
       </div>
     </div>,

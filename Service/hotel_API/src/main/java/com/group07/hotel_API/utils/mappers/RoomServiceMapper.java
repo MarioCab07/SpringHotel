@@ -8,6 +8,7 @@ import com.group07.hotel_API.entities.RoomService;
 import com.group07.hotel_API.entities.RoomServiceType;
 import com.group07.hotel_API.exception.room_service.InvalidRoomServiceRequestException;
 import com.group07.hotel_API.utils.enums.ServiceStatus;
+import com.group07.hotel_API.utils.enums.ShiftStatus;
 
 import java.util.List;
 import java.util.Set;
@@ -21,6 +22,7 @@ public class RoomServiceMapper {
                 .status(ServiceStatus.fromString(request.getRoomServiceStatus().toUpperCase())
                         .orElseThrow(() -> new InvalidRoomServiceRequestException(request.getRoomServiceStatus())))
                 .requestedAt(request.getRequestedAt())
+                .shift(ShiftStatus.valueOf(request.getShift().toUpperCase()))
                 .build();
     }
 
@@ -33,6 +35,7 @@ public class RoomServiceMapper {
                 .roomServiceDescription(roomService.getDescription())
                 .roomServiceStatus(roomService.getStatus())
                 .requestedAt(roomService.getRequestedAt())
+                .shift(roomService.getShift().name())
                 .build();
     }
 

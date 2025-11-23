@@ -1,177 +1,255 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import MUIDataTable from "mui-datatables";
+import UserMenu from "../components/UserMenu";
+import SearchSortBar from "../components/SearchSortBar";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
 import {
   getAllBookings,
   getRoomById,
-  updateBooking,
-  deleteBooking
+  GetUser,
 } from "../service/api.services";
-import { toast } from "react-toastify";
-import logo from "../assets/Logo.png";
 
 const ReservationsPage = () => {
-  const [bookings, setBookings] = useState([]);
-  const [searchId, setSearchId] = useState("");
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
+  const [sortOption, setSortOption] = useState("Sort By");
 
-  const fetchBookings = async () => {
+  const navigate = useNavigate();
+
+  const loadData = async () => {
     try {
       const res = await getAllBookings();
-      const rawBookings = res.data.data;
+      const all = res.data.data;
+
+      const active = all.filter((b) => b.status === "ACTIVE");
 
       const enriched = await Promise.all(
-        rawBookings.map(async (b) => {
-          let roomType = "N/A";
-          let roomNumber = "N/A";
+        active.map(async (b) => {
+          let room, user;
 
           try {
-            const roomRes = await getRoomById(b.roomId);
-            roomType = roomRes.data.data.roomType?.name || "Sin tipo";
-            roomNumber = roomRes.data.data.roomNumber || "N/A";
-          } catch (error) {
-            console.error(`Error cargando habitación ${b.roomId}:`, error);
-          }
+            room = (await getRoomById(b.roomId)).data.data;
+          } catch {}
+
+          try {
+            user = (await GetUser(b.userId)).data.data;
+          } catch {}
 
           return {
-            ...b,
-            roomType,
-            roomNumber,
-            checkIn: b.startDate || b.checkIn,
-            checkOut: b.endDate || b.checkOut,
+            id: b.id,
+            userId: b.userId,
+            client: user?.fullName || "N/A",
+            roomNumber: room?.roomNumber || "N/A",
+            roomType: room?.roomType?.name || "N/A",
+            checkIn: b.checkIn,
+            checkOut: b.checkOut,
+            status: "ACTIVE",
           };
         })
       );
 
-      setBookings(enriched);
-    } catch (err) {
-      toast.error("Error al cargar reservaciones");
-      console.error("Error cargando reservaciones:", err);
-    }
-  };
-
-  const handleStatusChange = async (bookingId, newStatus) => {
-    try {
-      await updateBooking(bookingId, {
-        bookingId: bookingId,
-        status: newStatus,
-      });
-      toast.success("Estado actualizado correctamente");
-
-      setBookings((prev) =>
-        prev.map((b) =>
-          b.id === bookingId ? { ...b, status: newStatus } : b
-        )
-      );
-    } catch (err) {
-      toast.error("Error actualizando estado");
-      console.error("Error actualizando estado:", err);
-    }
-  };
-
-  const handleDelete = async (bookingId) => {
-    if (!window.confirm("¿Seguro que deseas borrar esta reserva?")) return;
-    try {
-      await deleteBooking(bookingId);
-      toast.success("Reserva eliminada correctamente");
-      setBookings(prev => prev.filter(b => b.id !== bookingId));
-    } catch (err) {
-      toast.error("Error al borrar reserva");
-      console.error("Error al borrar reserva:", err);
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "No definida";
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
+      setRows(enriched);
     } catch {
-      return dateString;
+      toast.error("Error loading reservations.");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBookings();
+    loadData();
   }, []);
 
-  const filteredBookings = bookings.filter((booking) =>
-    searchId === "" ? true : booking.id.toString() === searchId
-  );
+  const formatDate = (date) => {
+    if (!date) return "N/A";
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
+  // Filtrar y ordenar datos
+  const filteredAndSortedRows = useMemo(() => {
+    let filtered = rows;
+
+    // Aplicar búsqueda
+    if (query.trim()) {
+      const searchLower = query.toLowerCase();
+      filtered = filtered.filter((row) =>
+        row.client?.toLowerCase().includes(searchLower) ||
+        row.roomNumber?.toString().toLowerCase().includes(searchLower) ||
+        row.roomType?.toLowerCase().includes(searchLower) ||
+        row.id?.toString().includes(searchLower)
+      );
+    }
+
+    // Aplicar ordenamiento
+    if (sortOption === "Nombre A-Z") {
+      filtered = [...filtered].sort((a, b) =>
+        (a.client || "").localeCompare(b.client || "")
+      );
+    } else if (sortOption === "Nombre Z-A") {
+      filtered = [...filtered].sort((a, b) =>
+        (b.client || "").localeCompare(a.client || "")
+      );
+    } else if (sortOption === "Room # A-Z") {
+      filtered = [...filtered].sort((a, b) =>
+        (a.roomNumber || "").toString().localeCompare((b.roomNumber || "").toString())
+      );
+    } else if (sortOption === "Room # Z-A") {
+      filtered = [...filtered].sort((a, b) =>
+        (b.roomNumber || "").toString().localeCompare((a.roomNumber || "").toString())
+      );
+    }
+
+    return filtered;
+  }, [rows, query, sortOption]);
+
+  const handleSearch = (term) => {
+    setQuery(term);
+  };
+
+  const handleSortChange = (option) => {
+    setSortOption(option);
+  };
+
+  const columns = [
+    { name: "id", label: "Reservation ID" },
+    { name: "roomNumber", label: "Room #" },
+    { name: "roomType", label: "Room Type" },
+    {
+      name: "checkIn",
+      label: "Check-In",
+      options: { customBodyRender: (value) => formatDate(value) },
+    },
+    {
+      name: "checkOut",
+      label: "Check-Out",
+      options: { customBodyRender: (value) => formatDate(value) },
+    },
+    {
+      name: "status",
+      label: "Status",
+      options: {
+        customBodyRender: () => (
+          <span className="font-semibold text-green-600">ACTIVE</span>
+        ),
+      },
+    },
+  ];
+
+  const options = {
+    selectableRows: "none",
+    elevation: 0,
+    rowsPerPage: 5,
+    rowsPerPageOptions: [5, 10, 20],
+    search: true,
+    filter: true,
+    print: false,
+    download: true,
+    viewColumns: true,
+  };
+
+  // Detectar si estamos en el contexto de EmployeePage
+  const isEmployeeContext = window.location.pathname.includes('/employee') || 
+                            sessionStorage.getItem('role') === 'EMPLOYEE';
+
+  if (isEmployeeContext) {
+    return (
+      <div className="w-full">
+        {/* Header con texto descriptivo y botones */}
+        <div className="flex flex-wrap items-center justify-between gap-4 w-full mb-6">
+          <p className="text-gray-600 text-sm md:text-base">
+            View all active reservations in real time
+          </p>
+          
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate("/employee/check-in")}
+              className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] px-6 py-2 rounded-full font-medium transition-colors"
+            >
+              Check-In
+            </button>
+            <button
+              onClick={() => navigate("/employee/check-out")}
+              className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] px-6 py-2 rounded-full font-medium transition-colors"
+            >
+              Check-Out
+            </button>
+          </div>
+        </div>
+
+        {/* Tabla de reservas */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Active Reservations</h2>
+          <MUIDataTable
+            data={rows}
+            columns={columns}
+            options={options}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Versión original para otros contextos
   return (
-    <div className="min-h-screen bg-[#D6ECF7] py-12">
-      <header className="flex justify-start items-center px-8 py-4">
-        <img src={logo} alt="Hotel Logo" className="w-40 h-auto" />
-      </header>
+    <div className="min-h-screen bg-[#D6ECF7] py-10">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 w-full mb-6">
+          <h1 className="text-3xl font-bold">Active Reservations</h1>
+          
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate("/employee/check-in")}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-full"
+            >
+              Check-In
+            </button>
+            <button
+              onClick={() => navigate("/employee/check-out")}
+              className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full"
+            >
+              Check-Out
+            </button>
+          </div>
+        </div>
 
-      <main className="max-w-6xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-center mb-4">Todas las Reservas</h1>
+        <div className="flex flex-wrap items-center justify-between gap-4 w-full mb-6">
+          <div className="flex flex-wrap items-center gap-3 flex-1">
+            <SearchSortBar
+              query={query}
+              setQuery={setQuery}
+              onSearch={handleSearch}
+              onSortChange={handleSortChange}
+              initialSort="Sort By"
+              options={["Nombre A-Z", "Nombre Z-A", "Room # A-Z", "Room # Z-A"]}
+            />
+          </div>
+        </div>
 
-        <div className="mb-6 text-center">
-          <input
-            type="text"
-            placeholder="Buscar por ID exacto..."
-            value={searchId}
-            onChange={(e) => setSearchId(e.target.value)}
-            className="px-4 py-2 border rounded shadow-sm w-72"
+        <div className="bg-white p-6 rounded-xl shadow-xl">
+          <MUIDataTable
+            title={"Reservations"}
+            data={filteredAndSortedRows}
+            columns={columns}
+            options={options}
           />
         </div>
 
-        {filteredBookings.length === 0 ? (
-          <p className="text-center text-gray-600">No hay reservas encontradas.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full bg-white rounded-lg shadow-lg">
-              <thead className="bg-[#f2789f] text-white">
-                <tr>
-                  <th className="px-6 py-3 text-left">ID</th>
-                  <th className="px-6 py-3 text-left">Habitación</th>
-                  <th className="px-6 py-3 text-left">Tipo</th>
-                  <th className="px-6 py-3 text-left">Check-In</th>
-                  <th className="px-6 py-3 text-left">Check-Out</th>
-                  <th className="px-6 py-3 text-left">Estado</th>
-                  <th className="px-6 py-3 text-left">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredBookings.map((booking) => (
-                  <tr key={booking.id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-4">{booking.id}</td>
-                    <td className="px-6 py-4">{booking.roomNumber}</td>
-                    <td className="px-6 py-4">{booking.roomType}</td>
-                    <td className="px-6 py-4">{formatDate(booking.checkIn)}</td>
-                    <td className="px-6 py-4">{formatDate(booking.checkOut)}</td>
-                    <td className="px-6 py-4">
-                      <select
-                        value={booking.status}
-                        onChange={(e) =>
-                          handleStatusChange(booking.id, e.target.value)
-                        }
-                        className="border rounded p-1 text-sm"
-                      >
-                        <option value="PENDING">Pendiente</option>
-                        <option value="CONFIRMED">Confirmado</option>
-                        <option value="CANCELLED">Cancelado</option>
-                        <option value="ACTIVE">Activo</option>
-                      </select>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleDelete(booking.id)}
-                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
-                      >
-                        Borrar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </main>
+        <div className="flex justify-center mt-10">
+          <button
+            className="bg-[#d4bf92] hover:bg-[#c6ae7b] text-[#1a1a1a] px-8 py-3 rounded-full"
+            onClick={() => (window.location.href = "/admin")}
+          >
+            Back to Menu
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

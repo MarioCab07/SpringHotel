@@ -18,4 +18,5 @@ public class RoomServiceResponse {
     private String roomServiceDescription;
     private ServiceStatus roomServiceStatus;
     private LocalDateTime requestedAt;
+    private String shift;
 }

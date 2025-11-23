@@ -14,4 +14,6 @@ public interface RoomTypeService {
     RoomTypeResponse save(RoomTypeRequest request);
     RoomTypeResponse update(Integer id, RoomTypeUpdateRequest request);
     void delete(Integer id);
+    List<RoomType> findAllEntities();
+
 }

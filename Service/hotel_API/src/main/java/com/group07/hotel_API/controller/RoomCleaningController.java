@@ -7,6 +7,7 @@ import com.group07.hotel_API.dto.response.room.RoomResponse;
 import com.group07.hotel_API.dto.response.room_cleaning.RoomCleaningResponse;
 import com.group07.hotel_API.exception.room_cleaning.RoomCleaningNotFoundException;
 import com.group07.hotel_API.service.RoomCleaningService;
+import com.group07.hotel_API.utils.enums.ShiftStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class RoomCleaningController {
 
     private final RoomCleaningService roomCleaningService;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF', 'EMPLOYEE')")
     @GetMapping
     public ResponseEntity<GeneralResponse> getAll() {
         List<RoomCleaningResponse> cleanings = roomCleaningService.findAll();
@@ -45,7 +46,7 @@ public class RoomCleaningController {
         return buildResponse("Room cleaning record found.", HttpStatus.OK, cleaning);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','CLEANING_STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN','CLEANING_STAFF', 'EMPLOYEE')")
     @GetMapping("/room/{roomId}")
     public ResponseEntity<GeneralResponse> getByRoomId(@PathVariable Integer roomId) {
         List<RoomCleaningResponse> list = roomCleaningService.findByRoomId(roomId);
@@ -65,14 +66,14 @@ public class RoomCleaningController {
         return buildResponse("Room cleaning summaries found.", HttpStatus.OK, summary);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF', 'EMPLOYEE')")
     @PostMapping
     public ResponseEntity<GeneralResponse> create(@RequestBody RoomCleaningRequest request) {
         RoomCleaningResponse created = roomCleaningService.create(request);
         return buildResponse("Room cleaning record created.", HttpStatus.CREATED, created);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF', 'EMPLOYEE')")
     @PutMapping("/{id}")
     public ResponseEntity<GeneralResponse> update(@PathVariable Integer id, @RequestBody RoomCleaningUpdateRequest request) {
         RoomCleaningResponse updated = roomCleaningService.update(id, request);
@@ -85,6 +86,47 @@ public class RoomCleaningController {
         RoomCleaningResponse cleaning = roomCleaningService.findById(id);
         roomCleaningService.delete(id);
         return buildResponse("Room cleaning record deleted.", HttpStatus.OK, cleaning);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF')")
+    @GetMapping("/turno/primer")
+    public ResponseEntity<GeneralResponse> getRoomsForFirstShift() {
+        List<RoomResponse> rooms = roomCleaningService.getRoomsWithActiveCheckIn();
+        return buildResponse("Rooms with active check-in (first cleaning shift).", HttpStatus.OK, rooms);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF')")
+    @GetMapping("/turno/segundo")
+    public ResponseEntity<GeneralResponse> getRoomsForSecondShift() {
+        List<RoomResponse> rooms = roomCleaningService.getRoomsWithCheckOutDone();
+        return buildResponse("Rooms checked out and ready for cleaning (second shift).", HttpStatus.OK, rooms);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF')")
+    @GetMapping("/turno/notification")
+    public ResponseEntity<GeneralResponse> sendShiftNotification() {
+        String message = roomCleaningService.sendShiftNotification();
+        return buildResponse("Shift notification sent successfully.", HttpStatus.OK, message);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLEANING_STAFF')")
+    @GetMapping("/shift/{shift}")
+    public ResponseEntity<GeneralResponse> getByShift(@PathVariable String shift) {
+
+        ShiftStatus shiftEnum;
+        try {
+            shiftEnum = ShiftStatus.valueOf(shift.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new RuntimeException("Invalid shift value. Use MORNING or EVENING.");
+        }
+
+        var list = roomCleaningService.findByShift(shiftEnum);
+
+        if (list.isEmpty()) {
+            throw new RoomCleaningNotFoundException("No cleaning records found for shift " + shiftEnum.name());
+        }
+
+        return buildResponse("Room cleaning records found for shift " + shiftEnum.name() + ".", HttpStatus.OK, list);
     }
 
     private ResponseEntity<GeneralResponse> buildResponse(String message, HttpStatus status, Object data) {

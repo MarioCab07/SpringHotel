@@ -1,12 +1,16 @@
 package com.group07.hotel_API.controller;
 
 
+import com.group07.hotel_API.dto.request.Booking.BookingModifyRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingRequest;
 import com.group07.hotel_API.dto.request.Booking.BookingUpdateRequest;
 import com.group07.hotel_API.dto.response.Booking.BookingResponse;
+import com.group07.hotel_API.dto.response.Booking.BookingServiceItemResponse;
 import com.group07.hotel_API.dto.response.GeneralResponse;
 import com.group07.hotel_API.entities.UserClient;
+import com.group07.hotel_API.service.AuthService;
 import com.group07.hotel_API.service.BookingService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +22,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -26,9 +31,20 @@ public class BookingController {
 
 
         private final BookingService bookingService;
+        private final AuthService authService;
 
         @Autowired
-        public BookingController(BookingService bookingService) { this.bookingService = bookingService;
+        public BookingController(BookingService bookingService, AuthService authService) {
+            this.bookingService = bookingService;
+            this.authService = authService;
+        }
+
+        private String getTokenFromRequest(HttpServletRequest request) {
+            String bearerToken = request.getHeader("Authorization");
+            if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+                return bearerToken.substring(7);
+            }
+            return null;
         }
 
 
@@ -47,7 +63,7 @@ public class BookingController {
         }
 
         @DeleteMapping("/{id}")
-        @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE','CLEANING_STAFF')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
         public ResponseEntity<GeneralResponse> deleteBooking(@PathVariable int id) {
             BookingResponse booking = bookingService.findById(id);
             bookingService.delete(id);
@@ -59,6 +75,35 @@ public class BookingController {
         var bookings = bookingService.getUserBookings(id);
         return buildResponse("Bookings loaded successfully", HttpStatus.OK, bookings);
     }
+
+        @GetMapping("/history/{userId}")
+        @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'EMPLOYEE')")
+        public ResponseEntity<GeneralResponse> getBookingHistory(
+                @PathVariable int userId,
+                HttpServletRequest request) {
+            // Validar que usuarios solo puedan ver su propio historial
+            if (request != null) {
+                String token = getTokenFromRequest(request);
+                if (token != null) {
+                    try {
+                        var authenticatedUser = authService.getUserDetails(token);
+                        // Si es USER, solo puede ver su propio historial
+                        if (authenticatedUser.getRole().equals("USER") && !authenticatedUser.getUserId().equals(userId)) {
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                    .body(GeneralResponse.builder()
+                                            .message("Access denied. You can only view your own booking history.")
+                                            .status(HttpStatus.FORBIDDEN.value())
+                                            .data(null)
+                                            .build());
+                        }
+                    } catch (Exception e) {
+                        // Si hay error obteniendo el usuario, continuar (puede ser ADMIN/EMPLOYEE)
+                    }
+                }
+            }
+            var history = bookingService.getBookingHistory(userId);
+            return buildResponse("Booking history retrieved successfully", HttpStatus.OK, history);
+        }
         @GetMapping("/active")
         @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE','CLEANING_STAFF', 'USER')")
         public ResponseEntity<GeneralResponse> getActiveBookings() {
@@ -88,14 +133,78 @@ public class BookingController {
     }
 
     @GetMapping()
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE','CLEANING_STAFF')")
-    public ResponseEntity<GeneralResponse> getAllBookings(){
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE', 'CLEANING_STAFF')")
+    public ResponseEntity<GeneralResponse> getAllBookings() {
+
         List<BookingResponse> bookings = bookingService.findAll();
         if (bookings.isEmpty()) {
             return buildResponse("No bookings found", HttpStatus.NOT_FOUND, null);
         }
         return buildResponse("Bookings found successfully", HttpStatus.OK, bookings);
     }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','USER', 'CLEANING_STAFF')")
+    public ResponseEntity<GeneralResponse> getBookingById(@PathVariable int id) {
+        BookingResponse booking = bookingService.findById(id);
+        return buildResponse("Booking found successfully", HttpStatus.OK, booking);
+    }
+
+    @PutMapping("/{id}/cancel")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<GeneralResponse> cancelBooking(@PathVariable int id) {
+        BookingResponse response = bookingService.cancel(id);
+        return buildResponse("Booking cancelled successfully", HttpStatus.OK, response);
+    }
+
+    @PutMapping("/{id}/modify")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<GeneralResponse> modifyBooking(
+            @PathVariable int id,
+            @RequestBody BookingModifyRequest request
+    ) {
+        BookingResponse response = bookingService.modify(id, request);
+        return buildResponse("Booking modified successfully", HttpStatus.OK, response);
+    }
+    @GetMapping("/booking/{id}/services")
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','USER','CLEANING_STAFF')")
+    public ResponseEntity<?> getServices(@PathVariable Integer id) {
+        List<BookingServiceItemResponse> list = bookingService.getServicesForBooking(id);
+        return ResponseEntity.ok(list);  // Devuelve [] si no hay servicios
+    }
+
+    // ADMIN ENDPOINTS FOR BOOKING HISTORY MANAGEMENT
+    @GetMapping("/admin/history")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse> getAllBookingHistory() {
+        var history = bookingService.getAllBookingHistory();
+        return buildResponse("All booking history retrieved successfully", HttpStatus.OK, history);
+    }
+
+    @PutMapping("/admin/history/{bookingId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse> updateBookingHistory(
+            @PathVariable Integer bookingId,
+            @Valid @RequestBody com.group07.hotel_API.dto.request.Booking.BookingHistoryUpdateRequest request) {
+        var updated = bookingService.updateBookingHistory(bookingId, request);
+        return buildResponse("Booking history updated successfully", HttpStatus.OK, updated);
+    }
+
+    @DeleteMapping("/admin/history/{bookingId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse> deleteBookingHistoryRecord(@PathVariable Integer bookingId) {
+        bookingService.deleteBookingHistoryRecord(bookingId);
+        return buildResponse("Booking history record deleted successfully", HttpStatus.OK, null);
+    }
+
+    @PostMapping("/admin/history/{bookingId}/recalculate-invoice")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse> recalculateInvoice(@PathVariable Integer bookingId) {
+        var ticket = bookingService.recalculateInvoice(bookingId);
+        return buildResponse("Invoice recalculated successfully", HttpStatus.OK, ticket);
+    }
+
+
 
     private ResponseEntity<GeneralResponse> buildResponse(String message, HttpStatus status, Object data) {
             String uri = ServletUriComponentsBuilder.fromCurrentRequestUri().build().getPath();

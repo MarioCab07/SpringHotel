@@ -1,145 +1,272 @@
 import React, { useEffect, useState } from "react";
-import { GetUserDetails, getUserBookings, getRoomById } from "../service/api.services";
-import logo from "../assets/Logo.png";
+import {
+  GetUserDetails,
+  getUserBookings,
+  getRoomById,
+  cancelBooking,
+  modifyBooking,
+} from "../service/api.services";
+
 import UserMenu from "../components/UserMenu";
+import ChangeDatesModal from "../components/Booking/ChangeDatesModal";
+import ConfirmCancelModal from "../components/Booking/ConfirmCancelModal";
+import StatusFilter from "../components/Booking/StatusFilter";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const MyBookingsPage = () => {
   const [user, setUser] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [rooms, setRooms] = useState({});
   const [loading, setLoading] = useState(true);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("ALL");
+
   const navigate = useNavigate();
 
+  const formatDate = (date) => {
+    if (!date) return "N/A";
+    const [year, month, day] = date.split("T")[0].split("-");
+    return new Date(`${month}/${day}/${year}`).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const loadBookings = async () => {
+    const userRes = await GetUserDetails();
+    const userId = userRes.data.data.userId;
+    setUser(userRes.data.data);
+
+    const bookingRes = await getUserBookings(userId);
+    const fetched = bookingRes.data.data;
+
+    // Ordenar: primero ACTIVE, luego PENDING, luego CANCELLED, luego otros
+    const statusOrder = { ACTIVE: 1, PENDING: 2, CANCELLED: 3, COMPLETED: 4, CONFIRMED: 5 };
+    const sorted = fetched.sort((a, b) => {
+      const orderA = statusOrder[a.status] || 99;
+      const orderB = statusOrder[b.status] || 99;
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      // Si tienen el mismo estado, ordenar por fecha de check-in descendente
+      const dateA = new Date(b.checkIn);
+      const dateB = new Date(a.checkIn);
+      return dateA - dateB;
+    });
+
+    const roomMap = {};
+    for (const b of sorted) {
+      if (!roomMap[b.roomId]) {
+        const r = await getRoomById(b.roomId);
+        roomMap[b.roomId] = r.data.data;
+      }
+    }
+
+    setRooms(roomMap);
+    setBookings(sorted);
+  };
+
   useEffect(() => {
-    const fetchBookings = async () => {
+    const load = async () => {
       try {
-        const userRes = await GetUserDetails();
-        const userId = userRes.data.data.userId;
-        setUser(userRes.data.data);
-
-        const bookingRes = await getUserBookings(userId);
-        const fetchedBookings = bookingRes.data.data;
-
-        const roomMap = {};
-        for (const booking of fetchedBookings) {
-          if (!roomMap[booking.roomId]) {
-            const roomRes = await getRoomById(booking.roomId);
-            roomMap[booking.roomId] = roomRes.data.data;
-          }
-        }
-
-        setRooms(roomMap);
-        setBookings(fetchedBookings);
-      } catch (err) {
-        console.error("Error cargando reservas:", err);
+        await loadBookings();
+      } catch (e) {
+        console.log(e);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchBookings();
+    load();
   }, []);
 
-  const toLocalDateString = (dateInput) => {
-    const d = new Date(dateInput);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  };
-
-  const getNights = (checkIn, checkOut) => {
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
+  const getNights = (ci, co) => {
+    const start = new Date(ci);
+    const end = new Date(co);
     return Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
   };
 
+  const handleCancel = async (id) => {
+    try {
+      await cancelBooking(id);
+      toast.success("Reservation cancelled successfully!");
+      setLoading(true);
+      await loadBookings();
+      setLoading(false);
+      setShowCancelModal(false);
+      setBookingToCancel(null);
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "Could not cancel reservation";
+      toast.error(msg);
+    }
+  };
+
+  const openChangeDates = (booking) => {
+    setSelectedBooking(booking);
+    setShowModal(true);
+  };
+
+  const handleSaveDates = async (newDates) => {
+    try {
+      await modifyBooking(selectedBooking.id, newDates);
+      toast.success("Reservation updated successfully!");
+      setLoading(true);
+      await loadBookings();
+      setShowModal(false);
+      setSelectedBooking(null);
+      setLoading(false);
+    } catch (e) {
+      const msg = e?.message || e?.data?.message || e?.response?.data?.message || "Could not modify reservation";
+      toast.error(msg);
+    }
+  };
+
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-lg">
+        Loading your reservations...
+      </div>
+    );
+
+  const filteredBookings = bookings.filter(
+    (b) => statusFilter === "ALL" || b.status === statusFilter
+  );
+
   return (
-    <div className="min-h-screen bg-[#D6ECF7] py-12">
-      <header className="flex justify-between items-center px-8 py-4">
-        <img src={logo} alt="Hotel Logo" className="w-40 h-auto" />
+    <div className="min-h-screen bg-white pb-20">
+      <header className="py-3">
         <UserMenu />
       </header>
 
-      <main className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8">Mis Reservas</h1>
+      {/* Header con filtro */}
+      <div className="flex justify-center items-center gap-6 mt-8">
+        <h2 className="text-3xl" style={{ fontFamily: '"Playfair Display", serif' }}>
+          Reservations
+        </h2>
+        <StatusFilter value={statusFilter} onChange={setStatusFilter} />
+      </div>
 
-        {loading ? (
-          <p className="text-center text-gray-600">Cargando reservas...</p>
-        ) : bookings.length === 0 ? (
-          <p className="text-center text-gray-600">No tienes reservas aún.</p>
-        ) : (
-          bookings.map((booking) => {
-            const room = rooms[booking.roomId];
-            if (!room) return null;
+      {/* Bookings Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 px-12 mt-10">
+        {filteredBookings.map((b) => {
+          const room = rooms[b.roomId];
+          if (!room) return null;
 
-            const nights = getNights(booking.checkIn, booking.checkOut);
-            const price = room.roomType.price;
-            const total = price * nights;
+          const nights = getNights(b.checkIn, b.checkOut);
+          const total = nights * room.roomType.price;
 
-            return (
-              <div key={booking.id} className="bg-white rounded-lg shadow-lg mb-8 overflow-hidden">
-                <header className="bg-[#f2789f] text-white px-8 py-6 flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-bold">Reserva #{booking.id}</h2>
-                    <p className="text-sm">Estado: {booking.status}</p>
+          return (
+            <div
+              key={b.id}
+              className="bg-white shadow-lg rounded-xl border border-gray-200 p-10 flex flex-col justify-between min-w-[600px] mx-auto"
+            >
+              <div>
+                <h2 className="font-serif text-xl text-center">LUMÉ HOTEL & SUITES</h2>
+                <div className="border-t border-[#d4a86a] mt-3 mb-6 w-3/4 mx-auto"></div>
+                <p className="text-right text-sm text-gray-600 font-medium">
+                  #{String(b.id).padStart(3, "0")}
+                </p>
+                <h3 className="text-xl text-center font-semibold mt-2">Booking</h3>
+              </div>
+
+              <div className="mt-8 space-y-4 text-gray-700 text-[15px]">
+                <p><strong>Name:</strong> {user.fullName}</p>
+                <p><strong>Email:</strong> {user.email}</p>
+                <p><strong>Phone Number:</strong> {user.phoneNumber}</p>
+
+                <div className="grid grid-cols-2 gap-4 pt-4">
+                  <div className="space-y-1">
+                    <p><strong>Type:</strong> {room.roomType.name}</p>
+                    <p><strong>Room Number:</strong> {room.roomNumber}</p>
                   </div>
-                </header>
-
-                <section className="p-8 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                      <h3 className="text-lg font-semibold border-b pb-2">Información del Cliente</h3>
-                      <p><strong>Nombre:</strong> {user.fullName}</p>
-                      <p><strong>Email:</strong> {user.email}</p>
-                      <p><strong>Teléfono:</strong> {user.phoneNumber}</p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-semibold border-b pb-2">Detalles de la Habitación</h3>
-                      <p><strong>Tipo:</strong> {room.roomType.name}</p>
-                      <p><strong>Descripción:</strong> {room.roomType.description}</p>
-                      <p><strong>Precio por noche:</strong> ${price}</p>
-                      <p><strong>Noches:</strong> {nights}</p>
-                      <p className="font-bold text-lg mt-2">Total: ${total}</p>
-                    </div>
+                  <div className="space-y-1 text-right">
+                    <p><strong>Status:</strong> {b.status}</p>
+                    <p><strong>Price / Night:</strong> ${room.roomType.price}</p>
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                      <h3 className="text-lg font-semibold border-b pb-2">Fechas de Reserva</h3>
-                      <p><strong>Check-in:</strong> {toLocalDateString(booking.checkIn)}</p>
-                    </div>
-                    <div>
-                      <h3 className="invisible border-b pb-2">.</h3>
-                      <p><strong>Check-out:</strong> {toLocalDateString(booking.checkOut)}</p>
-                    </div>
-                  </div>
-                </section>
-              {booking.status === 'ACTIVE' && (
-                  <div className="px-8 pb-8 flex justify-end">
-                    <button
-                      onClick={() => navigate(`/bookings/${booking.id}`)}
-                      className="bg-[#172A45] hover:bg-[#1F3A5A] text-white font-semibold px-6 py-2 rounded-xl transition"
-                    >
-                      Ver más
-                    </button>
-                  </div>
+                <div className="flex justify-between">
+                  <p><strong>Nights:</strong> {nights}</p>
+                </div>
+
+                <div className="flex justify-between pt-2">
+                  <p><strong>Check-in:</strong> {formatDate(b.checkIn)}</p>
+                  <p><strong>Check-out:</strong> {formatDate(b.checkOut)}</p>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-300 mt-6 pt-6 flex justify-between">
+                <p className="text-xl font-bold">${total}</p>
+                <p className="text-sm text-gray-600">{formatDate(b.createdAt)}</p>
+              </div>
+
+              <p className="text-center text-gray-700 mt-6 text-sm leading-relaxed">
+                Thank you for choosing Lumé Hotel & Suites.
+                <br />
+                We look forward to your stay.
+              </p>
+
+              <div className="mt-6 flex flex-col space-y-3">
+                {b.status === "PENDING" && (
+                  <button
+                    onClick={() => openChangeDates(b)}
+                    className="bg-[#D9C696] hover:bg-[#cdb883] text-black font-medium px-6 py-2 rounded-lg transition"
+                  >
+                    Change Dates
+                  </button>
+                )}
+
+                {b.status === "ACTIVE" && (
+                  <button
+                    onClick={() => navigate(`/bookings/${b.id}`)}
+                    className="bg-[#172A45] hover:bg-[#1F3A5A] text-white font-medium px-6 py-2 rounded-lg transition"
+                  >
+                    View more
+                  </button>
+                )}
+
+                {["PENDING", "CONFIRMED", "ACTIVE"].includes(b.status) && (
+                  <button
+                    onClick={() => {
+                      setBookingToCancel(b.id);
+                      setShowCancelModal(true);
+                    }}
+                    className="bg-[#C96E5E] hover:bg-[#B86254] text-black font-medium px-6 py-2 rounded-lg transition"
+                  >
+                    Cancel reservation
+                  </button>
                 )}
               </div>
-            );
-          })
-        )}
-      </main>
-
-      {}
-      <div className="text-center mt-6">
-        <button
-          type="button"
-          onClick={() => navigate("/rooms")}
-          className="bg-[#f2789f] hover:bg-[#e76b91] text-white font-semibold px-6 py-2 rounded-full shadow-md transition duration-200"
-        >
-          Regresar al menú
-        </button>
+            </div>
+          );
+        })}
       </div>
+
+      {filteredBookings.length === 0 && (
+        <div className="text-center text-gray-500 mt-16">
+          <p className="text-lg">No reservations found for this filter.</p>
+        </div>
+      )}
+
+      {showModal && selectedBooking && (
+        <ChangeDatesModal
+          booking={selectedBooking}
+          onClose={() => setShowModal(false)}
+          onSave={handleSaveDates}
+        />
+      )}
+
+      {showCancelModal && bookingToCancel && (
+        <ConfirmCancelModal
+          bookingId={bookingToCancel}
+          onClose={() => setShowCancelModal(false)}
+          onConfirm={handleCancel}
+        />
+      )}
     </div>
   );
 };
