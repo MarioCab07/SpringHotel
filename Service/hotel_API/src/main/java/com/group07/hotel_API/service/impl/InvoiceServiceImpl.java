@@ -61,7 +61,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         String code = createInvoiceSequence();
 
         Booking booking = bookingRepository.findById(invoiceData.getIdBooking()).orElseThrow(()-> new BookingNotFoundException("Booking not found"));
-        Transmitter enterprise =  transmitterRepository.findByName("Lume Hotel & Suits").orElseThrow(()-> new RuntimeException("Transmitter not found"));
+        Transmitter enterprise =  transmitterRepository.findAll().get(0);
         Reason reason = reasonRepository.findByName(invoiceData.getReason()).orElseThrow(()-> new RuntimeException("Reason not found"));
 
 

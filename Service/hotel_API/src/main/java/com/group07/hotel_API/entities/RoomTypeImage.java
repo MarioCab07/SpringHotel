@@ -2,6 +2,7 @@ package com.group07.hotel_API.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import net.minidev.json.annotate.JsonIgnore;
 
 @Entity
 @Table(name = "room_type_image", schema = "public")
@@ -26,5 +27,8 @@ public class RoomTypeImage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_type_id", referencedColumnName = "id")
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private RoomType roomType;
 }
